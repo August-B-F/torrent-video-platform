@@ -1,0 +1,296 @@
+/* Navbar.css */
+/* ... (previous .app-navbar, .navbar-left, .navbar-links-desktop, .navbar-link styles remain) ... */
+
+.app-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 0 20px; /* Consistent padding */
+    /* background-color: var(--navbar-background, rgba(14, 16, 21, 0.85)); */
+    /* backdrop-filter: blur(10px); */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 35px;
+    box-sizing: border-box;
+  }
+  
+  .navbar-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+  
+  .navbar-links-desktop {
+    display: flex;
+    gap: 25px;
+    height: 100%;
+    align-items: center;
+  }
+  
+  .navbar-link {
+    color: var(--secondary-text-color, #918F98);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0 5px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease, border-bottom-color 0.2s ease;
+    border-bottom: 3px solid transparent;
+    box-sizing: border-box;
+  }
+  
+  .navbar-link.active,
+  .navbar-link:hover {
+    color: var(--primary-text-color, #E0E0E0);
+  }
+  .navbar-link.active {
+    border-bottom-color: var(--primary-text-color, #E0E0E0);
+  }
+  
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Reduced gap to accommodate search expansion */
+  }
+  
+  /* Search Container and Input Styles */
+  .navbar-search-container {
+    display: flex;
+    align-items: center;
+    position: relative; /* For positioning the input */
+  }
+  
+  .search-icon-btn { /* This is the main button for the icon */
+    /* Styles for navbar-icon-button already cover this if it shares the class */
+  }
+  .navbar-icon-button {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color, #918F98);
+    cursor: pointer;
+    padding: 8px; /* Slightly more clickable area */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .navbar-icon-button svg {
+      width: 20px;
+      height: 20px;
+  }
+  .navbar-icon-button:hover {
+    color: var(--primary-text-color, #E0E0E0);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .navbar-icon-button.active { /* For search icon when search is active */
+    color: var(--accent-color, #6A5AF9);
+  }
+  
+  .search-input-form {
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-input-field {
+    width: 0; /* Initially collapsed */
+    opacity: 0;
+    visibility: hidden;
+    padding: 8px 10px 8px 35px; /* Left padding for icon */
+    border: none;
+    border-radius: 20px; /* Rounded like the image */
+    background-color: rgba(40, 43, 50, 0.8); /* Semi-transparent dark background */
+    color: var(--primary-text-color, #E0E0E0);
+    font-size: 0.9rem;
+    outline: none;
+    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, padding 0.3s ease-in-out;
+    margin-left: -30px; /* Overlap with icon initially then push icon left */
+    position: relative;
+    box-sizing: border-box;
+  }
+  
+  .navbar-search-container.active .search-input-field {
+    width: 220px; /* Expanded width */
+    opacity: 1;
+    visibility: visible;
+    margin-left: 0; /* Normal margin */
+    padding-left: 15px; /* Adjust padding when icon is part of button, not inside input bg */
+  }
+  
+  /* To place icon inside input field background (alternative styling) */
+  /*
+  .navbar-search-container.active .search-icon-btn {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; // So it doesn't interfere with input click
+    color: var(--secondary-text-color); // Icon color inside input
+  }
+  .navbar-search-container.active .search-input-field {
+    padding-left: 35px; // Space for the icon
+  }
+  */
+  
+  /* Simplified: Icon remains as a button, input expands next to it */
+  .navbar-search-container.active .search-icon-btn {
+    margin-right: -5px; /* Adjust spacing when input is active */
+    /* color: var(--accent-color); // Keep it active looking */
+  }
+  
+  
+  /* Profile Dropdown (styles remain largely the same) */
+  .navbar-profile-container {
+    position: relative;
+  }
+  .profile-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background-color: var(--card-background-color, #1A1D24);
+    border: 1px solid var(--border-color, #22252A);
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 180px;
+    z-index: 1001;
+    overflow: hidden;
+  }
+  .profile-dropdown a,
+  .profile-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    color: var(--primary-text-color, #E0E0E0);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+  }
+  .profile-dropdown a:hover,
+  .profile-dropdown button:hover {
+    background-color: var(--accent-color, #6A5AF9);
+    color: #FFFFFF;
+  }
+  
+  /* Mobile Menu Button (styles remain largely the same) */
+  .navbar-mobile-menu-button {
+    display: none;
+    color: var(--primary-text-color, #E0E0E0);
+  }
+  
+  /* Mobile Menu (styles remain largely the same) */
+  .navbar-mobile-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background-color: var(--navbar-background, rgba(14, 16, 21, 0.98));
+    backdrop-filter: blur(10px);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color, #22252A);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    z-index: 999;
+  }
+  .navbar-mobile-menu.open {
+      display: flex;
+  }
+  .mobile-search-form {
+      display: flex;
+      padding: 10px 20px;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color, #22252A);
+  }
+  .mobile-search-input {
+      flex-grow: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color, #333842);
+      border-radius: 15px;
+      background-color: rgba(40, 43, 50, 0.7);
+      color: var(--primary-text-color, #E0E0E0);
+      font-size: 0.9rem;
+      outline: none;
+  }
+  .mobile-search-submit-btn {
+      background: none;
+      border: none;
+      color: var(--primary-text-color);
+      padding: 5px;
+      cursor: pointer;
+  }
+  .mobile-search-submit-btn svg {
+      width: 20px; height: 20px;
+  }
+  
+  .navbar-mobile-link {
+    color: var(--primary-text-color, #E0E0E0);
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 15px 30px;
+    display: block;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color, #22252A);
+    background: none;
+    border-left: 3px solid transparent;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .navbar-mobile-link:last-of-type { /* Target the actual last link if logout is a button */
+      border-bottom: none;
+  }
+  .navbar-mobile-link.active,
+  .navbar-mobile-link:hover {
+    background-color: rgba(var(--accent-rgb, 106, 90, 249), 0.1);
+    color: var(--accent-color, #6A5AF9);
+    border-left-color: var(--accent-color, #6A5AF9);
+  }
+  .mobile-menu-divider { /* This is used for the logout button separation */
+      width: 90%;
+      margin: 10px auto;
+      border-color: var(--border-color);
+  }
+  
+  
+  /* Responsive Adjustments (styles remain largely the same) */
+  @media (max-width: 768px) {
+    .app-navbar {
+      padding: 0 15px; /* Reduced padding for mobile */
+    }
+    .navbar-links-desktop {
+      display: none;
+    }
+    .navbar-mobile-menu-button {
+      display: flex;
+    }
+    .navbar-search-container.active .search-input-field {
+      width: 150px; /* Adjust expanded search for mobile navbar */
+    }
+    .navbar-right {
+      gap: 5px; /* Tighter gap on mobile for icons */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .navbar-search-container.active .search-input-field {
+      width: calc(100vw - 150px); /* Example: make it take more available space */
+      max-width: 180px;
+    }
+     .navbar-profile-container {
+      display: none; /* Optionally hide profile on very small screens if space is tight */
+    }
+    .navbar-right {
+        /* If profile is hidden, search can take its place or be more central */
+    }
+  }

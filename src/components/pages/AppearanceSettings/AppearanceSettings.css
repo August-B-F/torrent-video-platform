@@ -1,0 +1,127 @@
+/* AppearanceSettings.css */
+.appearance-settings-content {
+    padding: 0px 10px; /* Add some padding if not already handled by parent */
+  }
+  
+  .settings-section-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color); /* Use theme variable */
+    margin-bottom: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color-soft); /* Theme variable */
+  }
+  
+  .settings-section-description {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary); /* Theme variable */
+    margin-bottom: 25px;
+  }
+  
+  .setting-item-group {
+    margin-bottom: 30px;
+  }
+  
+  .setting-item-group-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color); /* Theme variable */
+    margin-bottom: 15px;
+  }
+  
+  /* Theme Options Styling */
+  .theme-options {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .theme-option {
+    cursor: pointer;
+    padding: 10px;
+    border: 2px solid var(--border-color-soft); /* Theme variable */
+    border-radius: 8px;
+    text-align: center;
+    width: 120px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .theme-option:hover {
+    border-color: var(--accent-color-main); /* Theme variable */
+  }
+  
+  .theme-option.selected {
+    border-color: var(--accent-color-main); /* Theme variable */
+    box-shadow: 0 0 0 2px var(--accent-color-main); /* Theme variable */
+  }
+  
+  .theme-option input[type="radio"] {
+    display: none; /* Hide actual radio button */
+  }
+  
+  .theme-preview {
+    width: 100px;
+    height: 60px;
+    border-radius: 4px;
+    margin: 0 auto 8px auto;
+    overflow: hidden;
+    border: 1px solid var(--border-color); /* Theme variable */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .light-preview {
+    background-color: #f0f2f5; /* Example light theme BG */
+  }
+  .light-preview .preview-header {
+    height: 15px;
+    background-color: #e0e0e0; /* Example light header */
+  }
+  .light-preview .preview-content {
+    flex-grow: 1;
+    color: #333; /* Example light text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .dark-preview {
+    background-color: #1c1e22; /* Example dark theme BG */
+  }
+  .dark-preview .preview-header {
+    height: 15px;
+    background-color: #2a2d34; /* Example dark header */
+  }
+  .dark-preview .preview-content {
+    flex-grow: 1;
+    color: #d0d0d0; /* Example dark text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  /* Accent Color Options (Placeholder Styling) */
+  .accent-color-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .accent-color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color); /* Theme variable */
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .accent-color-swatch:hover {
+    transform: scale(1.1);
+  }
+  .accent-color-swatch.active {
+    box-shadow: 0 0 0 3px var(--text-color); /* Theme variable */
+  }

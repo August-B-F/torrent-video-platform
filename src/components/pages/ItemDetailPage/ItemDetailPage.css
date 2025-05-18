@@ -1,0 +1,279 @@
+/* ItemDetailPage.css */
+/* Uses .page-container, .page-main-content, .loading-message, .error-message, .empty-message from shared styles */
+
+.item-detail-page .page-main-content {
+    max-width: 100%; /* Allow full width for hero */
+    padding: 0; /* Remove default padding if hero is full bleed */
+  }
+  
+  .detail-hero {
+    width: 100%;
+    min-height: 70vh; /* Make hero section substantial */
+    background-size: cover;
+    background-position: center 20%; /* Focus higher up */
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    align-items: flex-end; /* Align content towards the bottom */
+  }
+  
+  .detail-hero-overlay {
+    width: 100%;
+    background: linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 15%, rgba(var(--bg-primary-rgb, 14,16,21), 0.85) 40%, rgba(var(--bg-primary-rgb, 14,16,21), 0.3) 70%, transparent 100%);
+    padding: 40px; /* Standard page padding for content within overlay */
+    padding-top: 10vh; /* More padding at the top of the overlay for balance */
+    box-sizing: border-box;
+  }
+  
+  
+  .detail-header {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    max-width: 1200px; /* Limit content width within hero */
+    margin: 0 auto; /* Center content block */
+  }
+  
+  .detail-poster {
+    width: 100%;
+    max-width: 220px; /* Slightly smaller for more info space */
+    min-width: 180px;
+    height: auto;
+    aspect-ratio: 2/3;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border-color-soft, #22252A);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+  }
+  
+  .detail-info {
+    flex: 1;
+    padding-top: 10px; /* Align top of text with poster if desired, or adjust */
+    color: var(--text-primary);
+  }
+  
+  .detail-title {
+    font-size: 2.5rem; /* Large title */
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 10px;
+    line-height: 1.15;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  }
+  
+  .detail-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px; /* Row and column gap */
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+  }
+  .detail-meta-row span:not(:empty):not(:last-child):after {
+    content: "•";
+    margin-left: 12px;
+    opacity: 0.6;
+  }
+  .meta-certification {
+      border: 1px solid var(--text-secondary);
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.8em;
+      text-transform: uppercase;
+  }
+  
+  
+  .detail-rating {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #FFC107; /* Gold for star */
+    margin-bottom: 15px;
+  }
+  .detail-rating .rating-source {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-left: 5px;
+  }
+  
+  .detail-description {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-secondary); /* Or a slightly brighter var(--text-primary-muted) */
+    margin-bottom: 25px;
+    max-width: 700px; /* Limit description width for readability */
+    /* Limit lines shown */
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Show up to 4 lines */
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Allow expanding description (optional JS needed) */
+  /* .detail-description.expanded {
+    -webkit-line-clamp: unset;
+  } */
+  
+  .detail-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+  }
+  /* Using .hero-button styles from HomeStyle.css or global styles */
+  /* Ensure .hero-button .primary and .secondary are defined globally or copy here */
+  .hero-button { /* Copied from HomeStyle for completeness */
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+  }
+  .hero-button.primary {
+    background-color: var(--primary-text-color, #E0E0E0);
+    color: var(--bg-primary, #0E1015);
+    border-color: var(--primary-text-color, #E0E0E0);
+  }
+  .hero-button.primary:hover { background-color: #FFFFFF; transform: scale(1.03); }
+  .hero-button.secondary {
+    background-color: rgba(100, 100, 100, 0.4);
+    color: var(--primary-text-color, #E0E0E0);
+    border-color: rgba(150, 150, 150, 0.5);
+  }
+  .hero-button.secondary:hover { background-color: rgba(120, 120, 120, 0.5); border-color: rgba(180, 180, 180, 0.6); transform: scale(1.03); }
+  
+  
+  /* Sections below hero (cast, episodes, streams) */
+  .detail-section {
+    padding: 30px 40px; /* Standard page padding for sections below hero */
+    max-width: 1200px;
+    margin: 0 auto; /* Center content block */
+    border-bottom: 1px solid var(--border-color-soft);
+  }
+  .detail-section:last-child {
+      border-bottom: none;
+  }
+  
+  .detail-section h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  
+  /* Cast Section */
+  .cast-list {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto; /* Horizontal scroll for cast */
+      padding-bottom: 15px; /* Space for scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-color-main) var(--bg-secondary);
+  }
+  .cast-list::-webkit-scrollbar { height: 6px; }
+  .cast-list::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 3px; }
+  .cast-list::-webkit-scrollbar-thumb { background-color: var(--text-secondary); border-radius: 3px; }
+  
+  .cast-member {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 90px; /* Fixed width for cast member cards */
+      flex-shrink: 0;
+  }
+  .cast-member-image-placeholder {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background-color: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem; /* For emoji icon */
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      border: 1px solid var(--border-color-soft);
+  }
+  .cast-member-name {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.3;
+      /* Allow 2 lines for name */
+      max-height: 2.6em; 
+      overflow: hidden;
+  }
+  
+  
+  /* Episodes & Streams (reusing styles from previous ItemDetailPage.css if they exist) */
+  .episode-list,
+  .stream-list {
+    list-style: none;
+    padding: 0;
+  }
+  .episode-list li {
+    background-color: rgba(var(--card-rgb), 0.3); /* Use card with alpha */
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color-soft);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+  .episode-list li:hover {
+      background-color: rgba(var(--card-rgb), 0.5);
+  }
+  .episode-list li .episode-overview {
+      display: block;
+      font-size: 0.8em;
+      color: var(--text-secondary);
+      opacity: 0.8;
+      margin-top: 5px;
+      /* Limit lines */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;  
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+  
+  /* Stream placeholder message */
+  .stream-placeholder-message {
+      padding: 20px;
+      background-color: rgba(var(--card-rgb), 0.3);
+      border: 1px dashed var(--border-color);
+      border-radius: 5px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-style: italic;
+  }
+  
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .detail-hero-overlay { padding: 20px; padding-top: 5vh;}
+    .detail-header { flex-direction: column; align-items: center; text-align: center; gap: 20px; }
+    .detail-poster { max-width: 180px; margin: 0 auto 15px auto; }
+    .detail-title { font-size: 2rem; }
+    .detail-meta-row { justify-content: center; font-size: 0.85rem; }
+    .detail-rating { font-size: 1rem; }
+    .detail-description { font-size: 0.9rem; -webkit-line-clamp: 3; }
+    .detail-actions { justify-content: center; flex-wrap: wrap; }
+    .hero-button { padding: 10px 18px; font-size: 0.9rem; }
+    .detail-section { padding: 20px; }
+    .detail-section h2 { font-size: 1.4rem; }
+  }
+  
+  @media (max-width: 480px) {
+    .detail-title { font-size: 1.7rem; }
+    .detail-poster { max-width: 150px; }
+    .cast-member { width: 75px; }
+    .cast-member-image-placeholder { width: 60px; height: 60px; font-size: 1.5rem; }
+    .cast-member-name { font-size: 0.75rem; }
+  }

@@ -1,0 +1,92 @@
+/* FolderContentView.css */
+.folder-content-view {
+    /* Uses .page-container styles if wrapped, or add padding here */
+  }
+  
+  .folder-content-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  
+  .back-to-folders-btn {
+    padding: 8px 15px;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .back-to-folders-btn:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .folder-view-title {
+    margin-bottom: 0; /* page-title class usually has margin */
+    font-size: 1.5rem; /* Match other page titles */
+  }
+  .folder-content-header span {
+      color: var(--text-secondary);
+      font-size: 1rem;
+  }
+  
+  .folder-items-grid {
+    /* Reusing .media-grid styles */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Adjust item size */
+    gap: 18px;
+  }
+  .folder-items-grid .media-grid-item {
+      aspect-ratio: 2 / 3;
+  }
+  
+  .folder-content-grid-item-wrapper {
+      position: relative; /* For action buttons */
+  }
+  .folder-content-grid-item-wrapper .media-grid-item {
+      height: 100%;
+  }
+  
+  .item-actions-overlay {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+  }
+  .folder-content-grid-item-wrapper:hover .item-actions-overlay {
+      opacity: 1;
+  }
+  
+  .item-action-btn {
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 16px;
+      line-height: 26px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  }
+  .item-action-btn:hover {
+      background-color: rgba(var(--accent-rgb), 0.8);
+  }
+  
+  /* Ensure .drag-overlay-item is styled (can be shared with WatchlistStyle.css) */
+  .drag-overlay-item .media-grid-item {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    transform: scale(1.05);
+    width: 160px; /* Match item size in grid */
+    height: 240px; /* Match item size in grid */
+  }

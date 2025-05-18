@@ -1,0 +1,89 @@
+/* CreateFolderModal.css */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100; /* Above navbar */
+  }
+  
+  .modal-content {
+    background-color: var(--bg-card, #1A1D24);
+    padding: 25px 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    border: 1px solid var(--border-color, #22252A);
+  }
+  
+  .modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: var(--text-primary, #E0E0E0);
+    text-align: center;
+  }
+  
+  .modal-input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color, #333842);
+    border-radius: 5px;
+    background-color: var(--bg-input, #12151B);
+    color: var(--text-primary, #E0E0E0);
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  .modal-input:focus {
+    outline: none;
+    border-color: var(--accent-color-main, #6A5AF9);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.3);
+  }
+  
+  .modal-error {
+      color: var(--warning-color, #F75A58);
+      font-size: 0.85rem;
+      margin-bottom: 15px;
+      text-align: center;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .modal-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+  }
+  
+  .modal-button.cancel {
+    background-color: var(--bg-secondary, #12151B);
+    color: var(--text-secondary, #918F98);
+    border: 1px solid var(--border-color, #333842);
+  }
+  .modal-button.cancel:hover {
+    opacity: 0.8;
+  }
+  
+  .modal-button.create {
+    background-color: var(--accent-color-main, #6A5AF9);
+    color: var(--text-on-accent, #FFFFFF);
+  }
+  .modal-button.create:hover {
+    background-color: var(--accent-color-hover, #5848e3);
+  }

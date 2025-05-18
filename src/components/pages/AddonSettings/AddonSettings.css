@@ -1,0 +1,152 @@
+/* AddonSettings.css */
+/* Uses .page-container, .page-main-content, .page-title from shared styles if available */
+
+.addon-settings-page .page-main-content {
+    max-width: 800px; /* Narrower content for settings */
+  }
+  
+  .addon-form {
+    background-color: var(--card-background-color, #1A1D24);
+    padding: 20px 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color, #22252A);
+  }
+  
+  .form-description {
+      font-size: 0.9rem;
+      color: var(--secondary-text-color);
+      margin-bottom: 15px;
+  }
+  
+  .addon-form .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .addon-form label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--secondary-text-color, #918F98);
+    margin-bottom: 5px;
+  }
+  
+  .addon-url-input {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--input-background-color, #12151B);
+    border: 1px solid var(--border-color, #333842);
+    border-radius: 5px;
+    color: var(--primary-text-color, #E0E0E0);
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  .addon-url-input:focus {
+    outline: none;
+    border-color: var(--accent-color, #6A5AF9);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.3);
+  }
+  
+  .settings-error, .settings-success {
+      font-size: 0.9rem;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 10px;
+      text-align: center;
+  }
+  .settings-error {
+      background-color: rgba(var(--warning-rgb, 247, 90, 88), 0.15);
+      color: var(--warning-color, #F75A58);
+      border: 1px solid var(--warning-color, #F75A58);
+  }
+  .settings-success {
+      background-color: rgba(var(--success-rgb, 76, 175, 80), 0.15);
+      color: var(--success-color, #4CAF50);
+      border: 1px solid var(--success-color, #4CAF50);
+  }
+  
+  
+  .addon-submit-button {
+    background-color: var(--accent-color, #6A5AF9);
+    color: #FFFFFF;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .addon-submit-button:hover {
+    background-color: #5848e3; /* Darker accent */
+  }
+  
+  .added-addons-list .list-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--primary-text-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+  }
+  
+  .added-addons-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .addon-item {
+    background-color: rgba(var(--card-rgb, 26, 29, 36), 0.7); /* Use card background with alpha */
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+  }
+  
+  .addon-name {
+    font-weight: 500;
+    color: var(--primary-text-color);
+  }
+  .addon-url-display {
+      font-size: 0.8rem;
+      color: var(--secondary-text-color);
+      margin-left: 10px;
+      word-break: break-all;
+      flex-shrink: 1; /* Allow URL to shrink if name is long */
+      margin-right: 10px;
+  }
+  
+  .remove-addon-button {
+    background-color: var(--warning-color, #F75A58);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent button from shrinking */
+  }
+  .remove-addon-button:hover {
+    background-color: #d84341; /* Darker warning */
+  }
+  
+  .cors-notice {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: rgba(var(--card-rgb, 26, 29, 36), 0.5);
+    border: 1px solid var(--border-color, #22252A);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--secondary-text-color);
+  }
+  .cors-notice code {
+    background-color: rgba(0,0,0,0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+
+  /* Assuming .empty-message is styled globally or in shared CSS */

@@ -1,0 +1,50 @@
+/* DiscoverStyle.css */
+/* Uses .page-container, .page-main-content, .page-title, .media-grid etc. from shared styles */
+
+.discover-header {
+    margin-bottom: 20px; /* Space below title */
+}
+
+.filters-panel {
+  display: flex;
+  flex-wrap: wrap; /* Allow filters to wrap on smaller screens */
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: rgba(var(--card-rgb), 0.3);
+  border-radius: 6px;
+  border: 1px solid var(--border-color-soft);
+}
+
+.filter-select {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-width: 150px; /* Minimum width for selects */
+}
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent-color-main);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+}
+.filter-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.filter-reset-btn {
+  padding: 8px 15px;
+  background-color: var(--secondary-text-color); /* Or a neutral color */
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+.filter-reset-btn:hover {
+  background-color: var(--text-secondary); /* Darker shade */
+}

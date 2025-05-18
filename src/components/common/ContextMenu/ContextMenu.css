@@ -1,0 +1,33 @@
+/* ContextMenu.css */
+.context-menu {
+    position: fixed; /* Use fixed to position relative to viewport */
+    background-color: var(--bg-card, #1A1D24);
+    border: 1px solid var(--border-color, #333842);
+    border-radius: 6px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1200; /* Above modal overlay */
+    min-width: 150px;
+  }
+  
+  .context-menu ul {
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+  }
+  
+  .context-menu li {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-primary, #E0E0E0);
+    transition: background-color 0.15s ease;
+  }
+  
+  .context-menu li:hover {
+    background-color: var(--accent-color-main, #6A5AF9);
+    color: var(--text-on-accent, #FFFFFF);
+  }
+  
+  .context-menu li:not(:last-child) {
+    border-bottom: 1px solid var(--border-color-soft, #22252A);
+  }
