@@ -6,9 +6,11 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Reset selection when modal opens or folders change
-    setSelectedFolderIds([]);
-  }, [isOpen, folders]);
+    if (isOpen) {
+      setSelectedFolderIds([]);
+      setError('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -18,6 +20,7 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
         ? prevSelected.filter(id => id !== folderId)
         : [...prevSelected, folderId]
     );
+    if (error) setError('');
   };
 
   const handleSubmit = (e) => {
@@ -26,7 +29,7 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
       setError('Please select at least one list.');
       return;
     }
-    onItemAddMultiple(selectedFolderIds); // Callback with an array of folder IDs
+    onItemAddMultiple(selectedFolderIds);
     setError('');
     onClose();
   };
@@ -37,7 +40,7 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
         <h2>Add "{itemTitle}" to...</h2>
         {folders.length > 0 ? (
           <form onSubmit={handleSubmit}>
-            <p>Select one or more lists:</p>
+            <p className="select-folder-instruction">Select one or more lists:</p>
             <div className="folder-selection-list">
               {folders.map(folder => (
                 <label key={folder.id} className="folder-select-item">
@@ -47,7 +50,7 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
                     onChange={() => handleCheckboxChange(folder.id)}
                   />
                   <span className="checkbox-custom"></span>
-                  <span className="folder-select-name">{folder.name} ({folder.items.length} items)</span>
+                  <span className="folder-select-name">{folder.name} <span className="item-count">({folder.items.length} items)</span></span>
                 </label>
               ))}
             </div>
@@ -56,14 +59,14 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
               <button type="button" onClick={onClose} className="modal-button cancel">
                 Cancel
               </button>
-              <button type="submit" className="modal-button create">
+              <button type="submit" className="modal-button create" disabled={selectedFolderIds.length === 0}>
                 Add to Selected ({selectedFolderIds.length})
               </button>
             </div>
           </form>
         ) : (
           <>
-            <p className="empty-message">You don't have any lists yet. Please create one on the "My Lists" page first.</p>
+            <p className="empty-message modal-empty-message">You don't have any lists yet. Please create one on the "My Lists" page first.</p>
             <div className="modal-actions">
                 <button type="button" onClick={onClose} className="modal-button cancel">
                     OK

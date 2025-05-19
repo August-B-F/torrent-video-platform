@@ -1,3 +1,4 @@
+// src/components/contexts/AddonContext.jsx
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import AddonClient from 'stremio-addon-client';
 
@@ -5,7 +6,7 @@ export const AddonContext = createContext({
   cinemeta: null,
   isLoadingCinemeta: true,
   cinemetaError: null,
-  refreshCinemeta: () => Promise.resolve(), // Function to allow re-initialization
+  refreshCinemeta: () => Promise.resolve(),
 });
 
 export const AddonProvider = ({ children }) => {
@@ -16,42 +17,72 @@ export const AddonProvider = ({ children }) => {
   const initializeCinemeta = useCallback(async () => {
     setIsLoadingCinemeta(true);
     setCinemetaError(null);
-    setCinemeta(null); // Clear previous instance
+    setCinemeta(null); 
 
     const storedAddons = JSON.parse(localStorage.getItem('stremioUserAddons') || '[]');
-    // Try to find an addon explicitly named or URL-matched to Cinemeta
     let cinemetaEntry = storedAddons.find(a => 
         a.name?.toLowerCase().includes('cinemeta') || 
-        a.url?.includes('cinemeta.strem.io') ||
-        a.id === 'stremio.cinemeta' // Official Cinemeta v3 ID
+        a.url?.includes('cinemeta.strem.io') || 
+        a.manifest?.id === 'com.linvo.cinemeta' || 
+        a.id === 'stremio.cinemeta' 
     );
 
-    // If not found by specific identifiers, and only one addon is configured, assume it's Cinemeta
     if (!cinemetaEntry && storedAddons.length === 1) {
-        console.warn("Only one addon found, attempting to use it as Cinemeta. Please ensure it's a Cinemeta manifest URL in settings.");
+        console.warn("AddonContext: Only one addon found, using it as Cinemeta.");
         cinemetaEntry = storedAddons[0];
     }
-
+    
+    // console.log("AddonContext: Cinemeta entry:", cinemetaEntry);
 
     if (cinemetaEntry && cinemetaEntry.url) {
       try {
-        console.log(`Initializing Cinemeta from URL: ${cinemetaEntry.url}`);
-        const { addon } = await AddonClient.detectFromURL(cinemetaEntry.url);
-        // detectFromURL can return an AddonCollection or AddonInterface
-        const cinemetaInterface = addon.addons && addon.addons.length > 0 ? addon.addons[0] : addon;
-        
-        if (cinemetaInterface && cinemetaInterface.manifest && (cinemetaInterface.manifest.id === 'stremio.cinemeta' || cinemetaInterface.manifest.name?.toLowerCase().includes('cinemeta'))) {
-            setCinemeta(cinemetaInterface);
-            console.log('Cinemeta initialized successfully:', cinemetaInterface.manifest);
+        // console.log(`AddonContext: Initializing Cinemeta from URL: ${cinemetaEntry.url}`);
+        const detectionResult = await AddonClient.detectFromURL(cinemetaEntry.url);
+        let addonInterface;
+
+        if (detectionResult && detectionResult.addon) { 
+            addonInterface = detectionResult.addon;
+        } else if (detectionResult && Array.isArray(detectionResult.addons) && detectionResult.addons.length > 0) { 
+            addonInterface = detectionResult.addons[0];
+        } else if (detectionResult && detectionResult.manifest) { 
+            addonInterface = detectionResult;
         } else {
-            throw new Error("Detected addon is not Cinemeta or manifest is incompatible.");
+            throw new Error("Addon detection did not return a recognizable addon structure.");
+        }
+        
+        // console.log("AddonContext: Raw detected addon/collection:", detectionResult);
+        // console.log("AddonContext: Chosen addonInterface:", addonInterface);
+
+        if (addonInterface && addonInterface.manifest) {
+            console.log("AddonContext: --- START OF MANIFEST DEBUG ---");
+            console.log("AddonContext: Manifest ID:", addonInterface.manifest.id);
+            console.log("AddonContext: Manifest Name:", addonInterface.manifest.name);
+            console.log("AddonContext: Manifest Resources:", JSON.stringify(addonInterface.manifest.resources, null, 2));
+            console.log("AddonContext: Manifest Types:", JSON.stringify(addonInterface.manifest.types, null, 2));
+            console.log("AddonContext: --- END OF MANIFEST DEBUG ---");
+            
+            const isRecognizedCinemeta = addonInterface.manifest.id === 'com.linvo.cinemeta' || 
+                                         addonInterface.manifest.name?.toLowerCase().includes('cinemeta');
+
+            if (isRecognizedCinemeta) {
+                if (typeof addonInterface.get === 'function' && typeof addonInterface.isSupported === 'function') {
+                    setCinemeta(addonInterface);
+                    console.log(`AddonContext: Cinemeta (id: ${addonInterface.manifest.id}, name: "${addonInterface.manifest.name}") initialized.`);
+                } else {
+                    throw new Error(`Detected Cinemeta (id: ${addonInterface.manifest.id}) is missing critical methods (get/isSupported).`);
+                }
+            } else {
+                throw new Error(`Detected addon (id: ${addonInterface.manifest.id}, name: "${addonInterface.manifest.name}") is not recognized as Cinemeta.`);
+            }
+        } else {
+            throw new Error("Detected addon interface is missing a manifest.");
         }
       } catch (e) {
-        console.error('Failed to initialize Cinemeta:', e);
-        setCinemetaError(`Failed to load Cinemeta from "${cinemetaEntry.name || cinemetaEntry.url}": ${e.message}. Check URL and CORS.`);
+        console.error('AddonContext: Critical error initializing Cinemeta:', e);
+        setCinemetaError(`Failed to load Cinemeta: ${e.message}. Please check addon URL and console for details.`);
       }
     } else {
-      setCinemetaError("Cinemeta addon is not configured. Please add its manifest URL in Settings > Manage Addons. Recommended: https://cinemeta-live.strem.io/manifest.json");
+      setCinemetaError("Cinemeta addon is not configured. Please add its manifest URL in Settings. Try: https://v3-cinemeta.strem.io/manifest.json");
     }
     setIsLoadingCinemeta(false);
   }, []);

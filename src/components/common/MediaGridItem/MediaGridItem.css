@@ -1,50 +1,32 @@
 /* MediaGridItem.css */
+.media-grid-item-link { /* Added this wrapper in MediaGridItem.jsx if not present */
+  display: block; /* Important for layout */
+  text-decoration: none;
+  color: inherit;
+  height: 100%; /* Make the link take full cell height */
+}
+
 .media-grid-item {
-    position: relative;
-    border-radius: 6px; /* Consistent with other thumbnails */
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    background-color: var(--card-background-color, #1A1D24); /* Fallback for loading */
-  }
-  
-  .media-grid-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-  }
-  
-  .grid-item-poster {
-    display: block;
-    width: 100%;
-    height: 100%; /* Will be controlled by grid aspect-ratio or explicit height */
-    object-fit: cover;
-    border-radius: 6px; /* Match container if image is only content */
-  }
-  
-  /* Optional overlay styling */
-  /*
-  .grid-item-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
-    padding: 10px;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  
-  .media-grid-item:hover .grid-item-overlay {
-    opacity: 1;
-  }
-  
-  .grid-item-title {
-    color: var(--primary-text-color, #E0E0E0);
-    font-size: 0.9em;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  */
+  position: relative;
+  border-radius: 6px; 
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background-color: var(--bg-secondary, #12151B); /* Fallback for loading or if image fails */
+  height: 100%; /* Make the div take full cell height, aspect-ratio on parent grid cell will control dimensions */
+  display: flex; /* To ensure poster fills it */
+}
+
+.media-grid-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.grid-item-poster {
+  display: block;
+  width: 100%;
+  height: 100%; 
+  object-fit: cover; /* This will ensure the image covers the area, cropping if necessary */
+  border-radius: 6px; /* Match container if image is only content */
+}

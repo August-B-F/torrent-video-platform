@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePopup } from '../../../contexts/PopupContext'; // Adjust path as needed
+import { usePopup } from '../../contexts/PopupContext';
 import './InfoPopupDisplay.css';
 
 const InfoPopupDisplay = () => {
@@ -12,7 +12,7 @@ const InfoPopupDisplay = () => {
   return (
     <div className={`info-popup-banner ${popup.type} ${popup.visible ? 'show' : ''}`}>
       <span>{popup.message}</span>
-      <button onClick={hidePopup} className="info-popup-close-btn">&times;</button>
+      <button onClick={hidePopup} className="info-popup-close-btn" aria-label="Close popup">&times;</button>
     </div>
   );
 };

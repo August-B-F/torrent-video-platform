@@ -19,13 +19,56 @@
     align-items: center;
     gap: 15px;
   }
-  .info-popup-banner.show { transform: translate(-50%, 0); opacity: 1; }
-  .info-popup-banner.info { background-color: var(--accent-color-main, #6A5AF9); color: var(--text-on-accent, #FFFFFF); border: 1px solid rgba(255,255,255,0.2); }
-  .info-popup-banner.warning { background-color: var(--warning-color, #F75A58); color: #FFFFFF; border: 1px solid rgba(255,255,255,0.2); }
-  .info-popup-banner.success { background-color: var(--success-color, #4CAF50); color: #FFFFFF; border: 1px solid rgba(255,255,255,0.2); }
-  .info-popup-close-btn { background: none; border: none; color: inherit; font-size: 1.5rem; font-weight: bold; line-height: 1; padding: 0 5px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s ease; }
-  .info-popup-close-btn:hover { opacity: 1; }
+  
+  .info-popup-banner.show {
+    transform: translate(-50%, 0); 
+    opacity: 1;
+  }
+  
+  .info-popup-banner.info {
+    background-color: var(--accent-color, #6A5AF9);
+    color: var(--text-on-accent, #FFFFFF);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .info-popup-banner.warning {
+    background-color: var(--warning-color, #F75A58);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .info-popup-banner.success {
+    background-color: var(--success-color, #4CAF50);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .info-popup-close-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1;
+    padding: 0 5px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+  
+  .info-popup-close-btn:hover {
+    opacity: 1;
+  }
+  
   @media (max-width: 600px) {
-      .info-popup-banner { width: calc(100% - 30px); max-width: calc(100% - 30px); left: 15px; transform: translateX(0) translateY(-150%); top: 10px; }
-      .info-popup-banner.show { transform: translateX(0) translateY(0); }
+      .info-popup-banner {
+        width: calc(100% - 30px); 
+        max-width: calc(100% - 30px);
+        left: 15px; 
+        transform: translateX(0) translateY(-150%); 
+        top: 10px;
+      }
+      .info-popup-banner.show {
+        transform: translateX(0) translateY(0); 
+      }
   }

@@ -1,14 +1,14 @@
 import React, { createContext, useState, useContext, useCallback, useEffect, useRef } from 'react';
 
 export const PopupContext = createContext({
-  popup: { message: '', type: 'info', visible: false },
+  popup: { message: '', type: 'info', visible: false, duration: 4000 },
   showPopup: (message, type, duration) => {},
   hidePopup: () => {},
 });
 
 export const PopupProvider = ({ children }) => {
-  const [popup, setPopup] = useState({ message: '', type: 'info', visible: false });
-  const timeoutIdRef = useRef(null); // Use ref to store timeout ID
+  const [popup, setPopup] = useState({ message: '', type: 'info', visible: false, duration: 4000 });
+  const timeoutIdRef = useRef(null);
 
   const hidePopup = useCallback(() => {
     if (timeoutIdRef.current) {
@@ -21,14 +21,13 @@ export const PopupProvider = ({ children }) => {
     if (timeoutIdRef.current) {
       clearTimeout(timeoutIdRef.current);
     }
-    setPopup({ message, type, visible: true });
+    setPopup({ message, type, visible: true, duration });
     timeoutIdRef.current = setTimeout(() => {
       hidePopup();
     }, duration);
   }, [hidePopup]);
 
   useEffect(() => {
-    // Cleanup timeout on unmount
     return () => {
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current);

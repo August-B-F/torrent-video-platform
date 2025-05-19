@@ -1,20 +1,35 @@
+// src/components/pages/AddonSettings/AddonSettings.jsx
 import React, { useState, useEffect } from 'react';
-import AddonClient from 'stremio-addon-client'; // Import the client
+// REMINDER: You are using AddonClient from 'stremio-addon-client' directly here,
+// but also through AddonContext. This is fine, but ensure consistency.
+import AddonClient from 'stremio-addon-client';
 import './AddonSettings.css';
-
-import { useAddons } from '../../contexts/AddonContext';
+import { useAddons } from '../../contexts/AddonContext'; // For refreshCinemeta
 
 const AddonSettings = () => {
   const [addonUrlInput, setAddonUrlInput] = useState('');
-  const [addonUrls, setAddonUrls] = useState([]);
+  const [addonUrls, setAddonUrls] = useState([]); // This will now store { id, url, name, manifest }
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { refreshCinemeta } = useAddons();
 
   useEffect(() => {
-    const storedAddons = JSON.parse(localStorage.getItem('stremioUserAddons') || '[]');
-    setAddonUrls(storedAddons);
+    try {
+      const storedAddonsRaw = localStorage.getItem('stremioUserAddons');
+      if (storedAddonsRaw) {
+        const storedAddons = JSON.parse(storedAddonsRaw);
+        // Ensure all addons in localStorage have the manifest property
+        const validatedAddons = storedAddons.map(addon => ({
+            ...addon,
+            manifest: addon.manifest || { name: `Addon at ${addon.url}`, id: `custom-${Date.now()}` } // Provide a fallback manifest shell
+        }));
+        setAddonUrls(validatedAddons);
+      }
+    } catch (e) {
+        console.error("Error loading addons from localStorage:", e);
+        setAddonUrls([]); // Fallback to empty if localStorage is corrupted
+    }
   }, []);
 
   const isValidHttpUrl = (string) => {
@@ -37,7 +52,7 @@ const AddonSettings = () => {
     }
     const trimmedUrl = addonUrlInput.trim();
     if (!isValidHttpUrl(trimmedUrl)) {
-      setError('Invalid URL. Please enter a valid HTTP/HTTPS URL ending with /manifest.json (usually).');
+      setError('Invalid URL. Please enter a valid HTTP/HTTPS URL (usually ending with /manifest.json).');
       return;
     }
     if (addonUrls.find(addon => addon.url === trimmedUrl)) {
@@ -47,41 +62,67 @@ const AddonSettings = () => {
 
     setIsLoading(true);
     try {
-      const { addon } = await AddonClient.detectFromURL(trimmedUrl);
-      let addonName = 'Unnamed Addon';
-      let addonId = `custom-${Date.now()}`;
-      let manifest = null;
+      // Always fetch fresh manifest details using detectFromURL
+      const detectionResult = await AddonClient.detectFromURL(trimmedUrl);
+      let detectedAddonInterface;
 
-      if (addon && addon.manifest) {
-        manifest = addon.manifest;
-        addonName = manifest.name || `Addon at ${new URL(trimmedUrl).hostname}`;
-        addonId = manifest.id || addonId;
-      } else if (addon.addons && addon.addons.length > 0 && addon.addons[0].manifest) {
-        manifest = addon.addons[0].manifest;
-        addonName = manifest.name || `Addon at ${new URL(trimmedUrl).hostname}`;
-        addonId = manifest.id || addonId;
+      if (detectionResult && detectionResult.addon) {
+        detectedAddonInterface = detectionResult.addon;
+      } else if (detectionResult && Array.isArray(detectionResult.addons) && detectionResult.addons.length > 0) {
+        detectedAddonInterface = detectionResult.addons[0]; // Use the first if it's a collection
+      } else if (detectionResult && detectionResult.manifest) {
+        detectedAddonInterface = detectionResult; // It might be an AddonInterface directly
+      } else {
+        throw new Error('Could not detect a valid addon structure from the URL.');
+      }
+
+      if (!detectedAddonInterface || !detectedAddonInterface.manifest) {
+        throw new Error('Detected addon interface is missing a manifest.');
       }
       
-      const newAddonEntry = { id: addonId, url: trimmedUrl, name: addonName, manifest: manifest }; // Store manifest too
+      const { manifest } = detectedAddonInterface;
+      const addonName = manifest.name || `Addon at ${new URL(trimmedUrl).hostname}`;
+      // Use manifest.id if available, otherwise generate one. Crucially, ensure it's unique if possible.
+      const addonId = manifest.id || `custom-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+      // Check if an addon with this ID (from manifest) already exists
+      if (manifest.id && addonUrls.find(addon => addon.id === manifest.id)) {
+          setError(`An addon with ID "${manifest.id}" (${addonName}) is already listed. You might want to remove the existing one first if this is an update.`);
+          setIsLoading(false);
+          return;
+      }
+
+      // Log the fetched manifest to ensure it's complete *at the time of adding*
+      console.log("AddonSettings: Fetched manifest for new addon:", JSON.stringify(manifest, null, 2));
+
+
+      const newAddonEntry = { 
+        id: addonId, // Use the ID from the manifest
+        url: trimmedUrl, 
+        name: addonName, 
+        manifest: manifest // Store the fetched manifest
+      };
+      
       const updatedAddons = [...addonUrls, newAddonEntry];
       setAddonUrls(updatedAddons);
       localStorage.setItem('stremioUserAddons', JSON.stringify(updatedAddons));
-      setSuccessMessage(`Addon "${addonName}" added! Refreshing addon services...`);
+      setSuccessMessage(`Addon "${addonName}" (ID: ${manifest.id}) added! Refreshing...`);
       setAddonUrlInput('');
-      refreshCinemeta(); // Call refresh here
+      refreshCinemeta(); 
     } catch (err) {
-      setError(`Failed to add or detect addon. Error: ${err.message}. (Check URL, CORS)`);
-      console.error("Error adding/detecting addon:", err);
+      setError(`Failed to add or detect addon. Error: ${err.message}. (Check URL, CORS, or manifest content)`);
+      console.error("AddonSettings: Error adding/detecting addon:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRemoveAddon = (addonIdToRemove) => {
+    const addonToRemove = addonUrls.find(addon => addon.id === addonIdToRemove);
     const updatedAddons = addonUrls.filter(addon => addon.id !== addonIdToRemove);
     setAddonUrls(updatedAddons);
     localStorage.setItem('stremioUserAddons', JSON.stringify(updatedAddons));
-    setSuccessMessage('Addon removed.');
+    setSuccessMessage(addonToRemove ? `Addon "${addonToRemove.name}" removed.` : 'Addon removed.');
     refreshCinemeta();
   };
 
@@ -101,7 +142,7 @@ const AddonSettings = () => {
               id="addonUrl"
               value={addonUrlInput}
               onChange={(e) => setAddonUrlInput(e.target.value)}
-              placeholder="https://your-addon.com/manifest.json"
+              placeholder="https://v3-cinemeta.strem.io/manifest.json"
               className="addon-url-input"
               disabled={isLoading}
             />
@@ -118,10 +159,16 @@ const AddonSettings = () => {
           {addonUrls.length > 0 ? (
             <ul>
               {addonUrls.map((addon) => (
-                <li key={addon.id} className="addon-item">
+                <li key={addon.id || addon.url} className="addon-item"> {/* Fallback key to URL if ID is somehow missing */}
                   <div>
-                    <span className="addon-name">{addon.name}</span>
-                    <span className="addon-url-display">({addon.url})</span>
+                    <span className="addon-name">{addon.name || 'Unnamed Addon'}</span>
+                    <span className="addon-url-display"> (ID: {addon.id || 'N/A'}, URL: {addon.url})</span>
+                    <details>
+                        <summary style={{cursor: 'pointer', fontSize: '0.8em'}}>View Manifest</summary>
+                        <pre style={{fontSize: '0.7em', maxHeight: '100px', overflowY: 'auto', background: '#222', padding: '5px'}}>
+                            {JSON.stringify(addon.manifest, null, 2)}
+                        </pre>
+                    </details>
                   </div>
                   <button onClick={() => handleRemoveAddon(addon.id)} className="remove-addon-button">
                     Remove
@@ -134,7 +181,7 @@ const AddonSettings = () => {
           )}
         </div>
          <div className="cors-notice">
-            <p><strong>Important:</strong> For addons to work directly in the browser, their servers must be configured to allow requests from this website (CORS headers like <code>Access-Control-Allow-Origin: *</code>). If an addon doesn't work, it's likely due to this restriction. In such cases, a backend proxy would be required.</p>
+            <p><strong>Important:</strong> For addons to work, their servers must allow requests from this website (CORS). If an addon fails, check the console for CORS errors.</p>
         </div>
       </main>
     </div>
