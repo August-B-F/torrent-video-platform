@@ -1,139 +1,145 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
 import MediaGridItem from '../../common/MediaGridItem/MediaGridItem';
 import './SearchResultsStyle.css';
+
+const ITEMS_PER_PAGE = 20; // Or whatever Cinemeta's search catalog typically pages by
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q');
   const { cinemeta, isLoadingCinemeta, cinemetaError: globalAddonErr } = useAddons();
 
-  const [initialResults, setInitialResults] = useState([]);
+  // State for all fetched results (accumulated for infinite scroll)
+  const [allResults, setAllResults] = useState([]);
+  // State for results after client-side filtering
   const [filteredResults, setFilteredResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchError, setSearchError] = useState('');
 
+  const [isLoading, setIsLoading] = useState(false); // For initial search
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // For loading subsequent pages
+  const [searchError, setSearchError] = useState('');
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Filter states
   const [selectedType, setSelectedType] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    setSelectedType('');
-    setSelectedGenre('');
-    setSelectedYear('');
+  const observer = useRef(); // For IntersectionObserver
 
-    if (isLoadingCinemeta) {
-      setSearchError("Initializing addon service...");
-      setInitialResults([]);
-      setFilteredResults([]);
-      return;
-    }
-    if (!cinemeta && !globalAddonErr) {
-      setSearchError("Cinemeta addon not available for searching. Please configure it in settings.");
-      setInitialResults([]);
-      setFilteredResults([]);
-      return;
-    }
-    if (globalAddonErr) {
-      setSearchError(`Cinemeta Error: ${globalAddonErr}`);
-      setInitialResults([]);
-      setFilteredResults([]);
+  const performSearch = useCallback(async (pageToFetch = 0, isNewQuery = false) => {
+    if (!query || !cinemeta) {
+      if(isNewQuery) { setAllResults([]); setFilteredResults([]); }
+      setHasMore(false);
       return;
     }
 
-    if (query && cinemeta) {
-      const performSearch = async () => {
-        setIsLoading(true);
-        setSearchError('');
-        setInitialResults([]);
-        setFilteredResults([]);
-        console.log(`SearchResults: Performing search for: "${query}"`);
-        console.log("SearchResults: Using Cinemeta Manifest ID:", cinemeta.manifest?.id, "Name:", cinemeta.manifest?.name);
-        // Also log the resources from the cinemeta object being used HERE
-        console.log("SearchResults: Cinemeta object resources being used for search:", JSON.stringify(cinemeta.manifest?.resources));
-
-
-        try {
-          let movieResults = [], seriesResults = [];
-          
-          const movieSearchRequestArgs = { resource: 'search', type: 'movie', id: query };
-          const seriesSearchRequestArgs = { resource: 'search', type: 'series', id: query };
-
-          if (typeof cinemeta.get !== 'function') {
-            setSearchError("Cinemeta addon 'get' method is not available. Addon may be corrupted or not fully initialized.");
-            setIsLoading(false);
-            return;
-          }
-          
-          // Check if the manifest *actually* being used by this cinemeta instance supports search
-          const manifestSupportsSearch = cinemeta.manifest?.resources?.includes('search') ||
-                                       (Array.isArray(cinemeta.manifest?.resources) && cinemeta.manifest.resources.some(r => typeof r === 'object' && r.name === 'search'));
-
-          if (!manifestSupportsSearch) {
-            console.error(`SearchResults: CRITICAL - The loaded Cinemeta manifest for ID ${cinemeta.manifest?.id} does NOT list 'search' in its resources. Resources found: ${JSON.stringify(cinemeta.manifest?.resources)}. Search will fail.`);
-            setSearchError(`The configured metadata addon (Cinemeta ID: ${cinemeta.manifest?.id}) does not support the 'search' function according to its manifest. Please check addon settings or re-add the official Cinemeta addon.`);
-            setIsLoading(false);
-            return;
-          }
-
-          // --- Movie Search ---
-          try {
-            console.log("SearchResults: Attempting direct GET for movie search:", movieSearchRequestArgs);
-            // Using the documented way to call .get with separate arguments
-            const movieResponse = await cinemeta.get(movieSearchRequestArgs.resource, movieSearchRequestArgs.type, movieSearchRequestArgs.id);
-            console.log("SearchResults: Movie search direct GET response:", movieResponse);
-            movieResults = (movieResponse.metas || []).map(m => ({ ...m, type: 'movie' }));
-          } catch (movieError) {
-            console.warn(`SearchResults: Direct GET for movie search failed for query "${query}". Error:`, movieError.message, movieError);
-            if (movieError.code === 6) { // Stremio error code for "Resource not supported"
-                console.warn(`Cinemeta (id: ${cinemeta?.manifest?.id}) reports it does NOT support 'search' for 'movie' (via direct get).`);
-            }
-          }
-
-          // --- Series Search ---
-          try {
-            console.log("SearchResults: Attempting direct GET for series search:", seriesSearchRequestArgs);
-            const seriesResponse = await cinemeta.get(seriesSearchRequestArgs.resource, seriesSearchRequestArgs.type, seriesSearchRequestArgs.id);
-            console.log("SearchResults: Series search direct GET response:", seriesResponse);
-            seriesResults = (seriesResponse.metas || []).map(s => ({ ...s, type: 'series' }));
-          } catch (seriesError) {
-            console.warn(`SearchResults: Direct GET for series search failed for query "${query}". Error:`, seriesError.message, seriesError);
-            if (seriesError.code === 6) {
-                console.warn(`Cinemeta (id: ${cinemeta?.manifest?.id}) reports it does NOT support 'search' for 'series' (via direct get).`);
-            }
-          }
-          
-          const combinedResults = [...movieResults, ...seriesResults];
-          const uniqueResults = Array.from(new Map(combinedResults.filter(item => item && item.id).map(item => [item.id, item])).values());
-          console.log("SearchResults: Unique combined search results from direct GET attempts:", uniqueResults);
-
-          setInitialResults(uniqueResults);
-          setFilteredResults(uniqueResults);
-          
-          if (uniqueResults.length === 0) {
-             setSearchError(`No results found for "${query}". If you expected results, check the console for addon errors.`);
-          }
-        } catch (e) {
-          console.error('SearchResults: General error during search execution:', e);
-          setSearchError(`Search failed: ${e.message}.`);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      performSearch();
-    } else if (!query) {
-      setInitialResults([]);
+    if (isNewQuery) {
+      setIsLoading(true);
+      setAllResults([]);
       setFilteredResults([]);
-      setSearchError('Please enter a search term to see results.');
+      setCurrentPage(0);
+      setHasMore(true); // Assume more until fetch proves otherwise
+      // Reset client-side filters for a new query
+      setSelectedType('');
+      setSelectedGenre('');
+      setSelectedYear('');
+    } else {
+      setIsLoadingMore(true);
+    }
+    setSearchError('');
+
+    // console.log(`SearchResults: Performing search for: "${query}", Page: ${pageToFetch}`);
+
+    try {
+      let movieResults = [], seriesResults = [];
+      const searchExtra = { search: query, skip: pageToFetch * ITEMS_PER_PAGE };
+
+      const movieSearchRequest = { resource: 'catalog', type: 'movie', id: 'search', extra: searchExtra };
+      try {
+        const movieResponse = await cinemeta.get(movieSearchRequest.resource, movieSearchRequest.type, movieSearchRequest.id, movieSearchRequest.extra);
+        movieResults = (movieResponse.metas || []).map(m => ({ ...m, type: 'movie' }));
+      } catch (e) { /* console.warn(`Movie search failed for page ${pageToFetch}:`, e.message); */ }
+
+      const seriesSearchRequest = { resource: 'catalog', type: 'series', id: 'search', extra: searchExtra };
+      try {
+        const seriesResponse = await cinemeta.get(seriesSearchRequest.resource, seriesSearchRequest.type, seriesSearchRequest.id, seriesSearchRequest.extra);
+        seriesResults = (seriesResponse.metas || []).map(s => ({ ...s, type: 'series' }));
+      } catch (e) { /* console.warn(`Series search failed for page ${pageToFetch}:`, e.message); */ }
+      
+      const newFetchedItems = [...movieResults, ...seriesResults];
+      // Ensure items have an ID before deduplication
+      const uniqueNewItems = Array.from(new Map(newFetchedItems.filter(item => item && item.id).map(item => [item.id, item])).values());
+
+      setAllResults(prevResults => {
+          const combined = isNewQuery ? uniqueNewItems : [...prevResults, ...uniqueNewItems];
+          // Deduplicate again after combining, in case of overlaps or items already present
+          return Array.from(new Map(combined.map(item => [item.id, item])).values());
+      });
+      
+      setHasMore(uniqueNewItems.length >= ITEMS_PER_PAGE); // Heuristic for more pages
+      
+      if (isNewQuery && uniqueNewItems.length === 0) {
+         setSearchError(`No results found for "${query}".`);
+      }
+    } catch (e) {
+      console.error('SearchResults: General error during search execution:', e);
+      setSearchError(`Search failed: ${e.message}.`);
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, cinemeta, isLoadingCinemeta, globalAddonErr]);
+  }, [query, cinemeta]); // Dependencies that trigger a full new search or affect fetching logic
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (isLoadingCinemeta) {
+      setSearchError("Initializing addon service..."); return;
+    }
+    if (globalAddonErr) {
+      setSearchError(`Cinemeta Addon Error: ${globalAddonErr}`); return;
+    }
+    if (!cinemeta && !isLoadingCinemeta) { // Ensure cinemeta is checked after loading state
+      setSearchError("Cinemeta addon not available. Please configure it in settings."); return;
+    }
+    if (!query) {
+      setAllResults([]); setFilteredResults([]);
+      setSearchError('Please enter a search term.'); return;
+    }
+    // Trigger initial search when query or cinemeta changes (after loading)
+    performSearch(0, true);
+  }, [query, cinemeta, isLoadingCinemeta, globalAddonErr, performSearch]);
+
+
+  // Client-side filtering based on allResults
+  useEffect(() => {
+    let itemsToFilter = [...allResults];
+    if (selectedType) {
+      itemsToFilter = itemsToFilter.filter(item => item.type === selectedType);
+    }
+    if (selectedGenre) {
+      itemsToFilter = itemsToFilter.filter(item => 
+        (item.genres && item.genres.map(g => String(g).toLowerCase()).includes(selectedGenre.toLowerCase())) ||
+        (item.genre && typeof item.genre === 'string' && item.genre.toLowerCase().includes(selectedGenre.toLowerCase()))
+      );
+    }
+    if (selectedYear) {
+      itemsToFilter = itemsToFilter.filter(item => 
+        (item.year && String(item.year) === selectedYear) ||
+        (item.releaseInfo && String(item.releaseInfo).startsWith(selectedYear))
+      );
+    }
+    setFilteredResults(itemsToFilter);
+  }, [selectedType, selectedGenre, selectedYear, allResults]);
+
 
   const availableGenres = useMemo(() => {
     const genres = new Set();
-    initialResults.forEach(item => {
+    allResults.forEach(item => { // Use allResults for complete genre list
       if (item.genres && Array.isArray(item.genres)) { 
         item.genres.forEach(g => { if (g) genres.add(g); }); 
       } else if (typeof item.genre === 'string' && item.genre.trim()) { 
@@ -141,11 +147,11 @@ const SearchResults = () => {
       }
     });
     return Array.from(genres).sort();
-  }, [initialResults]);
+  }, [allResults]);
 
   const availableYears = useMemo(() => {
     const years = new Set();
-    initialResults.forEach(item => {
+    allResults.forEach(item => { // Use allResults for complete year list
       let yearStr = null;
       if (item.year) {
         yearStr = String(item.year);
@@ -157,27 +163,7 @@ const SearchResults = () => {
       }
     });
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
-  }, [initialResults]);
-
-  useEffect(() => {
-    let itemsToFilter = [...initialResults];
-    if (selectedType) {
-      itemsToFilter = itemsToFilter.filter(item => item.type === selectedType);
-    }
-    if (selectedGenre) {
-      itemsToFilter = itemsToFilter.filter(item => 
-        (item.genres && item.genres.map(g => String(g).toLowerCase()).includes(selectedGenre.toLowerCase())) ||
-        (typeof item.genre === 'string' && item.genre.toLowerCase().includes(selectedGenre.toLowerCase()))
-      );
-    }
-    if (selectedYear) {
-      itemsToFilter = itemsToFilter.filter(item => 
-        (item.year && String(item.year) === selectedYear) ||
-        (item.releaseInfo && String(item.releaseInfo).startsWith(selectedYear))
-      );
-    }
-    setFilteredResults(itemsToFilter);
-  }, [selectedType, selectedGenre, selectedYear, initialResults]);
+  }, [allResults]);
 
   const handleResetFilters = () => {
     setSelectedType('');
@@ -185,9 +171,32 @@ const SearchResults = () => {
     setSelectedYear('');
   };
 
+  // Intersection Observer for infinite scroll
+  const lastItemElementRef = useCallback(node => {
+    if (isLoadingMore || isLoading) return; // Don't observe if already loading initial or more
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        // console.log("SearchResults: Last item visible, loading more...");
+        setCurrentPage(prevPage => {
+          const nextPageToFetch = prevPage + 1;
+          performSearch(nextPageToFetch, false); // false for isNewQuery
+          return nextPageToFetch; 
+        });
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoadingMore, isLoading, hasMore, performSearch]);
+
+
+  // Initial loading messages
   if (isLoadingCinemeta && !query) {
-    return <div className="page-container"><div className="loading-message">Initializing addon service...</div></div>;
+    return <div className="page-container search-results-page"><div className="loading-message">Initializing addon service...</div></div>;
   }
+  if (!query && !isLoadingCinemeta && !globalAddonErr && !cinemeta) { // Waiting for addon but no query yet
+     return <div className="page-container search-results-page"><div className="empty-message">Enter a search term above.</div></div>;
+  }
+
 
   return (
     <div className="page-container search-results-page">
@@ -200,22 +209,19 @@ const SearchResults = () => {
           <h1 className="page-title">Enter a search term above.</h1>
         )}
         
-        {(initialResults.length > 0 || isLoading) && !searchError && (
+        {/* Show filters if there are initial results or loading initial results for a query */}
+        {(allResults.length > 0 || isLoading) && query && !searchError && (
           <div className="filters-panel">
-            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="filter-select" disabled={isLoading}>
-              <option value="">All Types</option>
-              <option value="movie">Movies</option>
-              <option value="series">Series</option>
+            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="filter-select" disabled={isLoading || isLoadingMore}>
+              <option value="">All Types</option><option value="movie">Movies</option><option value="series">Series</option>
             </select>
-            <select value={selectedGenre} onChange={(e) => setSelectedGenre(e.target.value)} className="filter-select" disabled={isLoading || availableGenres.length === 0}>
-              <option value="">All Genres</option>
-              {availableGenres.map(g => <option key={g} value={g}>{g}</option>)}
+            <select value={selectedGenre} onChange={(e) => setSelectedGenre(e.target.value)} className="filter-select" disabled={isLoading || isLoadingMore || availableGenres.length === 0}>
+              <option value="">All Genres</option>{availableGenres.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="filter-select" disabled={isLoading || availableYears.length === 0}>
-              <option value="">All Years</option>
-              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="filter-select" disabled={isLoading || isLoadingMore || availableYears.length === 0}>
+              <option value="">All Years</option>{availableYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
-            <button onClick={handleResetFilters} className="filter-reset-btn" disabled={isLoading}>Reset Filters</button>
+            <button onClick={handleResetFilters} className="filter-reset-btn" disabled={isLoading || isLoadingMore}>Reset Filters</button>
           </div>
         )}
 
@@ -224,24 +230,32 @@ const SearchResults = () => {
         
         {!isLoading && !searchError && filteredResults.length > 0 && (
           <div className="media-grid search-results-grid">
-            {filteredResults.map((item, index) => (
-              <MediaGridItem 
-                key={item.id || `search-result-${index}`}
-                item={{
-                  id: item.id,
-                  name: item.name, 
-                  title: item.title || item.name,
-                  posterUrl: item.posterUrl || item.poster, 
-                  type: item.type 
-                }} 
-              />
-            ))}
+            {filteredResults.map((item, index) => {
+               const key = item.id || `search-result-${index}`;
+               if (filteredResults.length === index + 1) { // If it's the last item for the observer
+                 return <div ref={lastItemElementRef} key={key}><MediaGridItem item={item} /></div>;
+               } else {
+                 return <MediaGridItem key={key} item={item} />;
+               }
+            })}
           </div>
         )}
-        {!isLoading && !searchError && query && filteredResults.length === 0 && initialResults.length > 0 && (
+        {/* Message if filters result in no items, but initial search had results */}
+        {!isLoading && !searchError && query && filteredResults.length === 0 && allResults.length > 0 && (
           <div className="empty-message" style={{textAlign:'center', padding: '20px'}}>
             No items match your current filters for "{query}".
           </div>
+        )}
+        {/* Message if search returned no results at all for the query (and wasn't just an error before searching) */}
+         {!isLoading && !searchError && query && filteredResults.length === 0 && allResults.length === 0 && (
+          <div className="empty-message" style={{textAlign:'center', padding: '20px'}}>
+            {searchError || `No results found for "${query}".`}
+          </div>
+        )}
+
+        {isLoadingMore && <div className="loading-message" style={{padding: "20px", textAlign: "center"}}>Loading more items...</div>}
+        {!isLoadingMore && !hasMore && filteredResults.length > 0 && !isLoading && (
+            <div className="empty-message" style={{padding: "20px", textAlign: "center"}}>You've reached the end of the search results!</div>
         )}
       </main>
     </div>

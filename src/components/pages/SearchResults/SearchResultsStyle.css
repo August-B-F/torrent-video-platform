@@ -1,70 +1,111 @@
 /* SearchResultsStyle.css */
-/* Import or copy common styles from WatchlistStyle.css or a shared file */
-/* For example, copy all content from WatchlistStyle.css */
 
-/* Add any specific styles for SearchResults page here if needed */
-.search-query-highlight {
-    color: var(--accent-color, #6A5AF9); /* Highlight the search query */
-    font-style: italic;
-  }
-  
-  /* Ensure the page-title can accommodate longer text */
-  .search-results-page .page-title {
-      line-height: 1.4; /* In case title wraps */
-  }
+/* Inherit or define these common styles if not globally available:
+   .page-container, .page-main-content, .page-title, 
+   .loading-message, .empty-message, .error-message
+*/
 
-  /* DiscoverStyle.css */
-/* Uses .page-container, .page-main-content, .page-title, .media-grid etc. from shared styles */
-
-.discover-header {
-    margin-bottom: 20px; /* Space below title */
+.search-results-page .page-main-content {
+  /* Max width and padding are likely handled by global .page-main-content */
 }
 
-.filters-panel {
+.search-query-highlight {
+  color: var(--accent-color, #6A5AF9);
+  font-style: italic;
+}
+
+.search-results-page .page-title {
+  line-height: 1.4;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: var(--text-primary, #CECECE); /* Ensure text color is set */
+}
+
+/* Filters panel styling - ensure this matches Discover page or is a shared style */
+.search-results-page .filters-panel {
   display: flex;
-  flex-wrap: wrap; /* Allow filters to wrap on smaller screens */
+  flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 25px;
   padding: 15px;
-  background-color: rgba(var(--card-rgb), 0.3);
+  background-color: rgba(var(--card-rgb, 26, 29, 36), 0.4);
+  border-radius: 8px;
+  border: 1px solid var(--border-color-soft, #22252A);
+}
+
+.search-results-page .filter-select {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #333842);
   border-radius: 6px;
-  border: 1px solid var(--border-color-soft);
-}
-
-.filter-select {
-  padding: 8px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--bg-input);
-  color: var(--text-primary);
+  background-color: var(--bg-input, #12151B);
+  color: var(--text-primary, #E0E0E0);
   font-size: 0.9rem;
-  min-width: 150px; /* Minimum width for selects */
-}
-.filter-select:focus {
-  outline: none;
-  border-color: var(--accent-color-main);
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
-}
-.filter-select:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  min-width: 160px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.filter-reset-btn {
-  padding: 8px 15px;
-  background-color: var(--secondary-text-color); /* Or a neutral color */
-  color: var(--bg-primary);
-  border: none;
-  border-radius: 4px;
+.search-results-page .filter-select:focus {
+  outline: none;
+  border-color: var(--accent-color-main, #6A5AF9);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.25);
+}
+
+.search-results-page .filter-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-secondary, #2A2D34);
+}
+
+.search-results-page .filter-reset-btn {
+  padding: 10px 18px;
+  background-color: var(--bg-secondary, #2A2D34);
+  color: var(--text-secondary, #B0B8C5);
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s ease;
-}
-.filter-reset-btn:hover {
-  background-color: var(--text-secondary); /* Darker shade */
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.search-query-highlight {
-    color: var(--accent-color-main);
-    font-style: italic;
-  }
+.search-results-page .filter-reset-btn:hover:not(:disabled) {
+  background-color: var(--border-color, #333842);
+  color: var(--text-primary, #E0E0E0);
+}
+.search-results-page .filter-reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Styles for the media grid in Search Results */
+.search-results-page .media-grid,
+.search-results-grid { /* Class used in SearchResults.jsx */
+  display: grid;
+  /* Adjust minmax for desired poster size, e.g., 160px, 180px */
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 20px; /* Or your preferred gap */
+}
+
+/* Styling for the link wrapper of each grid item */
+.search-results-page .media-grid .media-grid-item-link,
+.search-results-grid .media-grid-item-link {
+  display: block; 
+  aspect-ratio: 2 / 3; /* Common poster aspect ratio */
+  background-color: var(--bg-secondary, #12151B); /* Placeholder bg for the cell */
+  border-radius: 6px; 
+  overflow: hidden; 
+}
+
+/* Shared loading/empty/error messages */
+.search-results-page .loading-message,
+.search-results-page .empty-message,
+.search-results-page .error-message {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+.search-results-page .error-message {
+    color: var(--warning-color); 
+}
