@@ -1,0 +1,343 @@
+/* MediaPlayerModal.css - Enhanced Styling with Custom Controls */
+.media-player-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.92); /* Darker overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+    opacity: 0;
+    animation: fadeInOverlayModalEnhanced 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    padding: 15px; /* Padding for smaller screens */
+    box-sizing: border-box;
+  }
+  
+  @keyframes fadeInOverlayModalEnhanced {
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .media-player-modal-content {
+    background-color: #08090c; /* Deep dark background */
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1000px; /* Adjusted max width */
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7); /* More prominent shadow */
+    border: 1px solid rgba(255, 255, 255, 0.03); /* Very subtle border */
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.92) translateY(15px);
+    opacity: 0;
+    animation: zoomInModalEnhancedPlayer 0.4s 0.05s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    position: relative;
+    overflow: hidden; /* Crucial */
+    /* cursor: none; */ /* Optional: hide cursor when controls are hidden */
+  }
+  .media-player-modal-content.show-controls {
+    /* cursor: default; */
+  }
+  
+  
+  @keyframes zoomInModalEnhancedPlayer {
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .media-player-header {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20; /* Above player, below modal overlay */
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+  
+  .media-player-modal-content.show-controls .media-player-header {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  
+  .media-player-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #f0f0f0;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  .media-player-close-btn {
+    background: rgba(20,20,20,0.5);
+    border: none;
+    color: #b0b0b0;
+    font-size: 1.7rem;
+    font-weight: 300;
+    line-height: 1;
+    padding: 0px 4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .media-player-close-btn:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .player-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+    background-color: #000;
+    overflow: hidden;
+  }
+  
+  .react-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  .player-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 1.1rem;
+    /* Basic spinner */
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-left-color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spinLoader 1s infinite linear;
+    z-index: 5;
+  }
+  
+  @keyframes spinLoader {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  
+  
+  /* Custom Controls Bar */
+  .media-player-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    z-index: 20;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    gap: 12px;
+  }
+  
+  .media-player-modal-content.show-controls .media-player-controls {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .control-button {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .control-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+  .control-button svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .progress-bar {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: height 0.1s ease-in-out;
+    background-image: linear-gradient(var(--accent-color, #6A5AF9), var(--accent-color, #6A5AF9));
+    background-repeat: no-repeat;
+    /* background-size set by inline style */
+  }
+  .progress-bar:hover {
+      height: 8px;
+  }
+  
+  .progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent-color-main, #fff);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #08090c; /* Match player background */
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    transition: transform 0.1s ease;
+  }
+  .progress-bar:hover::-webkit-slider-thumb {
+      transform: scale(1.1);
+  }
+  
+  .progress-bar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--accent-color-main, #fff);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #08090c;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    transition: transform 0.1s ease;
+  }
+  .progress-bar:hover::-moz-range-thumb {
+      transform: scale(1.1);
+  }
+  .progress-bar::-moz-range-track {
+      background: transparent; /* Hide default track */
+  }
+  .progress-bar::-moz-range-progress {
+      background-color: var(--accent-color, #6A5AF9);
+      height: 100%;
+      border-radius: 3px;
+  }
+  
+  
+  .time-display {
+    color: #ccc;
+    font-size: 0.8rem;
+    min-width: 90px; /* To prevent layout shifts */
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 70px; /* Adjust width as needed */
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-radius: 2px;
+    cursor: pointer;
+    background-image: linear-gradient(var(--accent-color-soft, #887dfa), var(--accent-color-soft, #887dfa));
+    background-repeat: no-repeat;
+  }
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  .volume-slider::-moz-range-track {
+      background: transparent;
+  }
+  .volume-slider::-moz-range-progress {
+      background-color: var(--accent-color-soft, #887dfa);
+      height: 100%;
+      border-radius: 2px;
+  }
+  
+  
+  @media (max-width: 768px) {
+    .media-player-modal-content {
+      max-width: 100%;
+      border-radius: 6px;
+    }
+    .media-player-header h3 {
+      font-size: 0.9rem;
+    }
+    .media-player-close-btn {
+      font-size: 1.6rem;
+    }
+    .media-player-controls {
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .control-button svg {
+      width: 20px;
+      height: 20px;
+    }
+    .time-display {
+      font-size: 0.75rem;
+      min-width: 75px;
+    }
+    .volume-slider {
+      width: 50px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+      .media-player-header {
+          padding: 6px 10px;
+      }
+      .media-player-controls {
+          /* Could simplify further, e.g., hide volume slider and only have mute */
+          gap: 5px;
+      }
+      .progress-bar {
+          flex-grow: 1; /* Allow progress bar to take more space */
+      }
+      .volume-slider {
+          display: none; /* Example: hide slider on very small screens */
+      }
+  }

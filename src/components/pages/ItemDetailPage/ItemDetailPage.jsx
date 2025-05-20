@@ -4,6 +4,7 @@ import { useAddons } from '../../contexts/AddonContext';
 import { useWatchlist } from '../../contexts/WatchlistContext';
 import SelectFolderModal from '../Watchlist/SelectFolderModal';
 import { usePopup } from '../../contexts/PopupContext';
+import MediaPlayerModal from '../../common/MediaPlayerModal/MediaPlayerModal';
 import './ItemDetailPage.css';
 
 // SVG Icons
@@ -34,13 +35,15 @@ const ItemDetailPage = () => {
   const [metaError, setMetaError] = useState('');
   const [streamError, setStreamError] = useState('');
   const [isSelectFolderModalOpen, setIsSelectFolderModalOpen] = useState(false);
+  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false); 
+  const [currentTrailerUrl, setCurrentTrailerUrl] = useState(''); 
   
-  const [selectedSeason, setSelectedSeason] = useState(null); // Can be a number or "specials"
+  const [selectedSeason, setSelectedSeason] = useState(null); 
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [showMovieTorrents, setShowMovieTorrents] = useState(false);
   const [qualityFilter, setQualityFilter] = useState('1080p');
   const availableQualities = useMemo(() => ['All', '4K', '1080p', '720p', 'SD'], []);
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []); // Get current date in YYYY-MM-DD
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []); 
 
   const processVideos = useCallback((videos) => {
     const regularSeasons = {};
@@ -49,7 +52,7 @@ const ItemDetailPage = () => {
     videos.forEach(video => {
       const seasonNum = video.season;
       const episodeNum = video.number || video.episode;
-      const isReleased = video.released ? new Date(video.released) <= new Date(today) : true; // Assume released if no date
+      const isReleased = video.released ? new Date(video.released) <= new Date(today) : true; 
 
       const episodeData = { ...video, number: episodeNum, isReleased };
 
@@ -59,7 +62,7 @@ const ItemDetailPage = () => {
         }
         regularSeasons[seasonNum].push(episodeData);
       } else {
-        specialEpisodes.push(episodeData); // Season 0 or undefined season treated as special
+        specialEpisodes.push(episodeData); 
       }
     });
 
@@ -81,7 +84,6 @@ const ItemDetailPage = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // ... (reset of states as before)
     setIsLoadingMeta(true);
     setMetaError('');
     setMetadata(null);
@@ -163,7 +165,7 @@ const ItemDetailPage = () => {
     }
   }, [allStreams, qualityFilter]);
 
-  const handleOpenSelectFolderModal = () => { /* ... as before ... */ 
+  const handleOpenSelectFolderModal = () => { 
     if (!metadata || !metadata.id || !metadata.type) {
         showPopup("Item details not loaded yet.", "warning"); return;
       }
@@ -172,12 +174,40 @@ const ItemDetailPage = () => {
       }
       setIsSelectFolderModalOpen(true);
   };
-  const handleAddItemToSelectedFolders = (selectedFolderIds) => { /* ... as before ... */ 
+
+  const handleAddItemToSelectedFolders = (selectedFolderIds) => { 
     if (!metadata || !metadata.id || !metadata.type) {
         showPopup("Cannot add item: details are missing.", "warning"); return;
       }
       addItemToFolder(metadata.id, metadata.type, selectedFolderIds);
   };
+
+  const handlePlayTrailer = () => {
+    // Use the new placeholder URL you provided
+    const PLACEHOLDER_TRAILER_URL = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+
+    let urlToPlay = PLACEHOLDER_TRAILER_URL;
+    let message = "No specific trailer found. Playing a placeholder.";
+
+    // From previous ItemDetailPage.jsx
+    if (metadata && metadata.trailer) {
+      // If metadata.trailer is a direct URL, use it.
+      // If it's a YouTube ID like 'ytid:VIDEO_ID', construct the URL.
+      if (metadata.trailer.startsWith('ytid:')) {
+        urlToPlay = `https://www.youtube.com/watch?v=$` + metadata.trailer.substring(5);
+        message = `Playing trailer for ${metadata.name}`;
+      } else if (metadata.trailer.startsWith('http')) { // Basic check for a full URL
+        urlToPlay = metadata.trailer;
+        message = `Playing trailer for ${metadata.name}`;
+      }
+      // Add more conditions here if trailers can come in other formats
+    }
+    
+    showPopup(message, "info");
+    setCurrentTrailerUrl(urlToPlay);
+    setIsPlayerModalOpen(true);
+  };
+
 
   const handleEpisodeSelect = (episode) => {
     if (!episode.isReleased) {
@@ -191,14 +221,13 @@ const ItemDetailPage = () => {
   const handleMovieWatchNow = () => {
     setShowMovieTorrents(true);
     setSelectedEpisode(null); 
-    setQualityFilter('1080p'); // Reset filter for movie torrents
+    setQualityFilter('1080p'); 
   };
   
   const handleBackToEpisodes = () => {
       setSelectedEpisode(null);
       setAllStreams([]);
       setFilteredStreams([]);
-      // No need to change selectedSeason here, user stays on the same season
   };
 
   const availableSeasonNumbers = Object.keys(regularSeasons).map(Number).sort((a, b) => a - b);
@@ -206,7 +235,6 @@ const ItemDetailPage = () => {
 
 
   if (isLoadingAddons && isLoadingMeta) return <div className="page-container"><div className="loading-message">Initializing addons & loading details...</div></div>;
-  // ... other loading/error states as before ...
   if (!metadata) return <div className="page-container"><div className="empty-message">Item details could not be loaded.</div></div>;
 
 
@@ -216,7 +244,6 @@ const ItemDetailPage = () => {
   return (
     <div className="page-container item-detail-page">
       <div className="detail-hero" style={{ backgroundImage: `linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%, rgba(var(--bg-primary-rgb, 14,16,21), 0.9) 20%, rgba(var(--bg-primary-rgb, 14,16,21), 0.6) 45%, transparent 100%), url(${metadata.background || metadata.poster || ''})` }}>
-        {/* Hero content as before */}
         <div className="detail-hero-content-wrapper">
           <div className="detail-poster-container">
             <img src={metadata.poster || 'https://via.placeholder.com/300x450?text=No+Poster'} alt={metadata.name} className="detail-poster-image" />
@@ -233,7 +260,7 @@ const ItemDetailPage = () => {
             </div>
             <p className="detail-description">{metadata.description || 'No description available.'}</p>
             <div className="detail-actions">
-              <button className="action-button primary" onClick={() => showPopup("Trailer playback not implemented yet.", "info")}>
+              <button className="action-button primary" onClick={handlePlayTrailer}>
                 <PlayIcon /> Trailer
               </button>
               <button className="action-button secondary" onClick={handleOpenSelectFolderModal}>
@@ -250,7 +277,6 @@ const ItemDetailPage = () => {
       </div>
 
       <main className="page-main-content detail-page-body">
-        {/* Series Episodes Section - Hides when an episode is selected */}
         {displayEpisodeSection && !selectedEpisode && (
           <div className="detail-section series-content-section">
             <div className="seasons-episodes-container">
@@ -319,7 +345,6 @@ const ItemDetailPage = () => {
           </div>
         )}
 
-        {/* Torrent/Stream Section */}
         {displayTorrentSection && (
           <div className="detail-section streams-section">
              <div className="streams-header">
@@ -382,6 +407,14 @@ const ItemDetailPage = () => {
           folders={folders}
           onItemAddMultiple={handleAddItemToSelectedFolders}
           itemTitle={metadata.name || "this item"}
+        />
+      )}
+      {metadata && (
+        <MediaPlayerModal
+          isOpen={isPlayerModalOpen}
+          onClose={() => setIsPlayerModalOpen(false)}
+          trailerUrl={currentTrailerUrl}
+          title={`Trailer: ${metadata.name}`}
         />
       )}
     </div>
