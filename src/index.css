@@ -17,3 +17,21 @@ body {
 
   overflow-x: hidden;
 }
+
+html {
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+body, html {
+  scrollbar-width: none;
+  -ms-overflow-style: none; 
+}
+
+body::-webkit-scrollbar {
+  display: none; 
+}
+
+html::-webkit-scrollbar{
+  display: none; 
+}

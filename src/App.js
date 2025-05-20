@@ -33,6 +33,7 @@ const App = () => {
     else if (path.startsWith("/discover")) setSelectedIcon("discover");
     else if (path.startsWith("/watchlist")) setSelectedIcon("watchlist");
     else if (path.startsWith("/search")) setSelectedIcon("search");
+    else if (path.startsWith("/settings")) setSelectedIcon("settings");
     else if (path === "/" ) {
         if (token && window.location.pathname !== "/home") { // Check to prevent loop if already at /home
             // navigate("/home", { replace: true }); // Ideal, but App.js might not have Router context directly
@@ -73,6 +74,7 @@ const App = () => {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/addons" element={<SettingsPage />} /> 
                 <Route path="/settings/appearance" element={<SettingsPage />} />
+                <Route path="/settings/account" element={<SettingsPage />} />
 
                 <Route path="/" element={<Navigate to="/home" replace />} /> {/* Default for logged in */}
                 <Route path="*" element={<Navigate to="/home" replace />} /> {/* Catch-all for logged in */}

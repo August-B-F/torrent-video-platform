@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useWatchlist } from '../../contexts/WatchlistContext'; // Import useWatchlist
 import './SelectFolderModal.css';
 
-const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTitle }) => {
+const SelectFolderModal = ({ isOpen, onClose, folders: allFoldersFromContext, onItemAddMultiple, itemTitle, itemId, itemType }) => {
+  const { addItemToFolders, removeItemFromFolder, isItemInFolder } = useWatchlist();
   const [selectedFolderIds, setSelectedFolderIds] = useState([]);
+  const [initialFolderIds, setInitialFolderIds] = useState([]); // Store initial state
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedFolderIds([]);
+    if (isOpen && itemId && allFoldersFromContext.length > 0) {
+      const idsContainingItem = allFoldersFromContext
+        .filter(folder => folder.items.some(item => item.id === itemId))
+        .map(folder => folder.id);
+      setSelectedFolderIds(idsContainingItem);
+      setInitialFolderIds(idsContainingItem); // Store the initial state
       setError('');
+    } else if (!isOpen) {
+        // Reset when modal is closed
+        setSelectedFolderIds([]);
+        setInitialFolderIds([]);
+        setError('');
     }
-  }, [isOpen]);
+  }, [isOpen, itemId, allFoldersFromContext]);
 
   if (!isOpen) return null;
 
@@ -23,13 +35,38 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
     if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (selectedFolderIds.length === 0) {
-      setError('Please select at least one list.');
-      return;
+    // No need to check for empty selection here if we allow removing from all.
+    // But if you want to enforce "must be in at least one", add a check.
+
+    const foldersToAdd = selectedFolderIds.filter(id => !initialFolderIds.includes(id));
+    const foldersToRemove = initialFolderIds.filter(id => !selectedFolderIds.includes(id));
+
+    let operationsSuccessful = true;
+
+    if (foldersToAdd.length > 0) {
+      // The addItemToFolders from context now handles multiple IDs and checks for existing items.
+      await addItemToFolders(itemId, itemType, foldersToAdd);
     }
-    onItemAddMultiple(selectedFolderIds);
+
+    for (const folderId of foldersToRemove) {
+      // removeItemFromFolder is synchronous in current context, but could be async
+      await removeItemFromFolder(folderId, itemId);
+    }
+    
+    // Call the original onItemAddMultiple if it's meant for something else,
+    // or remove if its sole purpose was to pass selected IDs.
+    // For now, we assume the modal handles its own add/remove logic via context.
+    if (typeof onItemAddMultiple === 'function' && (foldersToAdd.length > 0 || foldersToRemove.length > 0) ) {
+      // This callback might need to be re-evaluated. If its purpose was just to trigger
+      // an action with the selected IDs, the new logic above handles it.
+      // If it was for additional specific actions after add/remove, it can be called.
+      // For simplicity, we'll assume it's for notifying the parent of changes.
+      onItemAddMultiple(selectedFolderIds); // Pass the final selection state
+    }
+
+
     setError('');
     onClose();
   };
@@ -37,12 +74,12 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content select-folder-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Add "{itemTitle}" to...</h2>
-        {folders.length > 0 ? (
+        <h2>Manage "{itemTitle}" in Lists</h2>
+        {allFoldersFromContext.length > 0 ? (
           <form onSubmit={handleSubmit}>
-            <p className="select-folder-instruction">Select one or more lists:</p>
+            <p className="select-folder-instruction">Select lists to include this item in:</p>
             <div className="folder-selection-list">
-              {folders.map(folder => (
+              {allFoldersFromContext.map(folder => (
                 <label key={folder.id} className="folder-select-item">
                   <input
                     type="checkbox"
@@ -59,8 +96,8 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
               <button type="button" onClick={onClose} className="modal-button cancel">
                 Cancel
               </button>
-              <button type="submit" className="modal-button create" disabled={selectedFolderIds.length === 0}>
-                Add to Selected ({selectedFolderIds.length})
+              <button type="submit" className="modal-button create">
+                Save Changes
               </button>
             </div>
           </form>

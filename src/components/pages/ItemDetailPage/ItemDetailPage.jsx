@@ -1,3 +1,4 @@
+// src/components/pages/ItemDetailPage/ItemDetailPage.jsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
@@ -7,7 +8,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import MediaPlayerModal from '../../common/MediaPlayerModal/MediaPlayerModal';
 import './ItemDetailPage.css';
 
-// SVG Icons
+// SVG Icons (assuming they are defined as before)
 const PlayIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
 );
@@ -21,10 +22,12 @@ const BackIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
 );
 
+
 const ItemDetailPage = () => {
   const { type, id } = useParams();
   const { cinemeta, isLoadingAddons, cinemetaError: globalAddonErr } = useAddons();
-  const { addItemToFolder, folders, fetchItemDetails: fetchItemDetailsFromContext } = useWatchlist();
+  // Removed addItemToFolder, folders from here, as SelectFolderModal will use context directly
+  const { fetchItemDetails: fetchItemDetailsFromContext, folders: allFolders } = useWatchlist();
   const { showPopup } = usePopup();
 
   const [metadata, setMetadata] = useState(null);
@@ -35,15 +38,15 @@ const ItemDetailPage = () => {
   const [metaError, setMetaError] = useState('');
   const [streamError, setStreamError] = useState('');
   const [isSelectFolderModalOpen, setIsSelectFolderModalOpen] = useState(false);
-  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false); 
-  const [currentTrailerUrl, setCurrentTrailerUrl] = useState(''); 
-  
-  const [selectedSeason, setSelectedSeason] = useState(null); 
+  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
+  const [currentTrailerUrl, setCurrentTrailerUrl] = useState('');
+
+  const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [showMovieTorrents, setShowMovieTorrents] = useState(false);
   const [qualityFilter, setQualityFilter] = useState('1080p');
   const availableQualities = useMemo(() => ['All', '4K', '1080p', '720p', 'SD'], []);
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []); 
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
   const processVideos = useCallback((videos) => {
     const regularSeasons = {};
@@ -52,7 +55,7 @@ const ItemDetailPage = () => {
     videos.forEach(video => {
       const seasonNum = video.season;
       const episodeNum = video.number || video.episode;
-      const isReleased = video.released ? new Date(video.released) <= new Date(today) : true; 
+      const isReleased = video.released ? new Date(video.released) <= new Date(today) : true;
 
       const episodeData = { ...video, number: episodeNum, isReleased };
 
@@ -62,7 +65,7 @@ const ItemDetailPage = () => {
         }
         regularSeasons[seasonNum].push(episodeData);
       } else {
-        specialEpisodes.push(episodeData); 
+        specialEpisodes.push(episodeData);
       }
     });
 
@@ -133,17 +136,17 @@ const ItemDetailPage = () => {
     if (!shouldFetchMovieTorrents && !shouldFetchEpisodeTorrents) {
       setAllStreams([]); return;
     }
-    
+
     setIsLoadingStreams(true);
     setStreamError('');
-    setAllStreams([]); 
+    setAllStreams([]);
 
     let streamTitleInfo = metadata.name;
     if(shouldFetchEpisodeTorrents && selectedEpisode) {
         streamTitleInfo = `${metadata.name} - S${selectedEpisode.season || '0'}E${selectedEpisode.number || selectedEpisode.episode}`;
     }
-    
-    setTimeout(() => { 
+
+    setTimeout(() => {
       const placeholderTorrents = [
         { title: `${streamTitleInfo} (1080p WEB-DL)`, name: "TorrentSourceX (1080p)", quality: "1080p", seeders: 180, size: "2.2 GB" },
         { title: `${streamTitleInfo} (720p HDTV)`, name: "TorrentSourceY (720p)", quality: "720p", seeders: 95, size: "900 MB"  },
@@ -165,44 +168,41 @@ const ItemDetailPage = () => {
     }
   }, [allStreams, qualityFilter]);
 
-  const handleOpenSelectFolderModal = () => { 
+  const handleOpenSelectFolderModal = () => {
     if (!metadata || !metadata.id || !metadata.type) {
         showPopup("Item details not loaded yet.", "warning"); return;
       }
-      if (folders.length === 0) {
+      if (allFolders.length === 0) { // Use allFolders from context
         showPopup("No watchlists available. Create one first in 'My Lists'.", "info"); return;
       }
       setIsSelectFolderModalOpen(true);
   };
 
-  const handleAddItemToSelectedFolders = (selectedFolderIds) => { 
-    if (!metadata || !metadata.id || !metadata.type) {
-        showPopup("Cannot add item: details are missing.", "warning"); return;
-      }
-      addItemToFolder(metadata.id, metadata.type, selectedFolderIds);
+  // This function might not be needed if the modal handles everything via context
+  const handleModalFolderSelectionConfirm = (selectedIds) => {
+    // The SelectFolderModal now calls context functions directly.
+    // This callback could be used for additional actions AFTER the modal has done its work.
+    // For instance, to show a specific confirmation message here.
+    // For now, we can simplify or remove it if the modal's internal logic is sufficient.
+    console.log("Folder selection confirmed in ItemDetailPage for item:", metadata.id, "with folders:", selectedIds);
+    // Example: showPopup("Watchlist updated.", "success"); // (Modal might do this already)
   };
 
   const handlePlayTrailer = () => {
-    // Use the new placeholder URL you provided
     const PLACEHOLDER_TRAILER_URL = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-
     let urlToPlay = PLACEHOLDER_TRAILER_URL;
     let message = "No specific trailer found. Playing a placeholder.";
 
-    // From previous ItemDetailPage.jsx
     if (metadata && metadata.trailer) {
-      // If metadata.trailer is a direct URL, use it.
-      // If it's a YouTube ID like 'ytid:VIDEO_ID', construct the URL.
       if (metadata.trailer.startsWith('ytid:')) {
-        urlToPlay = `https://www.youtube.com/watch?v=$` + metadata.trailer.substring(5);
+        urlToPlay = `https://www.youtube.com/watch?v=` + metadata.trailer.substring(5); // Correct YouTube URL
         message = `Playing trailer for ${metadata.name}`;
-      } else if (metadata.trailer.startsWith('http')) { // Basic check for a full URL
+      } else if (metadata.trailer.startsWith('http')) {
         urlToPlay = metadata.trailer;
         message = `Playing trailer for ${metadata.name}`;
       }
-      // Add more conditions here if trailers can come in other formats
     }
-    
+
     showPopup(message, "info");
     setCurrentTrailerUrl(urlToPlay);
     setIsPlayerModalOpen(true);
@@ -215,15 +215,15 @@ const ItemDetailPage = () => {
         return;
     }
     setSelectedEpisode(episode);
-    setShowMovieTorrents(false); 
+    setShowMovieTorrents(false);
   };
-  
+
   const handleMovieWatchNow = () => {
     setShowMovieTorrents(true);
-    setSelectedEpisode(null); 
-    setQualityFilter('1080p'); 
+    setSelectedEpisode(null);
+    setQualityFilter('1080p');
   };
-  
+
   const handleBackToEpisodes = () => {
       setSelectedEpisode(null);
       setAllStreams([]);
@@ -349,7 +349,7 @@ const ItemDetailPage = () => {
           <div className="detail-section streams-section">
              <div className="streams-header">
                 <h2>
-                {metadata.type === 'movie' ? `Torrents for: ${metadata.name}` : 
+                {metadata.type === 'movie' ? `Torrents for: ${metadata.name}` :
                 selectedEpisode ? `Torrents for: ${metadata.name} - S${selectedEpisode.season || '0'}E${selectedEpisode.number || selectedEpisode.episode}` : "Torrents"}
                 </h2>
                 {metadata.type === 'series' && selectedEpisode && (
@@ -360,9 +360,9 @@ const ItemDetailPage = () => {
              </div>
              <div className="stream-filters">
                 <label htmlFor="qualityFilter">Filter Quality:</label>
-                <select 
-                    id="qualityFilter" 
-                    value={qualityFilter} 
+                <select
+                    id="qualityFilter"
+                    value={qualityFilter}
                     onChange={(e) => setQualityFilter(e.target.value)}
                     className="quality-filter-select"
                 >
@@ -404,8 +404,10 @@ const ItemDetailPage = () => {
         <SelectFolderModal
           isOpen={isSelectFolderModalOpen}
           onClose={() => setIsSelectFolderModalOpen(false)}
-          folders={folders}
-          onItemAddMultiple={handleAddItemToSelectedFolders}
+          folders={allFolders} // Pass all folders from context
+          // onItemAddMultiple={handleModalFolderSelectionConfirm} // This prop can be re-evaluated
+          itemId={metadata.id} // Pass current item ID
+          itemType={metadata.type} // Pass current item type
           itemTitle={metadata.name || "this item"}
         />
       )}

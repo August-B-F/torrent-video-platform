@@ -1,33 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+// src/components/pages/SettingsPage/SettingsPage.jsx
+import React from 'react'; // Removed useState, useEffect as they are not used in this version
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './SettingsPage.css';
-import AddonSettings from '../AddonSettings/AddonSettings'; // Import AddonSettings
-import AppearanceSettings from '../AppearanceSettings/AppearanceSettings'; // <-- IMPORT
+import AddonSettings from '../AddonSettings/AddonSettings';
+import AppearanceSettings from '../AppearanceSettings/AppearanceSettings';
+import AccountSettings from '../AccountSettings/AccountSettings'; // <-- IMPORT NEW COMPONENT
 
-// Simple SVG Icons (can be imported from a shared file)
+// --- SVG Icons ---
 const ChevronRightIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6"></polyline>
   </svg>
 );
-const AddonsIcon = () => ( /* Example Icon */
+const AddonsIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l1.88 5.77L20 9.23l-4.58 3.97L16.24 19 12 15.77 7.76 19l1.12-5.8L4 9.23l6.12-1.46L12 2zM12 2v13.77"/></svg>
 );
-const AppearanceIcon = () => ( /* Example Icon */
+const AppearanceIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
 );
+// Simple User/Account Icon
+const UserAccountIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+);
+// --- End Icons ---
 
 
 const SettingsPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
   
-    // Example: Simple UI Preference stored in localStorage (can be removed if not needed here)
-    // const [enableExperimental, setEnableExperimental] = useState(() => localStorage.getItem('enableExperimentalFeatures') === 'true');
-    // useEffect(() => { localStorage.setItem('enableExperimentalFeatures', enableExperimental); }, [enableExperimental]);
-    // const handleToggleExperimental = () => setEnableExperimental(prev => !prev);
-  
     const settingCategories = [
+      {
+        name: 'Account',
+        path: '/settings/account',
+        description: 'Manage your profile, email, and password.',
+        icon: <UserAccountIcon />,
+        component: <AccountSettings />
+      },
       {
         name: 'Manage Addons',
         path: '/settings/addons',
@@ -40,7 +52,7 @@ const SettingsPage = () => {
         path: '/settings/appearance',
         description: 'Customize the look and feel of the application.',
         icon: <AppearanceIcon />,
-        component: <AppearanceSettings /> // <-- USE THE NEW COMPONENT
+        component: <AppearanceSettings />
       },
     ];
   
@@ -49,7 +61,7 @@ const SettingsPage = () => {
     if (activeCategory) {
       return (
         <div className="page-container settings-subpage-container">
-           <main className="page-main-content"> {/* Ensure sub-pages have consistent padding */}
+           <main className="page-main-content">
               <button onClick={() => navigate('/settings')} className="back-to-settings-btn">
                   &larr; Back to Settings
               </button>
@@ -75,11 +87,9 @@ const SettingsPage = () => {
               </Link>
             ))}
           </section>
-          {/* Removed "General Preferences" from here, it can be its own category or part of Appearance */}
         </main>
       </div>
     );
   };
   
   export default SettingsPage;
-  

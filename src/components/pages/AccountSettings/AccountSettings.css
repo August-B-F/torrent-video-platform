@@ -1,0 +1,179 @@
+/* src/components/pages/AccountSettings/AccountSettings.css */
+.account-settings-content {
+    padding: 0px 10px; /* Consistent with AppearanceSettings */
+  }
+  
+  .main-settings-title { /* Reused from AppearanceSettings if needed */
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .settings-section-description { /* Reused */
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
+  
+  .settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Space between form groups */
+  }
+  
+  .setting-item-group {
+    margin-bottom: 20px; /* Reduced from 40px for a tighter layout */
+    padding: 25px;
+    background-color: var(--card-background-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color-soft);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  }
+  
+  .setting-item-group-title {
+    font-size: 1.3rem; /* Slightly larger for group titles */
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding-bottom: 10px; /* Add padding for the border */
+    border-bottom: 1px solid var(--border-color); /* Separator line */
+  }
+  
+  .form-group {
+    margin-bottom: 20px; /* Space between individual form elements */
+  }
+  
+  .form-group label {
+    display: flex; /* Align icon with label text */
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .form-group label svg {
+    margin-right: 8px;
+    opacity: 0.8;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: var(--input-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .form-input::placeholder {
+    color: var(--text-secondary-placeholder, #777c88);
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent-color-main);
+    box-shadow: 0 0 0 2.5px rgba(var(--accent-rgb), 0.3);
+  }
+  .form-input.input-error {
+    border-color: var(--warning-color);
+    box-shadow: 0 0 0 2.5px rgba(var(--warning-rgb, 247, 90, 88), 0.3);
+  }
+  .form-input.readonly-input {
+    background-color: var(--bg-secondary-disabled, #252830);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  .input-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary-placeholder, #777c88);
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+  .error-text {
+    color: var(--warning-color);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+  
+  .settings-actions {
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+    margin-top: 10px; /* Space above the save button */
+  }
+  
+  .settings-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    display: inline-flex; /* For icon alignment */
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .settings-button.primary {
+    background-color: var(--accent-color-main);
+    color: var(--text-on-accent, #FFFFFF);
+  }
+  .settings-button.primary:hover:not(:disabled) {
+    background-color: var(--accent-color-hover, #5848e3);
+  }
+  
+  .settings-button.danger {
+    background-color: var(--warning-color);
+    color: #FFFFFF;
+  }
+  .settings-button.danger:hover:not(:disabled) {
+    background-color: #d84341; /* Darker warning */
+  }
+  
+  .settings-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .delete-account-group .setting-item-group-title.danger-zone-title {
+    color: var(--warning-color);
+    border-bottom-color: rgba(var(--warning-rgb), 0.4);
+  }
+  .danger-zone-content p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 15px;
+      line-height: 1.5;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .account-settings-content {
+      padding: 0 5px;
+    }
+    .setting-item-group {
+      padding: 20px;
+    }
+    .setting-item-group-title {
+      font-size: 1.15rem;
+    }
+    .form-input {
+      padding: 11px 14px;
+      font-size: 0.95rem;
+    }
+    .settings-button {
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      width: 100%; /* Full width buttons on mobile */
+      justify-content: center;
+    }
+    .settings-actions {
+        flex-direction: column;
+    }
+  }

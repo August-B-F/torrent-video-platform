@@ -20,13 +20,14 @@ export const WatchlistContext = createContext({
   renameFolder: (folderId, newName) => {},
   deleteFolder: (folderId) => false,
   updateFolderAppearance: (folderId, { iconType, iconValue, color }) => {}, // Updated signature
-  addItemToFolder: async (itemId, itemTypeHint, targetFolderIds) => {},
+  addItemToFolders: async (itemId, itemTypeHint, targetFolderIds) => {}, // Changed from addItemToFolder
   removeItemFromFolder: (folderId, itemIdToRemove) => {},
   reorderItemsInFolder: (folderId, reorderedItems) => {},
   reorderFolders: (reorderedFoldersArray) => {},
   itemDetailsCache: {},
   fetchItemDetails: async (itemId, itemTypeHint) => null,
   moveItemToFolder: (sourceFolderId, targetFolderId, itemId, itemType) => {},
+  isItemInFolder: (itemId, folderId) => false, // New helper
 });
 
 export const WatchlistProvider = ({ children }) => {
@@ -37,22 +38,21 @@ export const WatchlistProvider = ({ children }) => {
   const [itemDetailsCache, setItemDetailsCache] = useState({});
 
   const defaultFolderProps = {
-    iconType: FOLDER_ICON_OPTIONS.DEFAULT, // Distinguish between type of icon and its value
-    iconValue: null, // For URLs or emoji characters
-    color: '#2E3039', 
+    iconType: FOLDER_ICON_OPTIONS.DEFAULT,
+    iconValue: null,
+    color: '#2E3039',
   };
 
   useEffect(() => {
     setIsLoadingFolders(true);
     try {
-      const storedFoldersRaw = localStorage.getItem('userWatchlistFoldersV4'); // Incremented version
+      const storedFoldersRaw = localStorage.getItem('userWatchlistFoldersV4');
       if (storedFoldersRaw) {
         const storedFoldersParsed = JSON.parse(storedFoldersRaw);
         if (storedFoldersParsed && Array.isArray(storedFoldersParsed)) {
           const migratedFolders = storedFoldersParsed.map(folder => ({
-            ...defaultFolderProps, 
+            ...defaultFolderProps,
             ...folder,
-            // Ensure iconType and iconValue are correctly set from older structures if necessary
             iconType: folder.iconType || (folder.icon && (folder.icon.startsWith('http') || folder.icon.startsWith('data:')) ? FOLDER_ICON_OPTIONS.IMAGE_URL : (folder.icon && folder.icon.length <= 2 && /\p{Emoji}/u.test(folder.icon)) ? FOLDER_ICON_OPTIONS.EMOJI : folder.icon || defaultFolderProps.iconType),
             iconValue: folder.iconValue || (folder.icon && (folder.icon.startsWith('http') || folder.icon.startsWith('data:') || (folder.icon && folder.icon.length <= 2 && /\p{Emoji}/u.test(folder.icon))) ? folder.icon : null),
           }));
@@ -108,11 +108,11 @@ export const WatchlistProvider = ({ children }) => {
   }, [cinemeta, isLoadingCinemeta, itemDetailsCache]);
 
   const addFolder = (name) => {
-    const newFolder = { 
-        ...defaultFolderProps, 
-        id: `folder-${Date.now()}`, 
-        name, 
-        items: [] 
+    const newFolder = {
+        ...defaultFolderProps,
+        id: `folder-${Date.now()}`,
+        name,
+        items: []
     };
     setFolders(prev => [...prev, newFolder]);
     showPopup(`List "${name}" created.`, "success");
@@ -135,11 +135,11 @@ export const WatchlistProvider = ({ children }) => {
   const updateFolderAppearance = (folderId, { iconType, iconValue, color }) => {
     setFolders(prev => prev.map(f => {
         if (f.id === folderId) {
-            return { 
-                ...f, 
+            return {
+                ...f,
                 iconType: iconType !== undefined ? iconType : f.iconType,
                 iconValue: iconValue !== undefined ? iconValue : f.iconValue,
-                color: color !== undefined ? color : f.color 
+                color: color !== undefined ? color : f.color
             };
         }
         return f;
@@ -163,63 +163,62 @@ export const WatchlistProvider = ({ children }) => {
     }
     return false;
   };
-  
+
   const reorderFolders = (reorderedFoldersArray) => {
     setFolders(reorderedFoldersArray);
   };
 
-  const addItemToFolder = useCallback(async (itemId, itemTypeHint, targetFolderIds) => {
+  const addItemToFolders = useCallback(async (itemId, itemTypeHint, targetFolderIds) => {
     if ((!cinemeta && !isLoadingCinemeta) || isLoadingCinemeta) {
       showPopup("Addon service is not ready. Please try again shortly.", "warning");
       return;
     }
-  
+
     const itemDetail = itemDetailsCache[itemId] || await fetchItemDetails(itemId, itemTypeHint);
-  
-    if (!itemDetail || !itemDetail.type || !itemDetail.name) { 
+
+    if (!itemDetail || !itemDetail.type || !itemDetail.name) {
       showPopup(`Could not get details for item ID ${itemId}. Cannot add to list.`, "warning");
       return;
     }
-    
-    const itemToAdd = { id: itemId, type: itemDetail.type }; 
+
+    const itemToAdd = { id: itemId, type: itemDetail.type };
     const folderIdsArray = Array.isArray(targetFolderIds) ? targetFolderIds : [targetFolderIds].filter(Boolean);
-    
+
     if (folderIdsArray.length === 0) {
-        showPopup("No lists selected to add the item to.", "warning");
+        // This case might not be hit if the modal handles "no selection"
+        showPopup("No lists selected to add the item to.", "info");
         return;
     }
 
-    let itemsAddedCount = 0;
-    let alreadyPresentInFoldersNames = [];
+    let itemsActuallyAddedCount = 0;
     let addedToFolderNames = [];
 
     setFolders(prevFolders =>
       prevFolders.map(folder => {
         if (folderIdsArray.includes(folder.id)) {
-          if (folder.items.some(i => i.id === itemId)) {
-            alreadyPresentInFoldersNames.push(folder.name);
-            return folder; 
+          if (!folder.items.some(i => i.id === itemId)) { // Only add if not already present
+            itemsActuallyAddedCount++;
+            addedToFolderNames.push(folder.name);
+            return { ...folder, items: [itemToAdd, ...folder.items] };
           }
-          itemsAddedCount++;
-          addedToFolderNames.push(folder.name);
-          return { ...folder, items: [itemToAdd, ...folder.items] }; 
         }
         return folder;
       })
     );
-    
-    if (itemsAddedCount > 0) {
+
+    if (itemsActuallyAddedCount > 0) {
         showPopup(`"${itemDetail.name}" added to ${addedToFolderNames.map(name => `"${name}"`).join(', ')}.`, "success");
-    }
-    if (alreadyPresentInFoldersNames.length > 0) {
-        showPopup(`"${itemDetail.name}" was already in ${alreadyPresentInFoldersNames.map(name => `"${name}"`).join(', ')}.`, "info");
+    } else if (folderIdsArray.length > 0) {
+        // If targetFolderIds was not empty, but nothing was added, it means it was already in all of them.
+        const allTargetFolders = folders.filter(f => folderIdsArray.includes(f.id)).map(f => f.name);
+         showPopup(`"${itemDetail.name}" is already in ${allTargetFolders.map(name => `"${name}"`).join(', ')}.`, "info");
     }
   }, [folders, cinemeta, isLoadingCinemeta, fetchItemDetails, itemDetailsCache, showPopup]);
 
-  const removeItemFromFolder = (folderId, itemIdToRemove) => {
+  const removeItemFromFolder = useCallback((folderId, itemIdToRemove) => {
     const folder = folders.find(f => f.id === folderId);
     const item = itemDetailsCache[itemIdToRemove] || { name: `Item ${itemIdToRemove}` };
-    
+
     setFolders(prev =>
       prev.map(f =>
         f.id === folderId
@@ -228,18 +227,25 @@ export const WatchlistProvider = ({ children }) => {
       )
     );
     showPopup(`"${item.name}" removed from "${folder ? folder.name : 'the list'}".`, 'info');
-  };
+  }, [folders, itemDetailsCache, showPopup]);
 
-  const reorderItemsInFolder = (folderId, reorderedItemObjects) => {
+  const isItemInFolder = useCallback((itemId, folderId) => {
+    const folder = folders.find(f => f.id === folderId);
+    return folder ? folder.items.some(item => item.id === itemId) : false;
+  }, [folders]);
+
+
+  const reorderItemsInFolder = (folderId, reorderedItems) => { // reorderedItems is now the full array of items for that folder
     setFolders(prev =>
-      prev.map(f => (f.id === folderId ? { ...f, items: reorderedItemObjects.map(item => ({id: item.id, type: item.type})) } : f))
+      prev.map(f => (f.id === folderId ? { ...f, items: reorderedItems.map(item => ({id: item.id, type: item.type})) } : f))
     );
   };
+
 
   const moveItemToFolder = (sourceFolderId, targetFolderId, itemId, itemType) => {
     if (sourceFolderId === targetFolderId) return;
     const itemToMove = { id: itemId, type: itemType };
-    
+
     let movedItemName = itemDetailsCache[itemId]?.name || `Item ${itemId}`;
     let sourceFolderName = "";
     let targetFolderName = "";
@@ -258,7 +264,7 @@ export const WatchlistProvider = ({ children }) => {
         });
         return newFolders.map(f => {
             if (f.id === targetFolderId) {
-                if (!f.items.some(i => i.id === itemId)) { 
+                if (!f.items.some(i => i.id === itemId)) {
                     return { ...f, items: [itemToMove, ...f.items] };
                 }
             }
@@ -278,13 +284,14 @@ export const WatchlistProvider = ({ children }) => {
       renameFolder,
       deleteFolder,
       updateFolderAppearance,
-      addItemToFolder,
+      addItemToFolders, // Updated name
       removeItemFromFolder,
       reorderItemsInFolder,
       reorderFolders,
       itemDetailsCache,
       fetchItemDetails,
       moveItemToFolder,
+      isItemInFolder, // Export new helper
     }}>
       {children}
     </WatchlistContext.Provider>
