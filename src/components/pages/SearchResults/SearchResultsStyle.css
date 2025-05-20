@@ -109,3 +109,68 @@
 .search-results-page .error-message {
     color: var(--warning-color); 
 }
+
+.search-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow button to wrap on smaller screens */
+  gap: 15px; /* Space between title and button */
+  margin-bottom: 20px; /* Space before filter panel or content */
+}
+
+.search-results-page .page-title {
+  margin-bottom: 0; /* Remove bottom margin if it's part of the header flex */
+}
+
+.toggle-filters-btn {
+  padding: 8px 15px;
+  background-color: var(--bg-secondary, #2A2D34); /* Similar to reset button */
+  color: var(--text-secondary, #B0B8C5);
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+}
+
+.toggle-filters-btn:hover {
+  background-color: var(--border-color, #333842);
+  color: var(--text-primary, #E0E0E0);
+}
+
+.toggle-filters-btn svg {
+  /* Icon styling if needed - already sized in component */
+}
+
+
+/* Ensure the filters panel is styled to appear correctly when toggled */
+.search-results-page .filters-panel {
+  /* Existing styles for filters-panel should mostly work. 
+     Ensure it has a clear background and padding as before.
+     The conditional rendering in JSX will handle show/hide.
+     You might add a transition if you want it to slide down, 
+     but simple show/hide is often fine.
+  */
+  margin-top: 10px; /* Add some space if it appears directly below the button */
+}
+
+
+/* Responsive adjustments for the header */
+@media (max-width: 600px) {
+  .search-results-header {
+    flex-direction: column;
+    align-items: flex-start; /* Align title and button to the start */
+  }
+  .search-results-page .page-title {
+    margin-bottom: 10px; /* Add space if button wraps below */
+  }
+  .toggle-filters-btn {
+    width: 100%; /* Make button full width on small screens if desired */
+    justify-content: center;
+  }
+}

@@ -1,61 +1,246 @@
 /* DiscoverStyle.css */
-/* Uses .page-container, .page-main-content, .page-title from shared styles */
-
 .discover-header {
-  margin-bottom: 20px; /* Space below title */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px; /* Gap between title and controls */
+}
+
+.discover-header .page-title {
+  margin-bottom: 0; /* Reset margin if in flex container */
+  flex-grow: 1; /* Allow title to take space */
+}
+
+.discover-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Gap between primary type select and filter button */
+}
+
+.main-type-select {
+  padding: 10px 15px;
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 6px;
+  background-color: var(--card-background-color, #1A1D24);
+  color: var(--primary-text-color, #CECECE);
+  font-size: 0.95rem;
+  min-width: 130px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23918F98' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 12px;
+  padding-right: 35px; /* Space for custom arrow */
+}
+.main-type-select:focus {
+  outline: none;
+  border-color: var(--accent-color-main, #6A5AF9);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.2);
+}
+
+.filter-toggle-btn {
+  background-color: var(--card-background-color, #1A1D24);
+  color: var(--primary-text-color, #CECECE);
+  border: 1px solid var(--border-color, #333842);
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.filter-toggle-btn:hover,
+.filter-toggle-btn.active {
+  background-color: var(--input-background-color, #12151B);
+  border-color: var(--accent-color-main, #6A5AF9);
+  color: var(--accent-color-main, #6A5AF9);
+}
+.filter-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filters-panel-container {
+  margin-bottom: 25px;
+  transition: max-height 0.35s ease-in-out, opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-15px) scaleY(0.95);
+  overflow: hidden;
+  border-radius: 8px; /* Match panel border radius */
+}
+.filters-panel-container.open {
+  max-height: 600px; /* Generous height */
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+  overflow: visible;
+  border: 1px solid var(--border-color-soft, #2a2d34); /* Border on container when open */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .filters-panel {
-display: flex;
-flex-wrap: wrap; /* Allow filters to wrap on smaller screens */
-gap: 15px;
-margin-bottom: 25px;
-padding: 15px;
-background-color: rgba(var(--card-rgb), 0.3);
-border-radius: 6px;
-border: 1px solid var(--border-color-soft);
+  background-color: var(--card-background-color, #1f2229);
+  padding: 20px 25px; /* Good padding */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 30px; /* Row and column gap */
+  align-items: flex-end; /* Align reset button nicely */
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 220px; /* Allow groups to grow and wrap, base size */
+  min-width: 180px; /* Minimum sensible width */
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  color: var(--secondary-text-color, #918F98);
+  font-weight: 600; /* Bolder label */
+  margin-left: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px; /* Slight letter spacing */
+  opacity: 0.9;
 }
 
 .filter-select {
-padding: 8px 10px;
-border: 1px solid var(--border-color);
-border-radius: 4px;
-background-color: var(--bg-input);
-color: var(--text-primary);
-font-size: 0.9rem;
-min-width: 150px; /* Minimum width for selects */
+  padding: 12px 15px;
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 6px;
+  background-color: var(--input-background-color, #12151B);
+  color: var(--primary-text-color, #CECECE);
+  font-size: 0.95rem;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23918F98' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 14px 14px;
+  padding-right: 40px; /* Space for custom arrow */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .filter-select:focus {
-outline: none;
-border-color: var(--accent-color-main);
-box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+  outline: none;
+  border-color: var(--accent-color-main, #6A5AF9);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 106, 90, 249), 0.3);
 }
 .filter-select:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--border-color-soft, #22252A);
 }
 
 .filter-reset-btn {
-padding: 8px 15px;
-background-color: var(--secondary-text-color); /* Or a neutral color */
-color: var(--bg-primary);
-border: none;
-border-radius: 4px;
-cursor: pointer;
-font-size: 0.9rem;
-transition: background-color 0.2s ease;
+  padding: 11px 20px;
+  background-color: var(--secondary-color, #5a5d68);
+  color: var(--primary-text-color, #E0E0E0);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  height: fit-content;
+  margin-top: auto; /* if in a flex column with label, helps align if label causes diff height */
 }
 .filter-reset-btn:hover {
-background-color: var(--text-secondary); /* Darker shade */
+  background-color: var(--secondary-color-hover, #717480);
 }
 
-/* Styles for the media grid in Discover - THIS IS KEY */
-.discover-page .media-grid { /* Make it specific to discover page if needed */
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Adjust 160px as needed */
-  gap: 18px; /* Adjust gap as needed */
+/* Media Grid - Adjust card size here */
+.media-grid.discover-grid {
+  display: grid; /* Ensure grid is explicitly set */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Control card width here */
+  gap: 20px; /* Gap between cards */
+}
+/* Ensure child items of media-grid take up the cell space */
+.discover-grid > * {
+    min-width: 0; /* Fix for flex/grid item sizing issues sometimes */
 }
 
-.discover-page .media-grid .media-grid-item { /* Target MediaGridItem specifically within Discover */
-  aspect-ratio: 2 / 3; /* Common poster aspect ratio */
+
+.loading-message,
+.discover-content-error,
+.empty-message {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 1.1rem;
+  color: var(--secondary-text-color, #918F98);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; /* Ensure it takes full width in grid scenarios */
+  grid-column: 1 / -1; /* Span all columns if direct child of grid */
+}
+.discover-content-error {
+  color: var(--warning-color, #F75A58);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .media-grid.discover-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .discover-header {
+    flex-direction: column;
+    align-items: stretch; /* Make controls full width */
+  }
+  .discover-controls {
+    flex-direction: column; /* Stack controls on mobile */
+    align-items: stretch; /* Make them full width */
+    width: 100%;
+  }
+  .main-type-select, .filter-toggle-btn {
+    width: 100%; /* Full width for controls */
+  }
+  .filters-panel {
+    flex-direction: column; /* Stack filter groups vertically */
+    align-items: stretch;
+    gap: 20px;
+  }
+  .filter-group {
+    min-width: 100%; /* Each filter group takes full width */
+  }
+  .filter-reset-btn {
+    margin-top: 10px; /* Add some space if it's the last item */
+    align-self: stretch; /* Full width button on mobile filter panel */
+  }
+}
+
+@media (max-width: 480px) {
+  .media-grid.discover-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Smaller cards on very small screens */
+    gap: 10px;
+  }
+}
+
+.icon-button { /* General style for icon buttons if not globally defined */
+    background: none;
+    border: none;
+    color: var(--secondary-text-color, #918F98);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+.icon-button:hover {
+    color: var(--primary-text-color, #E0E0E0);
+    background-color: rgba(var(--card-rgb, 26, 29, 36), 0.5);
 }

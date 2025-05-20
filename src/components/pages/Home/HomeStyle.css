@@ -1,233 +1,325 @@
 /* HomeStyle.css */
-/* ... (root variables, body, home-container, home-main-content styles remain) ... */
 
 /* --- Hero Section --- */
 .hero-section {
-    height: 80vh; /* Can be adjusted; image showed a large hero area */
-    min-height: 550px; /* Ensure it's substantial even on smaller viewports */
-    background-size: cover;
-    background-position: center 30%; /* Adjust to focus on desired part of image */
-    background-repeat: no-repeat;
-    display: flex;
-    /* Align content to bottom-left as per typical streaming UI */
-    align-items: flex-end;
-    justify-content: flex-start;
-    position: relative;
-    color: var(--hero-title-color, #FFFFFF);
+  height: 85vh; /* Can be adjusted; image showed a large hero area */
+  min-height: 600px; /* Ensure it's substantial even on smaller viewports */
+  background-size: cover;
+  background-position: center 30%; /* Adjust to focus on desired part of image */
+  background-repeat: no-repeat;
+  position: relative;
+  color: var(--hero-title-color, #FFFFFF);
+  overflow: hidden; /* To contain pseudo-elements for transitions */
+  transition: background-image 1s ease-in-out; /* Smooth background transition */
+}
+
+/* Overlay for gradient */
+.hero-background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%, rgba(var(--bg-primary-rgb, 14,16,21), 0.85) 25%, rgba(var(--bg-primary-rgb, 14,16,21), 0.3) 60%, transparent 100%);
+  z-index: 1;
+}
+
+/* Wrapper for actual content and controls, above the gradient */
+.hero-content-wrapper {
+  position: relative; /* To sit on top of the overlay */
+  z-index: 2;
+  display: flex;
+  flex-direction: column; /* Stacks main content and progress bar */
+  justify-content: flex-end; /* Aligns main content to bottom */
+  align-items: flex-start; /* Aligns main content to left */
+  height: 100%;
+  padding: 40px 50px; /* Base padding */
+  box-sizing: border-box;
+}
+
+.hero-content-main {
+  max-width: 55%; /* Adjust based on how much space text should take */
+  width: 100%; /* Ensure it can take up to max-width */
+  display: flex;
+  flex-direction: column; /* Stack text and actions/nav */
+}
+
+.hero-text-content {
+  opacity: 1;
+  transition: opacity 0.7s ease-in-out;
+  margin-bottom: 25px; /* Space between text and actions/nav */
+}
+
+.hero-section.content-exit .hero-text-content {
+  opacity: 0;
+}
+.hero-section.content-enter .hero-text-content {
+  opacity: 1;
+}
+
+
+.hero-title {
+  font-size: 3rem; /* Prominent title */
+  font-weight: 700; /* Bold */
+  margin-top: 0;
+  margin-bottom: 12px;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+  line-height: 1.15;
+  color: #FFF; /* Ensure pure white for max contrast if bg is dark */
+}
+
+.hero-description {
+  font-size: 1rem; /* Readable description */
+  color: var(--hero-description-color, #D0D0D0); /* Slightly brighter than secondary text */
+  line-height: 1.6;
+  max-width: 600px; /* Limit description width */
+  text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
+  /* For showing limited lines of text: */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero-actions-and-nav {
+  display: flex;
+  align-items: center; /* Vertically align button and nav arrows container */
+  gap: 20px; /* Space between "View Details" and arrows */
+  width: 100%; /* Allow it to span for right alignment of arrows */
+  justify-content: space-between; /* Pushes arrows to the right if nav container takes remaining space */
+}
+
+.hero-actions {
+  display: flex; /* Kept for consistency if you add more buttons */
+  gap: 12px;
+}
+
+.hero-button {
+  padding: 10px 20px; /* Standard button size */
+  font-size: 0.95rem; /* Slightly smaller button text */
+  font-weight: 600;
+  border-radius: 6px; /* Softer radius */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent; /* Base border */
+  text-decoration: none;
+}
+
+.hero-button.primary {
+  background-color: var(--primary-text-color, #E0E0E0); /* White-ish button */
+  color: var(--background-color, #0E1015); /* Dark text */
+  border-color: var(--primary-text-color, #E0E0E0);
+}
+.hero-button.primary:hover {
+  background-color: #FFFFFF; /* Brighter white on hover */
+  transform: scale(1.03);
+}
+
+/* Navigation Arrows Container */
+.hero-nav-arrows-container {
+  display: flex;
+  gap: 10px; /* Space between the two arrows */
+  /* Removed position: absolute from individual arrows, now controlled by flex layout */
+}
+
+.hero-nav-arrow.icon-button { /* Reusing .icon-button if you have global styles for it */
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 44px; /* Slightly larger for better tap target */
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.hero-nav-arrow.icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+.hero-nav-arrow.icon-button svg {
+    width: 22px;
+    height: 22px;
+}
+/* Specific flip for right arrow if needed, else handle in JSX/SVG definition */
+/* .hero-nav-arrow.right svg { transform: scaleX(-1); } */
+
+
+/* Progress Bar - thinner and longer */
+.hero-progress-bar-container {
+  position: absolute; /* Position relative to hero-section */
+  bottom: 25px; /* Distance from bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%; /* Make it longer */
+  width: 95%;
+  height: 1px; /* Make it thinner */
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  z-index: 10;
+  overflow: hidden;
+  opacity: 0.5;
+}
+
+.hero-progress-bar {
+  height: 100%;
+  background-color: var(--primary-text-color, #E0E0E0);
+  border-radius: 3px;
+  transition: width 0.05s linear; /* Faster update interval for smoothness */
+}
+
+
+/* Responsive Adjustments for Hero Section */
+@media (max-width: 1024px) {
+  .hero-content-wrapper {
+    padding: 30px 40px;
   }
-  
-  /* Specific hero style for Shogun - ensure image_25726b.jpg is in public/images/ */
-  .hero-shogun {
-    background-image:
-      /* Bottom gradient for text readability */
-      linear-gradient(to top, rgba(14, 16, 21, 1) 5%, rgba(14, 16, 21, 0.8) 20%, rgba(14, 16, 21, 0.3) 50%, rgba(14, 16, 21, 0) 70%),
-      /* Optional subtle top gradient if needed */
-      /* linear-gradient(to bottom, rgba(14, 16, 21, 0.3) 0%, transparent 20%), */
-      url(''); /* PATH TO YOUR IMAGE */
+  .hero-content-main {
+    max-width: 70%;
   }
-  
-  
-  .hero-content-overlay {
-      width: 100%;
-      padding: 40px 50px; /* More padding on larger screens */
-      box-sizing: border-box;
-      /* The gradient is now part of the .hero-shogun background-image stack */
-  }
-  
-  .hero-content {
-    max-width: 45%; /* Adjust based on how much space text should take */
-    margin-bottom: 5vh; /* Space from the absolute bottom */
-  }
-  
-  .hero-title-logo { /* If using a logo image for the title */
-      display: block;
-      max-height: 70px; /* Adjust as needed */
-      width: auto;
-      margin-bottom: 15px;
-  }
-  
   .hero-title {
-    font-size: 3.2rem; /* Prominent title */
-    font-weight: 700; /* Bold */
-    margin-bottom: 12px;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
-    line-height: 1.15;
-    color: #FFF; /* Ensure pure white for max contrast if bg is dark */
+    font-size: 2.5rem;
   }
-  
-  .hero-metadata {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Spacing between metadata items */
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--hero-description-color, #B0B0B0);
-    margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    height: 75vh;
+    min-height: 500px;
   }
-  .hero-metadata span {
-      padding: 4px 0px; /* Minimal padding for inline feel */
-      border-radius: 3px;
-      line-height: 1; /* For better vertical alignment of text within spans */
+  .hero-content-wrapper {
+    padding: 25px;
   }
-  .hero-metadata .maturity-rating {
-    background-color: rgba(200, 200, 200, 0.2); /* Subtle background for TV-MA */
-    border: 1px solid rgba(200, 200, 200, 0.4);
-    padding: 3px 6px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: #E0E0E0;
+  .hero-content-main {
+    max-width: 90%; /* Allow more width on mobile */
   }
-  .hero-metadata .rating {
-    color: #FFC107; /* Brighter gold for star */
-    font-weight: 600;
+  .hero-title {
+    font-size: 2rem;
   }
-  .hero-metadata .rating::before { /* If not using ★ directly in JSX */
-    /* content: "★ "; */
-  }
-  
-  
   .hero-description {
-    font-size: 1rem; /* Readable description */
-    color: var(--hero-description-color, #D0D0D0); /* Slightly brighter than secondary text */
-    line-height: 1.6;
-    margin-bottom: 25px;
-    max-width: 550px; /* Limit description width */
-    text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
-    /* For showing limited lines of text: */
-    /* display: -webkit-box;
-    -webkit-line-clamp: 3; 
-    -webkit-box-orient: vertical;  
-    overflow: hidden; */
+    font-size: 0.9rem;
+    -webkit-line-clamp: 2; /* Show fewer lines on mobile */
   }
-  
-  .hero-actions {
-    display: flex;
-    gap: 12px;
+  .hero-actions-and-nav {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start on mobile */
+    gap: 15px;
   }
-  
+  .hero-nav-arrows-container {
+    /* Arrows will stack below the button due to flex-direction: column */
+    /* If you want them on the right, adjust parent flex properties or use absolute positioning */
+    margin-top: 10px; /* Add some space if they stack */
+  }
+  .hero-progress-bar-container {
+    width: 80%;
+    bottom: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.7rem;
+  }
   .hero-button {
-    padding: 10px 20px; /* Standard button size */
-    font-size: 0.95rem; /* Slightly smaller button text */
-    font-weight: 600;
-    border-radius: 5px; /* Softer radius */
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid transparent; /* Base border */
-  }
-  
-  .hero-button.primary {
-    background-color: var(--primary-text-color, #E0E0E0); /* White-ish button */
-    color: var(--background-color, #0E1015); /* Dark text */
-    border-color: var(--primary-text-color, #E0E0E0);
-  }
-  .hero-button.primary:hover {
-    background-color: #FFFFFF; /* Brighter white on hover */
-    transform: scale(1.03);
-  }
-  
-  .hero-button.secondary {
-    background-color: rgba(100, 100, 100, 0.5); /* Semi-transparent dark grey */
-    color: var(--primary-text-color, #E0E0E0);
-    border-color: rgba(150, 150, 150, 0.6);
-  }
-  .hero-button.secondary:hover {
-    background-color: rgba(120, 120, 120, 0.6);
-    border-color: rgba(180, 180, 180, 0.7);
-    transform: scale(1.03);
-  }
-  .hero-button svg {
-      /* SVG icons in buttons already sized in JSX, can add color here if needed */
-      /* fill: currentColor; */ /* If SVG is designed for it */
-  }
-  
-  /* ... (ContentRow, MediaThumbnail, Footer, and existing Responsive styles remain) ... */
-  
-  /* Adjust responsive for Hero Section specifically */
-  @media (max-width: 1024px) {
-    .hero-content {
-      max-width: 55%;
-      margin-bottom: 4vh;
-    }
-    .hero-title {
-      font-size: 2.8rem;
-    }
-    .hero-description {
-      font-size: 0.95rem;
-      max-width: 95%;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .app-navbar { /* From Navbar.css */
-      height: 55px;
-    }
-    .home-main-content { /* From HomeStyle.css */
-      padding-top: 55px; /* Match updated navbar height */
-    }
-    .hero-section {
-      height: 70vh; /* Adjust hero height for mobile */
-      min-height: 450px;
-      background-position: center 20%; /* Focus more on character if image allows */
-    }
-    .hero-content-overlay {
-      padding: 25px;
-    }
-    .hero-content {
-      max-width: 90%; /* Allow more width on mobile */
-      text-align: left; /* Keep left align instead of center */
-      margin-bottom: 3vh;
-    }
-    .hero-title {
-      font-size: 2rem;
-    }
-    .hero-metadata {
-      font-size: 0.85rem;
-      gap: 10px;
-    }
-    .hero-description {
-      font-size: 0.9rem;
-      /* -webkit-line-clamp: 2; */ /* Show fewer lines on mobile */
-      margin-bottom: 20px;
-    }
-    .hero-actions {
-      gap: 10px;
-    }
-    .hero-button {
       padding: 8px 16px;
       font-size: 0.9rem;
-    }
   }
-  
-  @media (max-width: 480px) {
-    .hero-title {
-      font-size: 1.7rem;
-    }
-    .hero-metadata span {
-      font-size: 0.75rem;
-    }
-    .hero-metadata .maturity-rating {
-        padding: 2px 4px;
-        font-size: 0.7rem;
-    }
-    .hero-description {
-      display: -webkit-box; /* To limit lines */
-      -webkit-line-clamp: 3; 
-      -webkit-box-orient: vertical;  
-      overflow: hidden;
-      font-size: 0.85rem;
-    }
-    .hero-actions {
-      /* Flex-direction column could be an option if buttons are too wide */
-    }
-    .hero-button {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-    }
-    .hero-button svg {
-        width: 16px;
-        height: 16px;
-    }
+  .hero-nav-arrow.icon-button {
+      width: 40px;
+      height: 40px;
   }
+  .hero-nav-arrow.icon-button svg {
+      width: 20px;
+      height: 20px;
+  }
+}
+
+
+/* Continue Watching & Other Rows */
+.content-row {
+  margin-bottom: 40px;
+  padding: 0 3vw; /* Adjust padding as needed */
+}
+
+.row-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--primary-text-color);
+  margin-bottom: 18px;
+}
+
+.row-items-scrollable {
+  display: flex;
+  overflow-x: auto;
+  gap: 18px;
+  padding-bottom: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color, #6A5AF9) rgba(var(--card-rgb, 26, 29, 36), 0.5);
+}
+.row-items-scrollable::-webkit-scrollbar {
+  height: 8px;
+}
+.row-items-scrollable::-webkit-scrollbar-track {
+  background: rgba(var(--card-rgb, 26, 29, 36), 0.3);
+  border-radius: 4px;
+}
+.row-items-scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color, #6A5AF9);
+  border-radius: 4px;
+}
+
+.media-thumbnail-link-wrapper {
+  text-decoration: none;
+}
+.media-thumbnail {
+  width: 180px; /* Or your preferred thumbnail width */
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--card-background-color);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+.media-thumbnail:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+.thumbnail-image {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+.thumbnail-info {
+  padding: 10px;
+  text-align: left;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.thumbnail-title {
+  font-size: 0.9rem;
+  color: #fff;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer */
+.home-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.85rem;
+  color: var(--secondary-text-color);
+  border-top: 1px solid var(--border-color, #22252A);
+  margin-top: auto; /* Pushes footer to bottom if content is short */
+}

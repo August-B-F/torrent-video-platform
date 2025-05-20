@@ -1,14 +1,75 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useAddons } from '../../contexts/AddonContext'; // Assuming AddonContext.jsx is in src/contexts/
-import './HomeStyle.css'; // Your existing styles for Home
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link }
+from 'react-router-dom';
+import { useAddons } from '../../contexts/AddonContext';
+import './HomeStyle.css';
 
-// --- Child Components (can be moved to separate files if complex) ---
+// --- SVG Icons for Hero Carousel ---
+const ChevronLeftIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"></polyline>
+  </svg>
+);
 
-const HeroSection = ({ item, isLoading }) => {
-  // For now, let's make the Hero simple or use a static featured item
-  // Or it could fetch a specific "featured" catalog from Cinemeta
-  if (isLoading) {
+const ChevronRightIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6"></polyline>
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+);
+
+
+// --- Updated HeroSection ---
+const HeroSection = ({ items, isLoading }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [prevIndex, setPrevIndex] = useState(null); // For transition direction
+  const [progress, setProgress] = useState(0);
+  const timerRef = useRef(null);
+  const progressTimerRef = useRef(null);
+
+  const slideDuration = 30000; // 10 seconds per slide
+
+  const goToIndex = useCallback((index, direction = 'next') => {
+    setPrevIndex(currentIndex);
+    setCurrentIndex(index);
+    setProgress(0);
+  }, [currentIndex]);
+
+
+  const goToNext = useCallback(() => {
+    goToIndex((currentIndex + 1) % (items?.length || 1), 'next');
+  }, [currentIndex, items, goToIndex]);
+
+  const goToPrevious = () => {
+    goToIndex((currentIndex - 1 + (items?.length || 1)) % (items?.length || 1), 'prev');
+  };
+
+
+  useEffect(() => {
+    if (items && items.length > 0) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+
+      timerRef.current = setInterval(goToNext, slideDuration);
+
+      const progressInterval = 50; // Update progress bar more frequently
+      progressTimerRef.current = setInterval(() => {
+        setProgress(prev => {
+          const nextProgress = prev + (progressInterval / slideDuration) * 100;
+          return nextProgress >= 100 ? 100 : nextProgress;
+        });
+      }, progressInterval);
+    }
+    return () => {
+      clearInterval(timerRef.current);
+      clearInterval(progressTimerRef.current);
+    };
+  }, [items, currentIndex, goToNext, slideDuration]);
+
+  if (isLoading || !items || items.length === 0) {
     return (
       <section className="hero-section loading-hero">
         <div className="loading-message">Loading Featured Content...</div>
@@ -16,63 +77,92 @@ const HeroSection = ({ item, isLoading }) => {
     );
   }
 
-  // Static fallback if no dynamic item is loaded
-  const displayItem = item || {
-    name: "Welcome to Your Media Hub",
-    description: "Discover movies and series from your configured addons.",
-    background: "https://via.placeholder.com/1920x700/1a1d24/50535a?text=Featured+Content", // Placeholder
-  };
+  const currentItem = items[currentIndex];
+   // To help with transitions, we can keep track of the previous item for a moment
+  const previousItem = prevIndex !== null && items[prevIndex] ? items[prevIndex] : null;
+
+
+  if (!currentItem) {
+    return (
+      <section className="hero-section loading-hero">
+        <div className="loading-message">Preparing content...</div>
+      </section>
+    );
+  }
 
   return (
+    // Add a key to the section to help React re-render for transitions
     <section
+      key={currentItem.id} // Key change will trigger re-render and CSS transition
       className="hero-section"
-      style={{ backgroundImage: `linear-gradient(to top, rgba(14, 16, 21, 0.95) 15%, rgba(14, 16, 21, 0.4) 50%, transparent 100%), url(${displayItem.background || displayItem.poster})` }}
+      style={{ backgroundImage: `url(${currentItem.background || currentItem.poster})` }}
     >
-      <div className="hero-content-overlay">
-        <div className="hero-content">
-          <h1 className="hero-title">{displayItem.name}</h1>
-          {displayItem.description && <p className="hero-description">{displayItem.description}</p>}
-          {displayItem.id && displayItem.type && ( // Only show button if it's a real item
-            <div className="hero-actions">
-              <Link to={`/${displayItem.type}/${displayItem.id}`} className="hero-button primary">
-                {/* PlayIcon should be imported or defined */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                View Details
-              </Link>
-            </div>
-          )}
+      <div className="hero-background-overlay"></div> {/* Gradient overlay */}
+      <div className="hero-content-wrapper"> {/* Wrapper for content and controls */}
+        <div className="hero-content-main">
+          {/* Text content with transition */}
+          <div className="hero-text-content">
+            <h1 className="hero-title">{currentItem.name}</h1>
+            {currentItem.description && <p className="hero-description">{currentItem.description}</p>}
+          </div>
+          <div className="hero-actions-and-nav">
+            {currentItem.id && currentItem.type && (
+              <div className="hero-actions">
+                <Link to={`/${currentItem.type}/${currentItem.id}`} className="hero-button primary">
+                  <PlayIcon />
+                  View Details
+                </Link>
+              </div>
+            )}
+            {items.length > 1 && (
+              <div className="hero-nav-arrows-container">
+                <button onClick={goToPrevious} className="hero-nav-arrow icon-button" aria-label="Previous slide">
+                  <ChevronLeftIcon />
+                </button>
+                <button onClick={goToNext} className="hero-nav-arrow icon-button" aria-label="Next slide">
+                  <ChevronRightIcon />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {items.length > 1 && (
+        <div className="hero-progress-bar-container">
+          <div className="hero-progress-bar" style={{ width: `${progress}%` }}></div>
+        </div>
+      )}
     </section>
   );
 };
 
+
+// --- MediaThumbnail (can be kept as is or adjusted if needed) ---
 const MediaThumbnail = ({ item }) => {
   if (!item || !item.id || !item.type) {
-    // console.warn("MediaThumbnail received incomplete item:", item);
-    return null; // Don't render if essential props are missing
+    return null;
   }
   const detailPath = `/${item.type}/${item.id}`;
 
   return (
     <Link to={detailPath} className="media-thumbnail-link-wrapper" title={item.name || item.title}>
         <div className="media-thumbnail">
-            <img 
-                src={item.poster || item.logo || 'https://via.placeholder.com/300x450/2a2a2a/FFFFFF?text=No+Poster'} 
-                alt={item.name || item.title || 'Poster'} 
-                className="thumbnail-image" 
+            <img
+                src={item.poster || item.logo || 'https://via.placeholder.com/300x450/2a2a2a/FFFFFF?text=No+Poster'}
+                alt={item.name || item.title || 'Poster'}
+                className="thumbnail-image"
                 loading="lazy"
             />
             <div className="thumbnail-info">
                 <h4 className="thumbnail-title">{item.name || item.title || 'Untitled'}</h4>
-                {/* You can add more info like year or type if available and desired */}
-                {/* {item.year && <span className="thumbnail-year">{item.year}</span>} */}
             </div>
         </div>
     </Link>
   );
 };
 
+// --- ContentRow (can be kept as is or adjusted) ---
 const ContentRow = ({ title, items, isLoading, error }) => {
   if (isLoading) {
     return (
@@ -95,6 +185,14 @@ const ContentRow = ({ title, items, isLoading, error }) => {
   }
 
   if (!items || items.length === 0) {
+    if (title === "Continue Watching") {
+        return (
+            <section className="content-row">
+              <h3 className="row-title">{title}</h3>
+              <p className="empty-message" style={{ paddingLeft: '5px', fontStyle: 'italic' }}>Nothing to show here yet. Start watching something!</p>
+            </section>
+          );
+    }
     return (
       <section className="content-row">
         <h3 className="row-title">{title}</h3>
@@ -119,136 +217,77 @@ const ContentRow = ({ title, items, isLoading, error }) => {
 // --- Main Home Component ---
 const Home = () => {
   const { cinemeta, isLoadingCinemeta, cinemetaError } = useAddons();
-  const [homeCatalogs, setHomeCatalogs] = useState([]); // Stores { key, name, items, isLoading, error, addonInstance, catalogDefinition }
-  const [featuredContent, setFeaturedContent] = useState(null);
-  const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [continueWatchingItems, setContinueWatchingItems] = useState([]);
+  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+  const [isLoadingContinueWatching, setIsLoadingContinueWatching] = useState(false);
+  const [contentError, setContentError] = useState('');
 
 
-  // Function to fetch items for a specific catalog
-  const fetchCatalogItems = useCallback(async (addonInstance, catalogDefinition, catalogKey) => {
-    setHomeCatalogs(prev => prev.map(c => 
-      c.key === catalogKey ? { ...c, isLoading: true, error: null } : c
-    ));
-    try {
-      // Example: Skip some items for variety, or define specific 'extra' props
-      const extra = catalogDefinition.id === 'top' && catalogDefinition.type === 'movie' ? { skip: 0 } : {}; 
-      // You can add more sophisticated 'extra' based on catalogDefinition.extraSupported
-      
-      console.log(`Workspaceing catalog: ${catalogDefinition.name} (Type: ${catalogDefinition.type}, ID: ${catalogDefinition.id}) with extra:`, extra);
-      const response = await addonInstance.get('catalog', catalogDefinition.type, catalogDefinition.id, extra);
-      
-      setHomeCatalogs(prev => prev.map(c =>
-        c.key === catalogKey
-          ? { ...c, items: response.metas || [], isLoading: false }
-          : c
-      ));
-
-      // Set featured content from the first item of the first successfully loaded catalog (e.g., top movies)
-      if (catalogDefinition.id === 'top' && catalogDefinition.type === 'movie' && (response.metas || []).length > 0) {
-        if (!featuredContent) { // Only set once, or implement logic to rotate
-            setFeaturedContent(response.metas[0]);
-        }
-      }
-
-    } catch (error) {
-      console.error(`Error fetching catalog ${catalogDefinition.name} from ${addonInstance.manifest.name}:`, error);
-      setHomeCatalogs(prev => prev.map(c =>
-        c.key === catalogKey
-          ? { ...c, isLoading: false, error: `Failed to load: ${error.message}. (Check CORS or addon URL)` }
-          : c
-      ));
-    }
-  }, [featuredContent]); // Added featuredContent to dependencies to avoid re-setting it unnecessarily if logic changes
-
-
-  // Effect to initialize and fetch catalogs when Cinemeta client is ready
   useEffect(() => {
     if (cinemeta && cinemeta.manifest && cinemeta.manifest.catalogs) {
-      console.log("Cinemeta loaded, processing catalogs for Home:", cinemeta.manifest.catalogs);
-      // Define which catalogs you want on the Home page
-      const desiredCatalogs = [
-        { type: 'movie', id: 'top', name: 'Top Movies' },
-        { type: 'series', id: 'popular', name: 'Popular Series' },
-        { type: 'movie', id: 'newest', name: 'New Movies by Genre' }, // This Cinemeta ID might need genre in 'extra'
-        // Example: Find a specific genre catalog if available
-        // ...(cinemeta.manifest.catalogs.find(c => c.type === 'movie' && c.id.includes('genre') && c.name.toLowerCase().includes('action')) ? [{type: 'movie', id: cinemeta.manifest.catalogs.find(c => c.type === 'movie' && c.id.includes('genre') && c.name.toLowerCase().includes('action')).id, name: 'Action Movies'}] : []),
-      ];
-
-      const initialCatalogStates = desiredCatalogs
-        .map(dc => {
-          const foundCatalog = cinemeta.manifest.catalogs.find(c => c.type === dc.type && c.id === dc.id);
-          if (foundCatalog) {
-            return {
-              key: `${cinemeta.manifest.id}-${foundCatalog.type}-${foundCatalog.id}`,
-              name: dc.name, // Use our custom name for the row
-              items: [],
-              isLoading: true, // Will be set to true by fetchCatalogItems
-              error: null,
-              addonInstance: cinemeta,
-              catalogDefinition: foundCatalog
-            };
-          }
-          return null;
-        })
-        .filter(Boolean); // Remove nulls if a desired catalog wasn't found in manifest
-
-      setHomeCatalogs(initialCatalogStates);
-
-      // Fetch items for these selected catalogs
-      initialCatalogStates.forEach(cs => {
-        fetchCatalogItems(cs.addonInstance, cs.catalogDefinition, cs.key);
-      });
-      
-      // Fetch initial featured content (e.g., from top movies)
-      const topMoviesCatalog = initialCatalogStates.find(c => c.catalogDefinition.type === 'movie' && c.catalogDefinition.id === 'top');
-      if (topMoviesCatalog && !featuredContent) {
-          setIsLoadingFeatured(true);
-          // fetchCatalogItems will handle setting featuredContent from its items
+      const topMoviesCatalog = cinemeta.manifest.catalogs.find(c => c.type === 'movie' && c.id === 'top');
+      if (topMoviesCatalog) {
+        setIsLoadingFeatured(true);
+        setContentError('');
+        cinemeta.get('catalog', topMoviesCatalog.type, topMoviesCatalog.id, { skip: 0 })
+          .then(response => {
+            setFeaturedItems((response.metas || []).slice(0, 5));
+            setIsLoadingFeatured(false);
+            if ((response.metas || []).length === 0) {
+              setContentError("No featured content found from Cinemeta's top movies.");
+            }
+          })
+          .catch(error => {
+            console.error("Error fetching top movies for hero:", error);
+            setContentError(`Failed to load featured content: ${error.message}.`);
+            setIsLoadingFeatured(false);
+          });
+      } else {
+        setContentError("Cinemeta 'top movies' catalog not found in manifest.");
+        setIsLoadingFeatured(false);
       }
-
-
-    } else if (!isLoadingCinemeta && !cinemeta) {
-      setHomeCatalogs([]); // Clear catalogs if cinemeta isn't available
+    }  else if (!isLoadingCinemeta && !cinemeta) {
+      setContentError("Cinemeta addon not available. Please configure it in settings.");
+      setIsLoadingFeatured(false);
     }
-  }, [cinemeta, isLoadingCinemeta, fetchCatalogItems]); // Removed featuredContent from here as it's set inside fetchCatalogItems
+  }, [cinemeta, isLoadingCinemeta]);
 
-   useEffect(() => {
-    if (featuredContent) setIsLoadingFeatured(false);
-   }, [featuredContent]);
+  useEffect(() => {
+    // Placeholder: Fetch actual continue watching items
+    // Example:
+    // const mockContinueWatching = [
+    //   { id: 'tt0816692', name: 'Interstellar', type: 'movie', poster: 'https://image.tmdb.org/t/p/w300/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
+    //   { id: 'tt0468569', name: 'The Dark Knight', type: 'movie', poster: 'https://image.tmdb.org/t/p/w300/qJ2tW6WMUDux911r6m7haRef0WH.jpg' },
+    // ];
+    // setContinueWatchingItems(mockContinueWatching);
+    setIsLoadingContinueWatching(false);
+  }, []);
 
 
-  // --- Render Logic ---
-  if (isLoadingCinemeta) {
-    return <div className="page-container home-page"><div className="loading-message">Initializing Cinemeta addon...</div></div>;
+  if (isLoadingCinemeta && isLoadingFeatured) { // Show general loading if both are true initially
+    return <div className="page-container home-page"><div className="loading-message">Initializing and loading content...</div></div>;
   }
 
   if (cinemetaError) {
     return <div className="page-container home-page"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{cinemetaError} Please check Addon Settings.</div></div>;
   }
+   if (!cinemeta && !isLoadingCinemeta) {
+       return <div className="page-container home-page"><div className="empty-message" style={{textAlign:'center', padding: '20px'}}>Cinemeta addon not loaded. Configure it in settings to see content.</div></div>;
+   }
 
-  if (!cinemeta) {
-      return <div className="page-container home-page"><div className="empty-message" style={{textAlign:'center', padding: '20px'}}>Cinemeta addon not loaded. Configure it in settings to see content.</div></div>;
-  }
 
   return (
     <div className="home-container">
-      {/* Navbar is rendered by App.js */}
       <main className="home-main-content">
-        <HeroSection item={featuredContent} isLoading={isLoadingFeatured} />
-        
-        {homeCatalogs.length === 0 && !isLoadingCinemeta && (
-          <div className="empty-message" style={{textAlign:'center', padding: '20px'}}>No catalogs selected or found from Cinemeta.</div>
-        )}
+        <HeroSection items={featuredItems} isLoading={isLoadingFeatured} />
+        {contentError && !isLoadingFeatured && featuredItems.length === 0 && <p className="error-message" style={{textAlign: 'center', padding: '20px'}}>{contentError}</p>}
 
-        {homeCatalogs.map((catalogEntry) => (
-          <ContentRow
-            key={catalogEntry.key}
-            title={catalogEntry.name}
-            items={catalogEntry.items}
-            isLoading={catalogEntry.isLoading}
-            error={catalogEntry.error}
-          />
-        ))}
+        <ContentRow
+          title="Continue Watching"
+          items={continueWatchingItems}
+          isLoading={isLoadingContinueWatching}
+        />
       </main>
       <footer className="home-footer">
         <p>&copy; {new Date().getFullYear()} STREAMIFY. All rights reserved.</p>
