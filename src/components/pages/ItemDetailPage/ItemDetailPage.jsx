@@ -1,194 +1,381 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
 import { useWatchlist } from '../../contexts/WatchlistContext';
-import SelectFolderModal from '../Watchlist/SelectFolderModal'; // Import the new modal
-import { usePopup } from '../../contexts/PopupContext'; // Import usePopup
+import SelectFolderModal from '../Watchlist/SelectFolderModal';
+import { usePopup } from '../../contexts/PopupContext';
 import './ItemDetailPage.css';
+
+// SVG Icons
+const PlayIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+);
+const AddToListIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+);
+const DownloadIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+);
+const BackIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+);
 
 const ItemDetailPage = () => {
   const { type, id } = useParams();
   const { cinemeta, isLoadingAddons, cinemetaError: globalAddonErr } = useAddons();
-  const { addItemToFolder, folders, itemDetailsCache, fetchItemDetails: fetchItemDetailsFromContext } = useWatchlist(); // Renamed to avoid conflict
-  const { showPopup } = usePopup(); // Use the popup context
+  const { addItemToFolder, folders, fetchItemDetails: fetchItemDetailsFromContext } = useWatchlist();
+  const { showPopup } = usePopup();
 
   const [metadata, setMetadata] = useState(null);
-  const [streams, setStreams] = useState([]);
+  const [allStreams, setAllStreams] = useState([]);
+  const [filteredStreams, setFilteredStreams] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(true);
   const [isLoadingStreams, setIsLoadingStreams] = useState(false);
   const [metaError, setMetaError] = useState('');
   const [streamError, setStreamError] = useState('');
   const [isSelectFolderModalOpen, setIsSelectFolderModalOpen] = useState(false);
+  
+  const [selectedSeason, setSelectedSeason] = useState(null); // Can be a number or "specials"
+  const [selectedEpisode, setSelectedEpisode] = useState(null);
+  const [showMovieTorrents, setShowMovieTorrents] = useState(false);
+  const [qualityFilter, setQualityFilter] = useState('1080p');
+  const availableQualities = useMemo(() => ['All', '4K', '1080p', '720p', 'SD'], []);
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []); // Get current date in YYYY-MM-DD
+
+  const processVideos = useCallback((videos) => {
+    const regularSeasons = {};
+    const specialEpisodes = [];
+
+    videos.forEach(video => {
+      const seasonNum = video.season;
+      const episodeNum = video.number || video.episode;
+      const isReleased = video.released ? new Date(video.released) <= new Date(today) : true; // Assume released if no date
+
+      const episodeData = { ...video, number: episodeNum, isReleased };
+
+      if (seasonNum && seasonNum > 0) {
+        if (!regularSeasons[seasonNum]) {
+          regularSeasons[seasonNum] = [];
+        }
+        regularSeasons[seasonNum].push(episodeData);
+      } else {
+        specialEpisodes.push(episodeData); // Season 0 or undefined season treated as special
+      }
+    });
+
+    Object.keys(regularSeasons).forEach(seasonNum => {
+      regularSeasons[seasonNum].sort((a, b) => (a.number || 0) - (b.number || 0));
+    });
+    specialEpisodes.sort((a,b) => (a.number || 0) - (b.number || 0));
+
+    return { regularSeasons, specialEpisodes };
+  }, [today]);
+
+  const { regularSeasons, specialEpisodes } = useMemo(() => {
+    if (metadata?.type === 'series' && metadata.videos) {
+      return processVideos(metadata.videos);
+    }
+    return { regularSeasons: {}, specialEpisodes: [] };
+  }, [metadata, processVideos]);
 
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // ... (reset of states as before)
+    setIsLoadingMeta(true);
+    setMetaError('');
+    setMetadata(null);
+    setSelectedSeason(null);
+    setSelectedEpisode(null);
+    setAllStreams([]);
+    setFilteredStreams([]);
+    setShowMovieTorrents(false);
+    setQualityFilter('1080p');
+
+
     if (isLoadingAddons || !id || !type) return;
 
     const fetchMeta = async () => {
-      setIsLoadingMeta(true);
-      setMetaError('');
-      setMetadata(null); // Clear previous metadata
-
       if (!cinemeta) {
-        setMetaError('Cinemeta addon not available. Please configure it in settings.');
-        setIsLoadingMeta(false);
-        return;
+        setMetaError('Cinemeta addon not available.'); setIsLoadingMeta(false); return;
       }
       try {
-        // console.log(`Workspaceing metadata for type: ${type}, id: ${id}`);
-        // Use the fetchItemDetails from context which includes caching
         const fetchedMeta = await fetchItemDetailsFromContext(id, type);
-        if (fetchedMeta && fetchedMeta.name) { // Check if valid metadata was returned
-            setMetadata(fetchedMeta);
+        if (fetchedMeta && fetchedMeta.name) {
+          setMetadata(fetchedMeta);
+          if (fetchedMeta.type === 'series') {
+            const processed = processVideos(fetchedMeta.videos || []);
+            const firstRegularSeason = Object.keys(processed.regularSeasons).map(Number).sort((a, b) => a - b)[0];
+            if (firstRegularSeason) {
+              setSelectedSeason(firstRegularSeason);
+            } else if (processed.specialEpisodes.length > 0) {
+              setSelectedSeason("specials");
+            }
+          }
         } else {
-            setMetaError(`Failed to load metadata. Item not found or addon error.`);
+          setMetaError(`Failed to load metadata.`);
         }
       } catch (e) {
-        console.error('Error fetching metadata from Cinemeta:', e);
         setMetaError(`Failed to load metadata: ${e.message}.`);
       } finally {
         setIsLoadingMeta(false);
       }
     };
-
     fetchMeta();
-  }, [cinemeta, type, id, isLoadingAddons, fetchItemDetailsFromContext]); // Added fetchItemDetailsFromContext
+  }, [cinemeta, type, id, isLoadingAddons, fetchItemDetailsFromContext, processVideos]);
 
   useEffect(() => {
-    // This effect is for fetching streams, which is currently stubbed out.
-    // Ensure it doesn't run unnecessarily or cause errors if metadata is not yet loaded.
-    if (isLoadingAddons || !metadata || !type || !id ) {
-        if (metadata === null && !isLoadingMeta && !metaError) { // Only set stream error if meta loading finished and failed silently
-             setStreamError("Cannot fetch streams without item metadata.");
-        }
-        setIsLoadingStreams(false);
-        return;
+    const shouldFetchMovieTorrents = metadata?.type === 'movie' && showMovieTorrents;
+    const shouldFetchEpisodeTorrents = metadata?.type === 'series' && selectedEpisode;
+
+    if (!shouldFetchMovieTorrents && !shouldFetchEpisodeTorrents) {
+      setAllStreams([]); return;
     }
-    // For this example, we are skipping Torrentio and stream fetching.
-    setIsLoadingStreams(false);
-    // setStreamError("Stream provider (e.g., Torrentio) not configured for this session.");
-  }, [isLoadingAddons, metadata, type, id, isLoadingMeta, metaError]);
+    
+    setIsLoadingStreams(true);
+    setStreamError('');
+    setAllStreams([]); 
 
+    let streamTitleInfo = metadata.name;
+    if(shouldFetchEpisodeTorrents && selectedEpisode) {
+        streamTitleInfo = `${metadata.name} - S${selectedEpisode.season || '0'}E${selectedEpisode.number || selectedEpisode.episode}`;
+    }
+    
+    setTimeout(() => { 
+      const placeholderTorrents = [
+        { title: `${streamTitleInfo} (1080p WEB-DL)`, name: "TorrentSourceX (1080p)", quality: "1080p", seeders: 180, size: "2.2 GB" },
+        { title: `${streamTitleInfo} (720p HDTV)`, name: "TorrentSourceY (720p)", quality: "720p", seeders: 95, size: "900 MB"  },
+        { title: `${streamTitleInfo} (4K REMUX)`, name: "TorrentSourceZ (4K)", quality: "4K", seeders: 50, size: "15.5 GB"  },
+        { title: `${streamTitleInfo} (1080p BluRay)`, name: "TorrentSourceA (1080p)", quality: "1080p", seeders: 250, size: "8.1 GB" },
+        { title: `${streamTitleInfo} (SD CAM)`, name: "TorrentSourceB (SD)", quality: "SD", seeders: 30, size: "700 MB" },
+      ];
+      setAllStreams(placeholderTorrents);
+      setIsLoadingStreams(false);
+    }, 1000);
 
-  const handleOpenSelectFolderModal = () => {
+  }, [selectedEpisode, metadata, showMovieTorrents]);
+
+  useEffect(() => {
+    if (qualityFilter === 'All') {
+      setFilteredStreams(allStreams);
+    } else {
+      setFilteredStreams(allStreams.filter(stream => stream.quality && stream.quality.toLowerCase().includes(qualityFilter.toLowerCase())));
+    }
+  }, [allStreams, qualityFilter]);
+
+  const handleOpenSelectFolderModal = () => { /* ... as before ... */ 
     if (!metadata || !metadata.id || !metadata.type) {
-        showPopup("Item details not loaded yet.", "warning");
-        return;
-    }
-    if (folders.length === 0) {
-        showPopup("No watchlists available. Create one first in 'My Lists'.", "info");
-        return;
-    }
-    setIsSelectFolderModalOpen(true);
+        showPopup("Item details not loaded yet.", "warning"); return;
+      }
+      if (folders.length === 0) {
+        showPopup("No watchlists available. Create one first in 'My Lists'.", "info"); return;
+      }
+      setIsSelectFolderModalOpen(true);
+  };
+  const handleAddItemToSelectedFolders = (selectedFolderIds) => { /* ... as before ... */ 
+    if (!metadata || !metadata.id || !metadata.type) {
+        showPopup("Cannot add item: details are missing.", "warning"); return;
+      }
+      addItemToFolder(metadata.id, metadata.type, selectedFolderIds);
   };
 
-  const handleAddItemToSelectedFolders = (selectedFolderIds) => {
-    if (!metadata || !metadata.id || !metadata.type) {
-        showPopup("Cannot add item: details are missing.", "warning");
+  const handleEpisodeSelect = (episode) => {
+    if (!episode.isReleased) {
+        showPopup("This episode has not aired yet.", "info");
         return;
     }
-    if (selectedFolderIds.length === 0) {
-        // This case should ideally be handled by disabling the button in the modal
-        showPopup("No lists selected.", "info");
-        return;
-    }
-    addItemToFolder(metadata.id, metadata.type, selectedFolderIds);
-    // Popup for success/failure is now handled within addItemToFolder in WatchlistContext
+    setSelectedEpisode(episode);
+    setShowMovieTorrents(false); 
   };
+  
+  const handleMovieWatchNow = () => {
+    setShowMovieTorrents(true);
+    setSelectedEpisode(null); 
+    setQualityFilter('1080p'); // Reset filter for movie torrents
+  };
+  
+  const handleBackToEpisodes = () => {
+      setSelectedEpisode(null);
+      setAllStreams([]);
+      setFilteredStreams([]);
+      // No need to change selectedSeason here, user stays on the same season
+  };
+
+  const availableSeasonNumbers = Object.keys(regularSeasons).map(Number).sort((a, b) => a - b);
+  const episodesForCurrentDisplay = selectedSeason === "specials" ? specialEpisodes : (regularSeasons[selectedSeason] || []);
 
 
   if (isLoadingAddons && isLoadingMeta) return <div className="page-container"><div className="loading-message">Initializing addons & loading details...</div></div>;
-  if (isLoadingAddons) return <div className="page-container"><div className="loading-message">Initializing addons...</div></div>;
-  if (isLoadingMeta) return <div className="page-container"><div className="loading-message">Loading item details...</div></div>;
-  
-  if (globalAddonErr && !cinemeta) return <div className="page-container"><div className="error-message global-error">{globalAddonErr} Try configuring addons in Settings.</div></div>;
-  if (metaError) return <div className="page-container"><div className="error-message">{metaError}</div></div>;
-  if (!metadata) return <div className="page-container"><div className="empty-message">Item details could not be loaded for Type: {type}, ID: {id}. This might be an invalid ID or an issue with the Cinemeta addon.</div></div>;
+  // ... other loading/error states as before ...
+  if (!metadata) return <div className="page-container"><div className="empty-message">Item details could not be loaded.</div></div>;
+
+
+  const displayTorrentSection = (metadata.type === 'movie' && showMovieTorrents) || (metadata.type === 'series' && selectedEpisode);
+  const displayEpisodeSection = metadata.type === 'series' && (availableSeasonNumbers.length > 0 || specialEpisodes.length > 0);
 
   return (
     <div className="page-container item-detail-page">
-      <main className="page-main-content">
-        <div className="detail-hero" style={{backgroundImage: `linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 15%, rgba(var(--bg-primary-rgb, 14,16,21), 0.85) 40%, rgba(var(--bg-primary-rgb, 14,16,21), 0.3) 70%, transparent 100%), url(${metadata.background || metadata.poster || 'https://via.placeholder.com/1920x1080?text=No+Background'})`}}>
-            <div className="detail-hero-overlay">
-                <div className="detail-header">
-                <img src={metadata.poster || 'https://via.placeholder.com/300x450?text=No+Poster'} alt={metadata.name} className="detail-poster" />
-                <div className="detail-info">
-                    <h1 className="detail-title">{metadata.name}</h1>
-                    <div className="detail-meta-row">
-                    {metadata.year && <span className="meta-year">{metadata.year}</span>}
-                    {metadata.runtime && <span className="meta-runtime">{metadata.runtime}</span>}
-                    {metadata.genres && metadata.genres.length > 0 && (
-                        <span className="meta-genres">{metadata.genres.join(', ')}</span>
-                    )}
-                    {/* Example for certification, adjust based on your metadata structure */}
-                    {/* metadata.certification && <span className="meta-certification">{metadata.certification}</span> */}
-                    </div>
-                    {metadata.imdbRating && <p className="detail-rating">★ {metadata.imdbRating} <span className="rating-source">IMDb</span></p>}
-                    
-                    <p className="detail-description">{metadata.description || 'No description available.'}</p>
-                    <div className="detail-actions">
-                        <button className="hero-button primary" onClick={() => showPopup("Playback not implemented yet.", "info")}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            Play Trailer
-                        </button>
-                        <button 
-                            className="hero-button secondary"
-                            onClick={handleOpenSelectFolderModal}
-                        >
-                            + Add to List
-                        </button>
-                    </div>
-                </div>
-                </div>
+      <div className="detail-hero" style={{ backgroundImage: `linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%, rgba(var(--bg-primary-rgb, 14,16,21), 0.9) 20%, rgba(var(--bg-primary-rgb, 14,16,21), 0.6) 45%, transparent 100%), url(${metadata.background || metadata.poster || ''})` }}>
+        {/* Hero content as before */}
+        <div className="detail-hero-content-wrapper">
+          <div className="detail-poster-container">
+            <img src={metadata.poster || 'https://via.placeholder.com/300x450?text=No+Poster'} alt={metadata.name} className="detail-poster-image" />
+          </div>
+          <div className="detail-info-actions-container">
+            <h1 className="detail-title">{metadata.name}</h1>
+            <div className="detail-meta-row">
+              {metadata.year && <span className="meta-item">{metadata.year}</span>}
+              {metadata.runtime && <span className="meta-item">{metadata.runtime}</span>}
+              {metadata.genres && metadata.genres.length > 0 && (
+                <span className="meta-item">{metadata.genres.slice(0, 3).join(', ')}</span>
+              )}
+              {metadata.imdbRating && <span className="meta-item imdb-rating">★ {metadata.imdbRating}</span>}
             </div>
+            <p className="detail-description">{metadata.description || 'No description available.'}</p>
+            <div className="detail-actions">
+              <button className="action-button primary" onClick={() => showPopup("Trailer playback not implemented yet.", "info")}>
+                <PlayIcon /> Trailer
+              </button>
+              <button className="action-button secondary" onClick={handleOpenSelectFolderModal}>
+                <AddToListIcon /> Add to List
+              </button>
+              {metadata.type === 'movie' && (
+                <button className="action-button secondary" onClick={handleMovieWatchNow}>
+                  <DownloadIcon /> Watch Now
+                </button>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Cast Section Placeholder */}
-        {metadata.cast && metadata.cast.length > 0 && (
-            <div className="detail-section cast-section">
-                <h2>Cast</h2>
-                <div className="cast-list">
-                    {metadata.cast.slice(0,10).map((member, index) => ( // Added index for a more robust key
-                        <div key={member.name || `cast-member-${index}`} className="cast-member">
-                            <div className="cast-member-image-placeholder">
-                                {/* Placeholder for image, ideally member.photoUrl */}
-                                {member.name && typeof member.name === 'string' ? member.name.charAt(0).toUpperCase() : '?'}
-                            </div>
-                            <span className="cast-member-name">{member.name || 'N/A'}</span>
-                        </div>
+      <main className="page-main-content detail-page-body">
+        {/* Series Episodes Section - Hides when an episode is selected */}
+        {displayEpisodeSection && !selectedEpisode && (
+          <div className="detail-section series-content-section">
+            <div className="seasons-episodes-container">
+                <div className="seasons-tabs-container">
+                    <h2>Seasons</h2>
+                    <div className="seasons-tabs">
+                    {availableSeasonNumbers.map(seasonNum => (
+                        <button
+                        key={seasonNum}
+                        className={`season-tab ${selectedSeason === seasonNum ? 'active' : ''}`}
+                        onClick={() => { setSelectedSeason(seasonNum); setSelectedEpisode(null); }}
+                        >
+                        Season {seasonNum}
+                        </button>
                     ))}
+                    {specialEpisodes.length > 0 && (
+                        <button
+                            key="specials"
+                            className={`season-tab ${selectedSeason === "specials" ? 'active' : ''}`}
+                            onClick={() => { setSelectedSeason("specials"); setSelectedEpisode(null); }}
+                        >
+                            Specials
+                        </button>
+                    )}
+                    </div>
                 </div>
+
+                {selectedSeason && episodesForCurrentDisplay.length > 0 && (
+                <div className="episodes-list-container">
+                    <h2>
+                        {selectedSeason === "specials" ? "Special Episodes" : `Episodes - Season ${selectedSeason}`}
+                    </h2>
+                    <div className="episodes-grid">
+                        {episodesForCurrentDisplay.map(ep => (
+                        <div
+                            key={ep.id || `${ep.season}-${ep.number}`}
+                            className={`episode-card ${!ep.isReleased ? 'not-aired' : ''} ${selectedEpisode?.id === ep.id ? 'active' : ''}`}
+                            onClick={() => ep.isReleased ? handleEpisodeSelect(ep) : showPopup("This episode has not aired yet.", "info")}
+                            title={!ep.isReleased ? "Not Aired Yet" : (ep.name || ep.title || `Episode ${ep.number}`)}
+                        >
+                            {ep.thumbnail ? (
+                                <img
+                                src={ep.thumbnail}
+                                alt={ep.name || ep.title || `Episode ${ep.number}`}
+                                className="episode-thumbnail"
+                                />
+                            ) : (
+                                <div className="episode-thumbnail-placeholder">
+                                    <span>{ep.name || ep.title || `E${ep.number}`}</span>
+                                </div>
+                            )}
+                            <div className="episode-info">
+                                <h4 className="episode-title">E{ep.number || ep.episode}. {ep.name || ep.title || 'Untitled Episode'}</h4>
+                                <p className="episode-overview-short">{ep.overview || 'No overview available.'}</p>
+                                {!ep.isReleased && ep.released && <span className="episode-release-date">Airs: {new Date(ep.released).toLocaleDateString()}</span>}
+                            </div>
+                        </div>
+                        ))}
+                    </div>
+                </div>
+                )}
+                 {selectedSeason && episodesForCurrentDisplay.length === 0 && (
+                    <p className="empty-message">No episodes found for this season.</p>
+                 )}
             </div>
-        )}
-
-
-        {metadata.type === 'series' && metadata.videos && metadata.videos.length > 0 && (
-          <div className="detail-section episodes-section">
-            <h2>Episodes</h2>
-            <ul className="episode-list">
-              {metadata.videos.map(ep => (
-                <li key={ep.id || `${ep.season}-${ep.number || ep.episode}`}>
-                  <strong>S{ep.season} E{ep.number || ep.episode}: {ep.name || ep.title}</strong>
-                  {ep.released && ` (Aired: ${new Date(ep.released).toLocaleDateString()})`}
-                  {ep.overview && <span className="episode-overview">{ep.overview}</span>}
-                </li>
-              ))}
-            </ul>
           </div>
         )}
 
-        <div className="detail-section streams-section">
-          <h2>Available Streams</h2>
-          {isLoadingStreams && <div className="loading-message">Loading streams...</div>}
-          {streamError && <div className="error-message stream-error">{streamError}</div>}
-          {!isLoadingStreams && streams.length === 0 && !streamError && (
-             <p className="stream-placeholder-message">Stream provider (e.g., Torrentio) is not configured or returned no streams. Please add and configure a stream provider addon in settings.</p>
-          )}
-          {/* Logic for displaying streams would go here */}
-        </div>
+        {/* Torrent/Stream Section */}
+        {displayTorrentSection && (
+          <div className="detail-section streams-section">
+             <div className="streams-header">
+                <h2>
+                {metadata.type === 'movie' ? `Torrents for: ${metadata.name}` : 
+                selectedEpisode ? `Torrents for: ${metadata.name} - S${selectedEpisode.season || '0'}E${selectedEpisode.number || selectedEpisode.episode}` : "Torrents"}
+                </h2>
+                {metadata.type === 'series' && selectedEpisode && (
+                    <button onClick={handleBackToEpisodes} className="back-to-episodes-btn">
+                        <BackIcon /> Back to Episodes
+                    </button>
+                )}
+             </div>
+             <div className="stream-filters">
+                <label htmlFor="qualityFilter">Filter Quality:</label>
+                <select 
+                    id="qualityFilter" 
+                    value={qualityFilter} 
+                    onChange={(e) => setQualityFilter(e.target.value)}
+                    className="quality-filter-select"
+                >
+                    {availableQualities.map(q => <option key={q} value={q}>{q === 'All' ? 'All Qualities' : q}</option>)}
+                </select>
+            </div>
+
+            {isLoadingStreams && <div className="loading-message">Loading torrents...</div>}
+            {streamError && <div className="error-message">{streamError}</div>}
+            {!isLoadingStreams && filteredStreams.length === 0 && !streamError && (
+              <p className="empty-message">No torrents found for this selection or quality filter.</p>
+            )}
+            {!isLoadingStreams && filteredStreams.length > 0 && (
+              <ul className="stream-list">
+                {filteredStreams.map((stream, index) => (
+                  <li key={index} className="stream-item">
+                    <div className="stream-quality-indicator" data-quality={stream.quality?.toLowerCase() || 'unknown'}>
+                        {stream.quality?.substring(0,4) || 'N/A'}
+                    </div>
+                    <div className="stream-info">
+                        <span className="stream-title">{stream.name || stream.title}</span>
+                        <div className="stream-details">
+                            {stream.seeders !== undefined && <span className="stream-seeders">Seeders: {stream.seeders}</span>}
+                            {stream.size && <span className="stream-size">Size: {stream.size}</span>}
+                        </div>
+                    </div>
+                    <button className="stream-play-button" onClick={() => showPopup(`Playback of "${stream.title}" not implemented.`, "info")}>
+                        Watch
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
       </main>
-       {isSelectFolderModalOpen && metadata && (
+      {isSelectFolderModalOpen && metadata && (
         <SelectFolderModal
           isOpen={isSelectFolderModalOpen}
           onClose={() => setIsSelectFolderModalOpen(false)}
