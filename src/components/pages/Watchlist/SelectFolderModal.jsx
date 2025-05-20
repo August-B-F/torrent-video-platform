@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './SelectFolderModal.css';
 
-const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTitle }) => {
+const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTitle, itemCurrentlyInFolders = [] }) => {
   const [selectedFolderIds, setSelectedFolderIds] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedFolderIds([]);
+      // Pre-select folders the item is already in
+      setSelectedFolderIds(itemCurrentlyInFolders);
       setError('');
     }
-  }, [isOpen]);
+  }, [isOpen, itemCurrentlyInFolders]);
 
   if (!isOpen) return null;
 
@@ -25,11 +26,9 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedFolderIds.length === 0) {
-      setError('Please select at least one list.');
-      return;
-    }
-    onItemAddMultiple(selectedFolderIds);
+    // No need to check for empty selection here, as it might mean unselecting from all
+    // The context function will handle the logic of adding/removing
+    onItemAddMultiple(selectedFolderIds); // This will now pass the final list of selected folder IDs
     setError('');
     onClose();
   };
@@ -37,10 +36,10 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content select-folder-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Add "{itemTitle}" to...</h2>
+        <h2>Manage "{itemTitle}" in Lists</h2>
         {folders.length > 0 ? (
           <form onSubmit={handleSubmit}>
-            <p className="select-folder-instruction">Select one or more lists:</p>
+            <p className="select-folder-instruction">Select lists to include this item:</p>
             <div className="folder-selection-list">
               {folders.map(folder => (
                 <label key={folder.id} className="folder-select-item">
@@ -59,8 +58,8 @@ const SelectFolderModal = ({ isOpen, onClose, folders, onItemAddMultiple, itemTi
               <button type="button" onClick={onClose} className="modal-button cancel">
                 Cancel
               </button>
-              <button type="submit" className="modal-button create" disabled={selectedFolderIds.length === 0}>
-                Add to Selected ({selectedFolderIds.length})
+              <button type="submit" className="modal-button create">
+                Update Lists
               </button>
             </div>
           </form>

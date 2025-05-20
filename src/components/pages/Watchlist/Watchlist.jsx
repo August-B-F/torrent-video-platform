@@ -1,3 +1,4 @@
+// src/components/pages/Watchlist/Watchlist.jsx
 import React, { useState, useEffect, useCallback, useRef }  from 'react';
 import {
   DndContext,
@@ -17,25 +18,47 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { useWatchlist } from '../../contexts/WatchlistContext';
+import { useWatchlist, FOLDER_ICON_OPTIONS } from '../../contexts/WatchlistContext';
 import { usePopup } from '../../contexts/PopupContext';
 import MediaGridItem from '../../common/MediaGridItem/MediaGridItem';
 import CreateFolderModal from './CreateFolderModal';
 import ContextMenu from '../../common/ContextMenu/ContextMenu';
-import './WatchlistStyle.css';
-import './FolderContentView.css'; // Ensure this CSS file exists and is styled
+import './WatchlistStyle.css'; // Main page styles
+import './FolderCard.css'; // Styles for the folder card itself
+import './FolderContentView.css'; // Styles for when viewing folder content
 
-// Default Folder Icon (SVG)
-const DefaultFolderIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+// --- SVG Icons ---
+const MovieIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"></path></svg>;
+const SeriesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM7 15h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"></path></svg>;
+const DefaultFolderIconSvg = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
         <path d="M0 0h24v24H0z" fill="none"/>
         <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
     </svg>
 );
+// --- End Icons ---
+
+// Helper function to render folder icon for the list cards
+const renderFolderListCardIcon = (iconType, iconValue) => {
+    if (iconType === FOLDER_ICON_OPTIONS.IMAGE_URL && iconValue) {
+      return <img src={iconValue} alt="" className="folder-display-custom-icon" />;
+    }
+    if (iconType === FOLDER_ICON_OPTIONS.EMOJI && iconValue) {
+      return <span className="folder-display-emoji-icon">{iconValue}</span>;
+    }
+    switch(iconType) {
+        case FOLDER_ICON_OPTIONS.MOVIE: return <MovieIcon />;
+        case FOLDER_ICON_OPTIONS.SERIES: return <SeriesIcon />;
+        case FOLDER_ICON_OPTIONS.DEFAULT:
+        default:
+            return <DefaultFolderIconSvg />;
+    }
+};
+
 
 // --- Sortable Folder Card Component ---
 const FolderCardInternal = ({ folder, onClick, onContextMenu }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: folder.id, data: { type: 'folder-card', folder } });
 
   const style = {
@@ -43,62 +66,52 @@ const FolderCardInternal = ({ folder, onClick, onContextMenu }) => {
     transition,
     opacity: isDragging ? 0.7 : 1,
     cursor: isDragging ? 'grabbing': 'grab',
-    touchAction: 'none' // Important for pointer sensor interactions
+    touchAction: 'none'
   };
 
-  // onClick handler for the main div
   const handleCardClick = (e) => {
-    // Prevent click if a button inside card (if any future buttons are added) was clicked or if dragging
-    if (e.target.closest('button') || isDragging) {
-      // console.log("FolderCard click prevented (isDragging or button click)");
-      return;
-    }
-    // console.log(`FolderCard clicked: ${folder.id}`);
+    if (e.target.closest('button') || isDragging) return;
     onClick(folder.id);
   };
-  
+
   const handleCardContextMenu = (e) => {
-    e.preventDefault(); // Prevent native context menu
-    e.stopPropagation(); // Stop event from bubbling up and closing immediately
-    // console.log(`FolderCard context menu: ${folder.id} at (${e.clientX}, ${e.clientY})`);
+    e.preventDefault();
+    e.stopPropagation();
     onContextMenu(e, folder.id);
   };
-
 
   return (
     <div
         ref={setNodeRef}
         style={style}
-        className="folder-card"
+        className="folder-card" // This class is targeted by the new FolderCard.css
         onClick={handleCardClick}
         onContextMenu={handleCardContextMenu}
-        {...attributes} // For dnd-kit sortable functionality
-        {...listeners}  // For dnd-kit drag handle
+        {...attributes}
+        {...listeners}
     >
-      <div className="folder-card-icon-container">
-        {/* Customizable icon can be added here later based on folder properties */}
-        <DefaultFolderIcon />
+      <div className="folder-card-icon-container" style={{ backgroundColor: folder.color || 'var(--bg-secondary)' }}>
+        {renderFolderListCardIcon(folder.iconType, folder.iconValue)}
       </div>
       <div className="folder-card-info">
-        <h3 className="folder-card-name">{folder.name}</h3>
-        {/* Item count removed as per request, can be added back with .folder-card-item-count style */}
-        {/* <span className="folder-card-item-count">{folder.items.length} items</span> */}
+        <h3 className="folder-card-name" title={folder.name}>{folder.name}</h3>
+        <span className="folder-card-item-count">{folder.items.length} item{folder.items.length !== 1 ? 's' : ''}</span>
       </div>
     </div>
   );
 };
 
-// --- Sortable Item for Folder Content View (No changes needed from previous version) ---
+// --- Sortable Item for Folder Content View ---
 const SortableFolderItemInternal = ({ id, itemData, onRemoveItem }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'folder-item', itemData } });
-    const style = { 
-        transform: CSS.Transform.toString(transform), 
-        transition, 
-        opacity: isDragging ? 0.5 : 1, 
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
         cursor: isDragging ? 'grabbing' : 'grab',
-        touchAction: 'none' 
+        touchAction: 'none'
     };
-    
+
     if (!itemData || !itemData.details) {
       return <div ref={setNodeRef} style={style} className="folder-content-grid-item-wrapper missing-item">Item data unavailable</div>;
     }
@@ -106,30 +119,30 @@ const SortableFolderItemInternal = ({ id, itemData, onRemoveItem }) => {
     return (
         <div ref={setNodeRef} style={style} className="folder-content-grid-item-wrapper" {...attributes} {...listeners}>
             <MediaGridItem item={itemData.details} />
-            <button 
-                className="item-action-btn remove-item" 
-                onClick={(e) => { 
-                    e.stopPropagation(); 
+            <button
+                className="item-action-btn remove-item"
+                onClick={(e) => {
+                    e.stopPropagation();
                     onRemoveItem(itemData.id);
-                }} 
+                }}
                 title="Remove from this list"
             >
-                 &times; 
+                 &times;
             </button>
         </div>
     );
 };
 
 
-// --- Folder Content View Component (No changes needed from previous version, assuming it works) ---
+// --- Folder Content View Component ---
 const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorderItems, onRemoveItemFromFolder, isLoadingItems }) => {
     const [activeDragItem, setActiveDragItem] = useState(null);
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }), 
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
-    function handleDragStart(event) { 
+    function handleDragStart(event) {
         const { active } = event;
         const draggedItemData = itemsWithDetails.find(i => i.id === active.id);
         setActiveDragItem({ ...active, data: { ...active.data?.current, itemData: draggedItemData } });
@@ -146,7 +159,7 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
         }
     }
 
-    if (!folder) { // Guard clause if folder is somehow null/undefined
+    if (!folder) {
         return (
             <div className="page-container watchlist-page">
                  <main className="page-main-content">
@@ -160,8 +173,8 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
             </div>
         );
     }
-    
-    return (  
+
+    return (
         <div className="folder-content-view">
             <div className="folder-content-header">
                 <button onClick={onBack} className="back-to-folders-btn">&larr; All Lists</button>
@@ -175,9 +188,9 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
                 <SortableContext items={itemsWithDetails.map(i => i.id)} strategy={rectSortingStrategy}>
                     <div className="media-grid folder-items-grid">
                     {itemsWithDetails.map(itemData => (
-                        <SortableFolderItemInternal 
-                            key={itemData.id} 
-                            id={itemData.id} 
+                        <SortableFolderItemInternal
+                            key={itemData.id}
+                            id={itemData.id}
                             itemData={itemData}
                             onRemoveItem={() => onRemoveItemFromFolder(folder.id, itemData.id)}
                         />
@@ -186,8 +199,8 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
                 </SortableContext>
                 <DragOverlay dropAnimation={null}>
                     {activeDragItem && activeDragItem.data?.itemData?.details ? (
-                    <div className="drag-overlay-item"> 
-                        <MediaGridItem item={activeDragItem.data.itemData.details} /> 
+                    <div className="drag-overlay-item">
+                        <MediaGridItem item={activeDragItem.data.itemData.details} />
                     </div>
                     ) : null}
                 </DragOverlay>
@@ -203,20 +216,18 @@ const Watchlist = () => {
   const {
     folders, isLoadingFolders: isLoadingContextFolders, addFolder, renameFolder, deleteFolder,
     removeItemFromFolder, reorderItemsInFolder, reorderFolders,
-    itemDetailsCache, fetchItemDetails // We don't need itemDetailsCache or fetchItemDetails for folder card previews now
+    fetchItemDetails
   } = useWatchlist();
   const { showPopup } = usePopup();
 
   const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, folderId: null });
-  
-  const [activeDragItem, setActiveDragItem] = useState(null); // For folder card dragging
+
+  const [activeDragItem, setActiveDragItem] = useState(null);
   const [isLoadingFolderItemsDetails, setIsLoadingFolderItemsDetails] = useState(false);
   const [currentFolderItemsWithDetails, setCurrentFolderItemsWithDetails] = useState([]);
-  // No need for foldersWithPreviewsState if we are not showing image previews on the card itself
 
-  // Fetch full details for items in the currently selected folder
   useEffect(() => {
     const selectedFolderData = selectedFolderId ? folders.find(f => f.id === selectedFolderId) : null;
     if (selectedFolderData) {
@@ -225,12 +236,11 @@ const Watchlist = () => {
         try {
           const detailedItems = await Promise.all(
             selectedFolderData.items.map(async (itemObj) => {
-              // Use fetchItemDetails from context for consistency and caching
               const detail = await fetchItemDetails(itemObj.id, itemObj.type);
-              return { 
-                  id: itemObj.id, 
-                  type: itemObj.type, 
-                  details: detail || { name: `Item ${itemObj.id}`, posterUrl: '', id: itemObj.id, type: itemObj.type } 
+              return {
+                  id: itemObj.id,
+                  type: itemObj.type,
+                  details: detail || { name: `Item ${itemObj.id}`, posterUrl: '', id: itemObj.id, type: itemObj.type }
               };
             })
           );
@@ -246,19 +256,19 @@ const Watchlist = () => {
     } else {
       setCurrentFolderItemsWithDetails([]);
     }
-  }, [selectedFolderId, folders, fetchItemDetails, showPopup]); // itemDetailsCache removed as fetchItemDetails handles it
+  }, [selectedFolderId, folders, fetchItemDetails, showPopup]);
 
   const sensors = useSensors(
-      useSensor(PointerSensor, { activationConstraint: { distance: 8 } }), // Allows a small tolerance before drag starts
+      useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
       useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const handleCreateFolderSubmit = (name) => {
-    addFolder(name); // Popup is handled in context
+    addFolder(name);
   };
 
   const startRenameFolder = (folderId) => {
-    closeContextMenu(); 
+    closeContextMenu();
     const folder = folders.find(f => f.id === folderId);
     if (!folder) {
         showPopup("Could not find the list to rename.", "warning");
@@ -266,20 +276,19 @@ const Watchlist = () => {
     }
     const newName = prompt("Enter new folder name:", folder.name);
     if (newName && newName.trim() !== "" && newName.trim() !== folder.name) {
-      renameFolder(folderId, newName.trim()); // Popup is handled in context
+      renameFolder(folderId, newName.trim());
     }
   };
 
   const confirmDeleteFolder = (folderId) => {
-    closeContextMenu(); 
-    if (deleteFolder(folderId)) { // Popup is handled in context
-        if (selectedFolderId === folderId) setSelectedFolderId(null); 
+    closeContextMenu();
+    if (deleteFolder(folderId)) {
+        if (selectedFolderId === folderId) setSelectedFolderId(null);
     }
   };
 
   const handleFolderDragStart = (event) => {
     const { active } = event;
-    // We use `folders` directly now as `foldersWithPreviewsState` is removed
     const folderData = folders.find(f => f.id === active.id);
     setActiveDragItem({ id: active.id, type: 'folder-card', data: folderData });
   };
@@ -290,28 +299,25 @@ const Watchlist = () => {
     if (over && active.id !== over.id && active.data.current?.type === 'folder-card' && over.data.current?.type === 'folder-card') {
       const oldIndex = folders.findIndex(item => item.id === active.id);
       const newIndex = folders.findIndex(item => item.id === over.id);
-      reorderFolders(arrayMove(folders, oldIndex, newIndex)); // Pass the main folders array
+      reorderFolders(arrayMove(folders, oldIndex, newIndex));
     }
   };
-  
+
   const handleViewFolderContents = (folderId) => {
-    // console.log("Attempting to view folder:", folderId);
     setSelectedFolderId(folderId);
-    closeContextMenu(); 
+    closeContextMenu();
   };
 
   const handleRightClickFolder = (event, folderId) => {
     event.preventDefault();
     event.stopPropagation();
-    // console.log("Right click on folder:", folderId, "at", event.clientX, event.clientY);
     setContextMenu({ visible: true, x: event.clientX, y: event.clientY, folderId });
   };
 
   const closeContextMenu = useCallback(() => {
-    // console.log("Closing context menu");
     setContextMenu(prev => ({ ...prev, visible: false, folderId: null }));
   }, []);
-  
+
   const contextMenuOptions = contextMenu.folderId ? [
     { label: 'View Items', action: () => handleViewFolderContents(contextMenu.folderId) },
     { label: 'Rename List', action: () => startRenameFolder(contextMenu.folderId) },
@@ -339,27 +345,35 @@ const Watchlist = () => {
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleFolderDragStart} onDragEnd={handleFolderDragEnd}>
                 <SortableContext items={folders.map(f => f.id)} strategy={rectSortingStrategy}>
                   <div className="folder-grid">
-                    {folders.map(folder => ( // Iterate over `folders` directly
-                      <FolderCardInternal 
-                        key={folder.id} 
-                        folder={folder} // Pass the folder data which now includes previewItemDetails (if you decide to fetch them separately for icons later)
-                        onClick={handleViewFolderContents} 
-                        onContextMenu={handleRightClickFolder} 
+                    {folders.map(folder => (
+                      <FolderCardInternal
+                        key={folder.id}
+                        folder={folder}
+                        onClick={handleViewFolderContents}
+                        onContextMenu={handleRightClickFolder}
                       />
                     ))}
                   </div>
                 </SortableContext>
                 <DragOverlay dropAnimation={null}>
                   {activeDragItem && activeDragItem.type === 'folder-card' && activeDragItem.data ? (
-                    // This drag overlay can be simplified if not showing image previews
-                    <div className="drag-overlay-folder-card"> 
-                        <DefaultFolderIcon />
-                        <h4>{activeDragItem.data.name}</h4>
+                    // Updated Drag Overlay to use the same rendering logic for consistency
+                    <div className="folder-card drag-overlay-folder-card-active" // Use folder-card for base, add specific for active drag
+                         style={{ backgroundColor: activeDragItem.data.color || 'var(--bg-secondary)' }}>
+                        <div className="folder-card-icon-container" style={{ backgroundColor: activeDragItem.data.color || 'var(--bg-secondary)'}}>
+                             {renderFolderListCardIcon(activeDragItem.data.iconType, activeDragItem.data.iconValue)}
+                        </div>
+                        <div className="folder-card-info">
+                            <h3 className="folder-card-name">{activeDragItem.data.name}</h3>
+                             <span className="folder-card-item-count">
+                                {activeDragItem.data.items.length} item{activeDragItem.data.items.length !== 1 ? 's' : ''}
+                            </span>
+                        </div>
                     </div>
                   ) : null}
                 </DragOverlay>
               </DndContext>
-            ) : !isLoadingContextFolders ? ( 
+            ) : !isLoadingContextFolders ? (
               <div className="empty-watchlist-container">
                 <svg className="empty-watchlist-icon" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 8H14c-2.21 0-4 1.79-4 4v36c0 2.21 1.79 4 4 4h36c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-2 38H16V14h32v32z"/><path d="M24 22h16v2H24zM24 28h16v2H24zM24 34h10v2H24z"/></svg>
                 <h2>Your Watchlist is Empty</h2>
@@ -368,7 +382,7 @@ const Watchlist = () => {
                   + Create Your First List
                 </button>
               </div>
-            ) : null 
+            ) : null
             }
           </>
         ) : selectedFolderDataForView ? (
@@ -376,12 +390,11 @@ const Watchlist = () => {
             folder={selectedFolderDataForView}
             itemsWithDetails={currentFolderItemsWithDetails}
             onBack={() => setSelectedFolderId(null)}
-            onReorderItems={reorderItemsInFolder} 
-            onRemoveItemFromFolder={removeItemFromFolder} 
+            onReorderItems={reorderItemsInFolder}
+            onRemoveItemFromFolder={removeItemFromFolder}
             isLoadingItems={isLoadingFolderItemsDetails}
           />
         ) : (
-          // This fallback is important if selectedFolderId points to a non-existent/deleted folder
           <div className="page-container watchlist-page">
             <main className="page-main-content">
                 <div className="empty-message" style={{paddingTop: "50px"}}>
