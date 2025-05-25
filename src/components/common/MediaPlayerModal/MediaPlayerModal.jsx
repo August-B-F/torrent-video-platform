@@ -176,7 +176,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title }) => {
         </div>
 
         <div className="player-wrapper">
-          {isLoading && <div className="player-loader">Loading...</div>}
+          {isLoading && <div className="player-loader"></div>}
           <ReactPlayer
             ref={playerRef}
             url={trailerUrl}
