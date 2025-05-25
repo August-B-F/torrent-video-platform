@@ -150,78 +150,110 @@ const ItemDetailPage = () => {
       setAllStreams([]);
       setFilteredStreams([]);
 
-      let searchTerm = metadata.name;
-      if (metadata.year) {
-        searchTerm += ` ${metadata.year}`;
-      }
-      if (selectedEpisode && metadata.type === 'series') {
-        const seasonNum = String(selectedEpisode.season).padStart(2, '0');
-        const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
-        searchTerm += ` S${seasonNum}E${episodeNum}`;
-      }
-      if (id.startsWith('tt')) {
-        searchTerm = metadata.name;
-         if (selectedEpisode && metadata.type === 'series') {
-            const seasonNum = String(selectedEpisode.season).padStart(2, '0');
-            const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
-            searchTerm += ` S${seasonNum}E${episodeNum}`;
-         }
-      }
+      let searchQueries = [];
+      if (metadata.type === 'series' && selectedEpisode) {
+        const seasonNum = selectedEpisode.season;
+        const episodeNum = selectedEpisode.number || selectedEpisode.episode;
+        const seasonPadded = String(seasonNum).padStart(2, '0');
+        const episodePadded = String(episodeNum).padStart(2, '0');
+        // Try multiple search formats for TV shows (most to least specific)
+        const baseName = metadata.name.replace(/[:\-–]/g, ' ').replace(/\s+/g, ' ').trim();
 
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setStreamError("Authentication required to search for streams.");
-            setIsLoadingStreams(false);
-            return;
+        searchQueries = [
+          `${baseName} S${seasonPadded}E${episodePadded}`,           // "Fallout S01E01"
+          `${baseName} ${seasonNum}x${episodeNum}`,                  // "Fallout 1x1"
+          `${baseName} Season ${seasonNum} Episode ${episodeNum}`,   // "Fallout Season 1 Episode 1"
+          `${baseName} S${seasonNum}E${episodeNum}`,                 // "Fallout S1E1"
+          `${baseName} ${metadata.year || ''} S${seasonPadded}E${episodePadded}`.trim(), // "Fallout 2024 S01E01"
+        ];
+      } else if (metadata.type === 'movie') { // Ensure this branch is only for movies
+        // Movie search
+        let movieSearch = metadata.name;
+        if (metadata.year) {
+          movieSearch += ` ${metadata.year}`;
         }
-
-        const response = await fetch(`https://188.245.179.212/api/search?query=${encodeURIComponent(searchTerm)}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        console.log(response);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorDetail = errorText;
-          try {
-            const errorJson = JSON.parse(errorText);
-            if (errorJson && errorJson.error) {
-              errorDetail = errorJson.error;
-            }
-          } catch (e) {
-            console.warn("Backend error response was not JSON:", errorText);
-          }
-          throw new Error(errorDetail || `Failed to fetch torrents. Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.Results && data.Results.length > 0) {
-          const formattedStreams = data.Results.map(stream => ({
-            title: stream.Title,
-            name: `${stream.Tracker || stream.Site || 'Unknown'} (${stream.Seeders}S/${stream.Peers}P)`, // Added stream.Site as fallback
-            quality: stream.CategoryDesc && stream.CategoryDesc.includes('Movies') ? 
-                     (stream.Title.match(/4K|2160p/i) ? '4K' : 
-                      stream.Title.match(/1080p/i) ? '1080p' : 
-                      stream.Title.match(/720p/i) ? '720p' : 'SD') : 'N/A',
-            seeders: stream.Seeders,
-            peers: stream.Peers,
-            size: stream.Size ? (stream.Size / 1024 / 1024 / 1024).toFixed(2) + ' GB' : 'N/A',
-            magnetLink: stream.MagnetUri,
-            publishDate: stream.PublishDate,
-          }));
-          setAllStreams(formattedStreams);
-        } else {
-          setStreamError('No streams found for this selection.');
-        }
-      } catch (e) {
-        console.error("Error fetching streams from backend:", e);
-        setStreamError(`Failed to load streams: ${e.message}`);
-      } finally {
+        movieSearch = movieSearch.replace(/[:\-–]/g, ' ').replace(/\s+/g, ' ').trim();
+        searchQueries = [movieSearch];
+      } else {
+        // If it's neither a movie nor a series with a selected episode, don't search
         setIsLoadingStreams(false);
+        return;
       }
+
+      // Try each search query until we find results
+      let allResults = [];
+      let queryError = null; // Store the last error if all queries fail
+
+      for (const query of searchQueries) {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            queryError = "Authentication required to search for streams.";
+            setIsLoadingStreams(false);
+            // setStreamError needs to be outside the loop or handled after loop if all fail
+            break; // Stop if no token
+          }
+          console.log(`Trying search query: "${query}"`);
+          const response = await fetch(`https://188.245.179.212/api/search?query=${encodeURIComponent(query)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            let errorDetail = errorText;
+             try {
+                const errorJson = JSON.parse(errorText);
+                if (errorJson && errorJson.error) {
+                    errorDetail = errorJson.error;
+                }
+            } catch (e) {
+                console.warn(`Search query "${query}" failed, response not JSON:`, errorText);
+            }
+            console.warn(`Search failed for query: "${query}" - Status: ${response.status}, Detail: ${errorDetail}`);
+            queryError = `Search for "${query}" failed. Status: ${response.status}.`; // Store the last error
+            continue; // Try next query
+          }
+
+          const data = await response.json();
+          if (data.Results && data.Results.length > 0) {
+            console.log(`Found ${data.Results.length} results for: "${query}"`);
+            allResults = data.Results;
+            queryError = null; // Reset error if results are found
+            break; // Stop on first successful search
+          } else {
+            console.log(`No results for: "${query}"`);
+            queryError = `No results found for "${query}".`; // Store message if no results
+          }
+        } catch (e) {
+          console.warn(`Error with query "${query}":`, e);
+          queryError = `Error processing query "${query}": ${e.message}.`; // Store the error
+          continue; // Try next query
+        }
+      }
+
+      // Process results
+      if (allResults.length > 0) {
+        const formattedStreams = allResults.map(stream => ({
+          title: stream.Title,
+          name: `${stream.Tracker || stream.Site || 'Unknown'} (${stream.Seeders}S/${stream.Peers}P)`,
+          // Adjusted quality detection to be more robust
+          quality: stream.Title && typeof stream.Title === 'string' ?
+                   (stream.Title.match(/4K|2160p/i) ? '4K' :
+                    stream.Title.match(/1080p/i) ? '1080p' :
+                    stream.Title.match(/720p/i) ? '720p' : 'SD') : 'N/A',
+          seeders: stream.Seeders,
+          peers: stream.Peers,
+          size: stream.Size ? (stream.Size / 1024 / 1024 / 1024).toFixed(2) + ' GB' : 'N/A',
+          magnetLink: stream.MagnetUri,
+          publishDate: stream.PublishDate,
+        }));
+        setAllStreams(formattedStreams);
+        setStreamError(''); // Clear any previous error
+      } else {
+        // If no results from any query, set the error message
+        setStreamError(queryError || `No streams found. Tried: ${searchQueries.join(', ')}`);
+      }
+      setIsLoadingStreams(false);
     };
 
     if (metadata && (showMovieTorrents || selectedEpisode)) {
@@ -317,20 +349,25 @@ const ItemDetailPage = () => {
         },
         body: JSON.stringify({ magnetLink, movieTitle: displayTitle }) 
       });
+      
       const data = await response.json();
       if (response.ok && data.streamUrl) {
         console.log("Stream started, URL from backend:", data.streamUrl);
-        // IMPORTANT: Adjust this URL based on your Caddy setup for Peerflix
-        // Example if Caddy proxies /peerflix/ to the Peerflix container:
-        // const publicStreamUrl = data.streamUrl.replace('http://172.17.0.1:9000', '/peerflix'); 
-        const publicStreamUrl = data.streamUrl.replace('http://172.17.0.1:9000', 'https://188.245.179.212/admin/peerflix');
-
+        
+        // Convert internal URL to public URL accessible through Caddy
+        const publicStreamUrl = data.streamUrl.replace(
+          'http://172.17.0.1:9000', 
+          'https://188.245.179.212/admin/peerflix'
+        );
+        
+        console.log("Public stream URL:", publicStreamUrl);
+        
         showPopup(`Stream ready for ${displayTitle}.`, "success", 7000);
         setCurrentTrailerUrl(publicStreamUrl); 
         setIsPlayerModalOpen(true);
-
+  
       } else {
-        const errorText = data.error || (await response.text()) || "Failed to start stream.";
+        const errorText = data.error || "Failed to start stream.";
         throw new Error(errorText);
       }
     } catch (err) {
