@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build" # Or yarn build if you use yarn
+  command = "CI=false npm run build"
   publish = "build"
 
 [[redirects]]

@@ -65,7 +65,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title }) => {
       document.removeEventListener('keydown', handleEscapeKey);
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen, onClose, isFullscreen]); // Added isFullscreen to re-bind if it changes
+  }, [isOpen, onClose, isFullscreen, handleFullscreenToggle]); // Added isFullscreen to re-bind if it changes
 
   const handlePlayPause = () => setPlaying(!playing);
   const handleVolumeChange = (e) => {
