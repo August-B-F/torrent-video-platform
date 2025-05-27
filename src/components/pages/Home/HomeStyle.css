@@ -20,7 +20,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%, rgba(var(--bg-primary-rgb, 14,16,21), 0.85) 25%, rgba(var(--bg-primary-rgb, 14,16,21), 0.3) 60%, transparent 100%);
+  background: linear-gradient(to top, 
+    rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%,    /* Solid at the very bottom */
+    rgba(var(--bg-primary-rgb, 14,16,21), 0.9) 30%,  /* Dark, but slightly less aggressive */
+    rgba(var(--bg-primary-rgb, 14,16,21), 0.65) 65%, /* Medium dim for the middle */
+    rgba(var(--bg-primary-rgb, 14,16,21), 0.25) 100% /* More transparency at the top */
+  );
   z-index: 1;
 }
 
@@ -85,7 +90,7 @@
   display: flex;
   align-items: center; /* Vertically align button and nav arrows container */
   gap: 20px; /* Space between "View Details" and arrows */
-  width: 100%; /* Allow it to span for right alignment of arrows */
+  width: 95vw; /* Allow it to span for right alignment of arrows */
   justify-content: space-between; /* Pushes arrows to the right if nav container takes remaining space */
 }
 
@@ -129,14 +134,15 @@
   background-color: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  width: 44px; /* Slightly larger for better tap target */
-  height: 44px;
+  border-radius: 10px;
+  width: 35px; /* Slightly larger for better tap target */
+  height: 35px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, transform 0.1s ease;
+  opacity: 0.4;
 }
 .hero-nav-arrow.icon-button:hover {
   background-color: rgba(255, 255, 255, 0.3);

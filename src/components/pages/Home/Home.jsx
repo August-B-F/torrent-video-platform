@@ -289,9 +289,6 @@ const Home = () => {
           isLoading={isLoadingContinueWatching}
         />
       </main>
-      <footer className="home-footer">
-        <p>&copy; {new Date().getFullYear()} STREAMIFY. All rights reserved.</p>
-      </footer>
     </div>
   );
 };
