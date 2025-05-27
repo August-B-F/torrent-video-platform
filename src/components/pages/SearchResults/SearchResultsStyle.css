@@ -13,158 +13,266 @@
   line-height: 1.4;
   font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 25px;
-  color: var(--text-primary, #CECECE); /* Ensure text color is set */
+  /* margin-bottom: 25px; /* Adjusted by search-results-header's gap or direct styling */
+  color: var(--text-primary, #CECECE);
 }
 
-.search-results-page .filters-panel {
+/* Header section containing title, type select, and filter button */
+.search-results-header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 25px;
-  padding: 15px;
-  background-color: rgba(var(--card-rgb, 26, 29, 36), 0.4);
-  border-radius: 8px;
-  border: 1px solid var(--border-color-soft, #22252A);
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 15px; /* Gap between title and controls block */
+  margin-bottom: 20px;
 }
 
-.search-results-page .filter-select {
-  padding: 10px 12px;
+.search-results-header .page-title {
+  margin-bottom: 0; /* Remove bottom margin when in flex layout */
+  flex-grow: 1; /* Allow title to take available space */
+}
+
+/* Wrapper for primary type select and filter toggle button */
+.search-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Gap between type select and filter button */
+}
+
+/* Style for the main type select (All, Movie, Series) */
+.search-results-page .main-type-select {
+  padding: 10px 15px;
   border: 1px solid var(--border-color, #333842);
   border-radius: 6px;
-  background-color: var(--bg-input, #12151B);
-  color: var(--text-primary, #E0E0E0);
+  background-color: var(--card-background-color, #1A1D24);
+  color: var(--text-primary, #CECECE);
+  font-size: 0.95rem;
+  min-width: 130px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23918F98' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 12px;
+  padding-right: 35px; 
+}
+.search-results-page .main-type-select:focus {
+  outline: none;
+  border-color: var(--accent-color-main, #6A5AF9);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.2);
+}
+.search-results-page .main-type-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filter toggle button (for Genre/Year panel) */
+.search-results-page .toggle-filters-btn {
+  background-color: var(--card-background-color, #1A1D24);
+  color: var(--text-primary, #CECECE);
+  border: 1px solid var(--border-color, #333842);
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.9rem;
-  min-width: 160px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.search-results-page .toggle-filters-btn:hover,
+.search-results-page .toggle-filters-btn.active {
+  background-color: var(--input-background-color, #12151B);
+  border-color: var(--accent-color-main, #6A5AF9);
+  color: var(--accent-color-main, #6A5AF9);
+}
+.search-results-page .toggle-filters-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* Collapsible Filter Panel Container (Genre/Year) */
+.search-results-page .filters-panel-container {
+  margin-bottom: 25px;
+  transition: max-height 0.35s ease-in-out, opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-15px) scaleY(0.95);
+  overflow: hidden;
+  border-radius: 8px;
+}
+.search-results-page .filters-panel-container.open {
+  max-height: 600px; 
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+  overflow: visible; /* Or auto, if content might exceed max-height */
+  border: 1px solid var(--border-color-soft, #2a2d34);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Actual Filter Panel Content (Genre/Year) */
+.search-results-page .filters-panel.active {
+  background-color: var(--card-background-color, #1f2229);
+  padding: 20px 25px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 30px; /* Row and column gap */
+  align-items: flex-end; /* Align reset button nicely */
+  border-radius: 8px; /* If container border is removed, panel might need it */
+}
+
+.search-results-page .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 220px; /* Allow groups to grow and wrap, base size */
+  min-width: 180px; /* Minimum sensible width */
+}
+
+.search-results-page .filter-group label {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #918F98);
+  font-weight: 600;
+  margin-left: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.search-results-page .filter-select { /* General style for selects inside the panel */
+  padding: 12px 15px;
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 6px;
+  background-color: var(--input-background-color, #12151B);
+  color: var(--text-primary, #E0E0E0);
+  font-size: 0.95rem; /* Match main type select */
+  width: 100%; /* Take full width of its filter-group */
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23918F98' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 14px 14px;
+  padding-right: 40px; 
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-results-page .filter-select:focus {
   outline: none;
   border-color: var(--accent-color-main, #6A5AF9);
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 106, 90, 249), 0.25);
+  box-shadow: 0 0 0 2.5px rgba(var(--accent-rgb, 106, 90, 249), 0.3);
 }
-
 .search-results-page .filter-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background-color: var(--bg-secondary, #2A2D34);
+  background-color: var(--border-color-soft, #22252A); /* Slightly different disabled bg */
 }
 
 .search-results-page .filter-reset-btn {
-  padding: 10px 18px;
-  background-color: var(--bg-secondary, #2A2D34);
-  color: var(--text-secondary, #B0B8C5);
-  border: 1px solid var(--border-color, #333842);
+  padding: 11px 20px; /* Match Discover's reset button */
+  background-color: var(--bg-secondary, #5a5d68); /* Match Discover */
+  color: var(--text-primary, #E0E0E0); /* Match Discover */
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease;
+  height: fit-content; /* For alignment */
 }
-
 .search-results-page .filter-reset-btn:hover:not(:disabled) {
-  background-color: var(--border-color, #333842);
-  color: var(--text-primary, #E0E0E0);
+  background-color: var(--secondary-color-hover, #717480); /* Match Discover */
 }
 .search-results-page .filter-reset-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Styles for the media grid in Search Results */
+
+/* Media Grid */
 .search-results-page .media-grid,
-.search-results-grid { /* Class used in SearchResults.jsx */
+.search-results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* UPDATED for wider cards */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 40px; 
 }
 
-/* Styling for the link wrapper of each grid item */
-.search-results-page .media-grid .media-grid-item-link-v3, /* Ensure using the new class if SearchResults uses MediaGridItem directly */
+.search-results-page .media-grid .media-grid-item-link-v3,
 .search-results-grid .media-grid-item-link-v3 {
   display: block;
-  /* aspect-ratio: 2 / 3; */ /* Removed as MediaGridItem itself handles aspect ratio for poster */
-  /* background-color: var(--bg-secondary, #12151B); Placeholder bg for the cell, card will have its own */
   border-radius: 8px;
   overflow: hidden;
 }
 
+/* Loading and Empty/Error Messages */
 .search-results-page .loading-message,
 .search-results-page .empty-message,
-.search-results-page .error-message {
+.search-results-page .search-results-error { /* Added specific error class */
     padding: 40px 20px;
     text-align: center;
     font-size: 1.1rem;
     color: var(--text-secondary);
+    grid-column: 1 / -1; /* Make it span all columns if it's a direct child of the grid */
+    min-height: 150px; /* Ensure it takes some space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.search-results-page .error-message {
+.search-results-page .search-results-error {
     color: var(--warning-color);
 }
 
-.search-results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 20px;
-}
 
-.search-results-page .page-title {
-  margin-bottom: 0;
-}
-
-.toggle-filters-btn {
-  padding: 8px 15px;
-  background-color: var(--bg-secondary, #2A2D34);
-  color: var(--text-secondary, #B0B8C5);
-  border: 1px solid var(--border-color, #333842);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.toggle-filters-btn:hover {
-  background-color: var(--border-color, #333842);
-  color: var(--text-primary, #E0E0E0);
-}
-
-.toggle-filters-btn svg {
-  /* Icon styling if needed - already sized in component */
-}
-
-.search-results-page .filters-panel {
-  margin-top: 10px;
-}
-
+/* Responsive Adjustments */
 @media (max-width: 900px) {
   .search-results-page .media-grid,
   .search-results-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for tablet */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 25px; /* Adjusted gap for tablet */
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) { 
   .search-results-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch; 
+  }
+  .search-results-header .page-title {
+    margin-bottom: 15px; 
+  }
+  .search-controls { /* This new wrapper */
+    flex-direction: column; 
+    align-items: stretch;
+    width: 100%;
+  }
+  .search-results-page .main-type-select,
+  .search-results-page .toggle-filters-btn {
+    width: 100%; 
+  }
+  
+  .search-results-page .filters-panel.active {
+    flex-direction: column; /* Stack filter groups vertically */
+    align-items: stretch;
+    gap: 20px;
+  }
+  .search-results-page .filter-group {
+    min-width: 100%; /* Each filter group takes full width */
+  }
+  .search-results-page .filter-reset-btn {
+    margin-top: 10px; 
+    align-self: stretch; 
+  }
+}
+
+@media (max-width: 480px) {
+  .search-results-page .media-grid,
+  .search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
   }
   .search-results-page .page-title {
-    margin-bottom: 10px;
-  }
-  .toggle-filters-btn {
-    width: 100%;
-    justify-content: center;
-  }
-   .search-results-page .media-grid,
-  .search-results-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjust for mobile */
-    gap: 15px;
+    font-size: 1.6rem; /* Slightly smaller title on mobile */
   }
 }
