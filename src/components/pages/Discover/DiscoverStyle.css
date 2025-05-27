@@ -159,8 +159,8 @@
 /* Media Grid - Adjust card size here */
 .media-grid.discover-grid {
   display: grid; /* Ensure grid is explicitly set */
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Control card width here */
-  gap: 20px; /* Gap between cards */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* UPDATED for wider cards */
+  gap: 40px; /* Gap between cards */
 }
 /* Ensure child items of media-grid take up the cell space */
 .discover-grid > * {
@@ -189,7 +189,7 @@
 /* Responsive */
 @media (max-width: 900px) {
   .media-grid.discover-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for tablet */
     gap: 15px;
   }
 }
@@ -223,8 +223,8 @@
 
 @media (max-width: 480px) {
   .media-grid.discover-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Smaller cards on very small screens */
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller cards on very small screens if still too wide */
+    gap: 15px;
   }
 }
 

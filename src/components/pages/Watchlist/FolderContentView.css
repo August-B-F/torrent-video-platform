@@ -1,95 +1,111 @@
 /* FolderContentView.css */
 .folder-content-view {
-    /* padding if not handled by .page-main-content */
-  }
-  
-  .folder-content-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-  }
-  
-  .back-to-folders-btn {
-    padding: 8px 15px;
-    background-color: var(--bg-secondary, #2A2D34);
-    color: var(--text-secondary, #B0B8C5);
-    border: 1px solid var(--border-color, #333842);
-    border-radius: 5px;
-    text-decoration: none;
+  /* padding if not handled by .page-main-content */
+}
+
+.folder-content-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.back-to-folders-btn {
+  padding: 8px 15px;
+  background-color: var(--bg-secondary, #2A2D34);
+  color: var(--text-secondary, #B0B8C5);
+  border: 1px solid var(--border-color, #333842);
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.back-to-folders-btn:hover {
+  background-color: var(--border-color, #333842);
+  color: var(--text-primary, #E0E0E0);
+}
+
+.folder-view-title {
+  margin-bottom: 0;
+  font-size: 1.8rem;
+  color: var(--text-primary);
+}
+.folder-content-header span {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-left: 5px;
+}
+
+/* Grid for items within the folder */
+.folder-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* UPDATED for wider cards */
+  gap: 20px; /* Increased gap slightly for wider cards */
+}
+/* MediaGridItem will handle its own aspect ratio now */
+/* .folder-items-grid .media-grid-item {
+    aspect-ratio: 2 / 3;
+} */
+
+.folder-content-grid-item-wrapper {
+    position: relative;
+}
+/* .folder-content-grid-item-wrapper .media-grid-item {
+    height: 100%;
+} */
+
+.item-action-btn {
+    background-color: rgba(26, 29, 36, 0.85);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    line-height: 28px;
+    text-align: center;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    display: flex; 
-    align-items: center;
-    gap: 6px;
-  }
-  .back-to-folders-btn:hover {
-    background-color: var(--border-color, #333842);
-    color: var(--text-primary, #E0E0E0);
-  }
-  
-  .folder-view-title {
-    margin-bottom: 0; 
-    font-size: 1.8rem; 
-    color: var(--text-primary);
-  }
-  .folder-content-header span { 
-      color: var(--text-secondary);
-      font-size: 1rem;
-      margin-left: 5px; 
-  }
-  
-  /* Grid for items within the folder - IMAGE SIZE FIX */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    position: absolute;
+    top: 8px; /* Adjusted for new card structure if needed */
+    right: 8px; /* Adjusted for new card structure if needed */
+    opacity: 0;
+    visibility: hidden;
+    z-index: 11; /* Ensure it's above the poster */
+}
+.folder-content-grid-item-wrapper:hover .item-action-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.item-action-btn:hover {
+    background-color: var(--accent-color-main, #6A5AF9);
+    transform: scale(1.1);
+}
+
+.drag-overlay-item .media-grid-item-v3 { /* If using new item directly */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  transform: scale(1.07);
+  /* Width for drag overlay should ideally match the source item's typical width */
+  /* width: 180px; */ /* Example, adjust if needed based on your widest card column */
+  /* Height will be auto based on content */
+}
+
+@media (max-width: 900px) {
   .folder-items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Consistent size with Discover */
-    gap: 18px; 
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for tablet */
+      gap: 18px;
   }
-  .folder-items-grid .media-grid-item { 
-      aspect-ratio: 2 / 3; 
-  }
-  
-  .folder-content-grid-item-wrapper {
-      position: relative;
-  }
-  .folder-content-grid-item-wrapper .media-grid-item { 
-      height: 100%; /* Should allow aspect-ratio to control height based on width from grid column */
-  }
-  
-  .item-action-btn {
-      background-color: rgba(26, 29, 36, 0.85); 
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px; /* Slightly adjusted */
-      height: 28px; /* Slightly adjusted */
-      font-size: 14px; /* Adjusted for icon size */
-      line-height: 28px; 
-      text-align: center;
-      cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.1s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      position: absolute; 
-      top: 6px; /* Adjusted */
-      right: 6px; /* Adjusted */
-      opacity: 0; 
-      visibility: hidden;
-  }
-  .folder-content-grid-item-wrapper:hover .item-action-btn {
-      opacity: 1;
-      visibility: visible;
-  }
-  
-  .item-action-btn:hover {
-      background-color: var(--accent-color-main, #6A5AF9);
-      transform: scale(1.1);
-  }
-  
-  .drag-overlay-item .media-grid-item {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    transform: scale(1.07); 
-    width: 150px; /* Match the minmax width in .folder-items-grid */
-    /* height is auto due to aspect-ratio */
-  }
+}
+@media (max-width: 600px) {
+    .folder-items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjust for mobile */
+        gap: 15px;
+    }
+}
