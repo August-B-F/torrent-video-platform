@@ -46,6 +46,7 @@ const ItemDetailPage = () => {
   const [qualityFilter, setQualityFilter] = useState('1080p'); // Default quality filter
   const availableQualities = useMemo(() => ['All', '4K', '1080p', '720p', 'SD'], []);
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const [currentStreamType, setCurrentStreamType] = useState('direct');
 
   const processVideos = useCallback((videos) => {
     const regularSeasons = {};
@@ -321,61 +322,80 @@ const ItemDetailPage = () => {
       setFilteredStreams([]);
   };
   
-  const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
-    let fullTitle = metadata?.name || "this item";
-    if (selectedEpisode && metadata?.type === 'series') {
-        const seasonNum = String(selectedEpisode.season).padStart(2, '0');
-        const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
-        fullTitle = `${metadata.name} S${seasonNum}E${episodeNum}`;
-    } else if (metadata?.type === 'movie') {
-        fullTitle = metadata.name;
+const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
+  let fullTitle = metadata?.name || "this item";
+  if (selectedEpisode && metadata?.type === 'series') {
+      const seasonNum = String(selectedEpisode.season).padStart(2, '0');
+      const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
+      fullTitle = `${metadata.name} S${seasonNum}E${episodeNum}`;
+  } else if (metadata?.type === 'movie') {
+      fullTitle = metadata.name;
+  }
+  const displayTitle = streamTitleFromTorrent || fullTitle;
+
+  showPopup(`Starting stream for: ${displayTitle}`, "info");
+  
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showPopup("Authentication required to start stream.", "warning");
+      return;
     }
-    // Use a more descriptive title if possible, or fallback
-    const displayTitle = streamTitleFromTorrent || fullTitle;
-
-
-    showPopup(`Attempting to stream: ${displayTitle}`, "info");
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showPopup("Authentication required to start stream.", "warning");
-        return;
-      }
-      const response = await fetch('https://188.245.179.212/api/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ magnetLink, movieTitle: displayTitle }) 
-      });
+    
+    const response = await fetch('https://188.245.179.212/api/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ magnetLink, movieTitle: displayTitle }) 
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.streamUrl) {
+      console.log("Stream response:", data);
       
-      const data = await response.json();
-      if (response.ok && data.streamUrl) {
-        console.log("Stream started, URL from backend:", data.streamUrl);
-        
-        // Convert internal URL to public URL accessible through Caddy
-        const publicStreamUrl = data.streamUrl.replace(
+      // The stream URL should already be the correct public URL from backend
+      let publicStreamUrl = data.streamUrl;
+      
+      // Only replace if it's a direct Peerflix URL (not HLS)
+      if (data.streamType !== 'hls' && publicStreamUrl.includes('172.17.0.1:9000')) {
+        publicStreamUrl = publicStreamUrl.replace(
           'http://172.17.0.1:9000', 
           'https://188.245.179.212/admin/peerflix'
         );
-        
-        console.log("Public stream URL:", publicStreamUrl);
-        
-        showPopup(`Stream ready for ${displayTitle}.`, "success", 7000);
-        setCurrentTrailerUrl(publicStreamUrl); 
-        setIsPlayerModalOpen(true);
-  
-      } else {
-        const errorText = data.error || "Failed to start stream.";
-        throw new Error(errorText);
       }
-    } catch (err) {
-      console.error("Error starting stream:", err);
-      showPopup(`Error starting stream: ${err.message}`, "warning");
+      
+      console.log("Stream details:", {
+        type: data.streamType,
+        url: publicStreamUrl,
+        needsTranscoding: data.needsTranscoding,
+        format: data.format
+      });
+      
+      // Show appropriate message based on transcoding status
+      if (data.needsTranscoding) {
+        showPopup(`Preparing stream for ${displayTitle}. Video will start shortly...`, "info", 10000);
+      } else {
+        showPopup(`Stream ready for ${displayTitle}.`, "success", 5000);
+      }
+      
+      // Set the stream type and URL
+      setCurrentStreamType(data.streamType || 'direct');
+      setCurrentTrailerUrl(publicStreamUrl);
+      setIsPlayerModalOpen(true);
+      
+    } else {
+      const errorText = data.error || "Failed to start stream.";
+      const suggestion = data.suggestion || "";
+      throw new Error(errorText + (suggestion ? ` ${suggestion}` : ""));
     }
-  };
-
+  } catch (err) {
+    console.error("Error starting stream:", err);
+    showPopup(`Error: ${err.message}`, "warning", 10000);
+  }
+};
 
   const availableSeasonNumbers = Object.keys(regularSeasons).map(Number).sort((a, b) => a - b);
   const episodesForCurrentDisplay = selectedSeason === "specials" ? specialEpisodes : (regularSeasons[selectedSeason] || []);
@@ -570,11 +590,19 @@ const ItemDetailPage = () => {
       )}
       {metadata && (
         <MediaPlayerModal
-          isOpen={isPlayerModalOpen}
-          onClose={() => {setIsPlayerModalOpen(false); setCurrentTrailerUrl('');}}
-          trailerUrl={currentTrailerUrl}
-          title={currentTrailerUrl.includes('youtube.com') || currentTrailerUrl.includes('youtu.be') ? `Trailer: ${metadata.name}` : `Streaming: ${metadata.name}`}
-        />
+        isOpen={isPlayerModalOpen}
+        onClose={() => {
+          setIsPlayerModalOpen(false);
+          setCurrentTrailerUrl('');
+          setCurrentStreamType('direct');
+        }}
+        trailerUrl={currentTrailerUrl}
+        streamType={currentStreamType}
+        title={selectedEpisode ? 
+          `${metadata.name} - S${String(selectedEpisode.season).padStart(2, '0')}E${String(selectedEpisode.number).padStart(2, '0')}` : 
+          metadata?.name
+        }
+      />
       )}
     </div>
   );

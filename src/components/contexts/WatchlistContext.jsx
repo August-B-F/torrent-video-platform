@@ -68,7 +68,7 @@ export const WatchlistProvider = ({ children }) => {
       setFolders([{ ...defaultFolderProps, id: 'default', name: 'My First List', items: [] }]);
     }
     setIsLoadingFolders(false);
-  }, [defaultFolderProps]);
+  }, []);
 
   useEffect(() => {
     if (!isLoadingFolders) {
