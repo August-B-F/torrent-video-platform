@@ -16,6 +16,7 @@ import Watchlist from './components/pages/Watchlist/Watchlist.jsx';
 import SearchResults from './components/pages/SearchResults/SearchResults.jsx';
 import SettingsPage from './components/pages/SettingsPage/SettingsPage.jsx';
 import ItemDetailPage from './components/pages/ItemDetailPage/ItemDetailPage.jsx';
+import MediaPlayerPage from './components/pages/MediaPlayerPage/MediaPlayerPage.jsx'; // <-- IMPORT NEW PAGE
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -30,9 +31,7 @@ const App = () => {
     const path = window.location.pathname;
     if (path.startsWith("/home")) setSelectedIcon("home");
     else if (path.startsWith("/discover")) setSelectedIcon("discover");
-    // MODIFICATION: Update Watchlist icon logic
     else if (path.startsWith("/watchlist")) setSelectedIcon("watchlist");
-    // MODIFICATION END
     else if (path.startsWith("/search")) setSelectedIcon("search");
     else if (path.startsWith("/settings")) setSelectedIcon("settings");
     else if (path === "/" ) {
@@ -42,20 +41,23 @@ const App = () => {
              window.location.href = "/login";
         }
     }
+    // No icon change for /play route as it's a dedicated player page
   }, []);
 
 
   return (
     <Router>
         <div>
-          {isLoggedIn && <Navbar
+          {/* Conditionally render Navbar based on the route */}
+          {window.location.pathname !== '/play' && isLoggedIn && <Navbar
             setIsLoggedIn={setIsLoggedIn}
             isSearching={isSearching}
             setIsSearching={setIsSearching}
             selectedIcon={selectedIcon}
             setSelectedIcon={setSelectedIcon}
           />}
-          <InfoPopupDisplay />
+          {window.location.pathname !== '/play' && <InfoPopupDisplay />}
+          
           <Routes>
             <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/home" replace />} />
             <Route path="/signup" element={!isLoggedIn ? <SignUp /> : <Navigate to="/home" replace />} />
@@ -64,13 +66,12 @@ const App = () => {
             {isLoggedIn ? (
               <>
                 <Route path="/home" element={<Home />} />
-                {/* MODIFICATION START: Add routes for watchlist and specific folders */}
                 <Route path="/watchlist" element={<Watchlist />} />
                 <Route path="/watchlist/folder/:folderId" element={<Watchlist />} />
-                {/* MODIFICATION END */}
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="/discover" element={<Discover />} />
                 <Route path="/:type/:id" element={<ItemDetailPage />} />
+                <Route path="/play" element={isLoggedIn ? <MediaPlayerPage /> : <Navigate to="/login" replace />} />
 
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/addons" element={<SettingsPage />} />
