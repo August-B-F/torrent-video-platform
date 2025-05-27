@@ -31,6 +31,7 @@ const scoreAndSortSearchResults = (results, query, selectedTypeFilter = '') => {
   const queryYear = queryYearMatch ? queryYearMatch[0] : null;
 
   const levenshteinDistance = (s1, s2) => {
+    // ... (levenshteinDistance function remains the same)
     if (!s1) return s2 ? s2.length : 0;
     if (!s2) return s1.length;
     const arr = [];
@@ -63,20 +64,36 @@ const scoreAndSortSearchResults = (results, query, selectedTypeFilter = '') => {
         if (distance <= 2) score += (150 - distance * 40);
       }
       if (score < 100 && titleLower.includes(queryLower)) score += 70;
+      
       let wordMatchBonus = 0;
       queryWords.forEach(word => { if (titleLower.includes(word)) wordMatchBonus += 15; });
       if (wordMatchBonus > 0) score += wordMatchBonus;
+      
       if (titleLower.startsWith(queryWords[0])) score += 25;
+      
       const imdbRatingValue = item.imdbRating || item.imdb_rating;
       const imdbRating = parseFloat(imdbRatingValue);
       if (!isNaN(imdbRating) && imdbRating > 0) score += imdbRating * 6;
+      
+      // --- NEW: Add popularity to the score ---
+      // You might need to adjust the multiplier (e.g., 10) depending on the scale of 'popularity'
+      // and how much weight you want to give it compared to other factors.
+      const popularity = parseFloat(item.popularity);
+      if (!isNaN(popularity) && popularity > 0) {
+        score += popularity * 10; // Adjust multiplier as needed
+      }
+      // --- END NEW ---
+
       if (queryYear && (String(item.year) === queryYear || (item.releaseInfo && String(item.releaseInfo).startsWith(queryYear)))) score += 25;
       if (selectedTypeFilter && item.type === selectedTypeFilter) score += 15;
       if (item.poster) score += 3;
       if (item.year) score += 2;
+      
       queryWords.forEach(word => { if (descriptionLower.includes(word)) score += 1; });
+      
       if (!item.poster && results.some(r => r.poster)) score -= 10;
       if (!item.year && results.some(r => r.year)) score -= 5;
+      
       return { ...item, relevanceScore: score };
     })
     .sort((a, b) => b.relevanceScore - a.relevanceScore);

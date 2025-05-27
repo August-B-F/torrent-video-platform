@@ -337,23 +337,47 @@ const ItemDetailPage = () => {
   };
 
   const handlePlayTrailer = () => {
-    const PLACEHOLDER_TRAILER_URL = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-    let urlToPlay = PLACEHOLDER_TRAILER_URL;
-    let message = "No specific trailer found. Playing a placeholder.";
+    let urlToPlay = null; // Initialize with null
+    let message = "No trailer available for this item.";
+    let foundTrailer = false;
 
-    if (metadata && metadata.trailer) {
-      if (metadata.trailer.startsWith('ytid:')) {
-        urlToPlay = `https://www.youtube.com/watch?v=${metadata.trailer.substring(5)}`;
+    if (metadata && metadata.trailers && metadata.trailers.length > 0) {
+      const firstTrailer = metadata.trailers.find(t => t.type === "Trailer" && t.source);
+      
+      if (firstTrailer && firstTrailer.source) {
+        const youtubeId = firstTrailer.source;
+        urlToPlay = `https://www.youtube.com/watch?v=${youtubeId}`;
         message = `Playing trailer for ${metadata.name}`;
+        foundTrailer = true;
+      }
+    }
+    
+    // Fallback to single 'trailer' string if 'trailers' array didn't yield a result
+    if (!foundTrailer && metadata && metadata.trailer && typeof metadata.trailer === 'string') {
+      if (metadata.trailer.startsWith('ytid:')) {
+        const youtubeId = metadata.trailer.substring(5);
+        urlToPlay = `https://www.youtube.com/watch?v=${youtubeId}`;
+        message = `Playing trailer for ${metadata.name}`;
+        foundTrailer = true;
       } else if (metadata.trailer.startsWith('http')) {
         urlToPlay = metadata.trailer;
         message = `Playing trailer for ${metadata.name}`;
+        foundTrailer = true;
       }
     }
-    showPopup(message, "info");
-    setCurrentTrailerUrl(urlToPlay);
-    setCurrentStreamType('direct'); // Trailers are direct
-    setIsPlayerModalOpen(true);
+
+    if (foundTrailer && urlToPlay) {
+      showPopup(message, "info");
+      setCurrentTrailerUrl(urlToPlay);
+      setCurrentStreamType('direct'); 
+      setIsPlayerModalOpen(true);
+    } else {
+      // If no trailer was found (urlToPlay is still null or the placeholder wasn't overridden)
+      showPopup(message, "info"); // Inform the user that no trailer is available
+      // Do not open the player modal
+      setIsPlayerModalOpen(false);
+      setCurrentTrailerUrl(''); 
+    }
   };
 
   const handleEpisodeSelect = (episode) => {
@@ -594,13 +618,13 @@ const ItemDetailPage = () => {
       </main>
       {isSelectFolderModalOpen && metadata && (<SelectFolderModal isOpen={isSelectFolderModalOpen} onClose={() => setIsSelectFolderModalOpen(false)} folders={allFolders} itemId={metadata.id} itemType={metadata.type} itemTitle={metadata.name || "this item"}/>)}
       {metadata && currentTrailerUrl && (
-        <MediaPlayerModal 
-          isOpen={isPlayerModalOpen && currentStreamType === 'direct'} 
-          onClose={() => {setIsPlayerModalOpen(false); setCurrentTrailerUrl('');}} 
-          trailerUrl={currentTrailerUrl}
-          streamType="direct" 
-          title={metadata?.name ? `Trailer: ${metadata.name}`: "Trailer"}
-        />
+      <MediaPlayerModal 
+        isOpen={isPlayerModalOpen && currentStreamType === 'direct'} 
+        onClose={() => {setIsPlayerModalOpen(false); setCurrentTrailerUrl('');}} 
+        trailerUrl={currentTrailerUrl}
+        streamType="direct" // Explicitly set for trailers
+        title={metadata?.name ? `Trailer: ${metadata.name}`: "Trailer"}
+      />
       )}
     </div>
   );
