@@ -1,9 +1,9 @@
+// src/App.js
 import { BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 // Context & Global Components
-// PopupProvider will be in index.js, App is wrapped by it.
-import InfoPopupDisplay from './components/common/InfoPopupDisplay/InfoPopupDisplay.jsx'; 
+import InfoPopupDisplay from './components/common/InfoPopupDisplay/InfoPopupDisplay.jsx';
 
 // Page Components
 import Login from './components/pages/Login/Login.jsx'
@@ -18,28 +18,27 @@ import SettingsPage from './components/pages/SettingsPage/SettingsPage.jsx';
 import ItemDetailPage from './components/pages/ItemDetailPage/ItemDetailPage.jsx';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Check token on mount
-  const [isSearching, setIsSearching] = useState(false); 
-  const [selectedIcon, setSelectedIcon] = useState("home"); 
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState("home");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
     }
-    // Initial path check for icon and root redirect
     const path = window.location.pathname;
     if (path.startsWith("/home")) setSelectedIcon("home");
     else if (path.startsWith("/discover")) setSelectedIcon("discover");
+    // MODIFICATION: Update Watchlist icon logic
     else if (path.startsWith("/watchlist")) setSelectedIcon("watchlist");
+    // MODIFICATION END
     else if (path.startsWith("/search")) setSelectedIcon("search");
     else if (path.startsWith("/settings")) setSelectedIcon("settings");
     else if (path === "/" ) {
-        if (token && window.location.pathname !== "/home") { // Check to prevent loop if already at /home
-            // navigate("/home", { replace: true }); // Ideal, but App.js might not have Router context directly
+        if (token && window.location.pathname !== "/home") {
             window.location.href = "/home";
-        } else if (!token && window.location.pathname !== "/login") { // Check to prevent loop
-            // navigate("/login", { replace: true });
+        } else if (!token && window.location.pathname !== "/login") {
              window.location.href = "/login";
         }
     }
@@ -47,17 +46,16 @@ const App = () => {
 
 
   return (
-    // Assuming PopupProvider, AddonProvider, WatchlistProvider are in index.js wrapping <App />
     <Router>
         <div>
-          {isLoggedIn && <Navbar 
-            setIsLoggedIn={setIsLoggedIn} 
-            isSearching={isSearching} 
-            setIsSearching={setIsSearching} 
-            selectedIcon={selectedIcon} 
-            setSelectedIcon={setSelectedIcon} 
+          {isLoggedIn && <Navbar
+            setIsLoggedIn={setIsLoggedIn}
+            isSearching={isSearching}
+            setIsSearching={setIsSearching}
+            selectedIcon={selectedIcon}
+            setSelectedIcon={setSelectedIcon}
           />}
-          <InfoPopupDisplay /> {/* Crucial: Render the popup display component */}
+          <InfoPopupDisplay />
           <Routes>
             <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/home" replace />} />
             <Route path="/signup" element={!isLoggedIn ? <SignUp /> : <Navigate to="/home" replace />} />
@@ -66,22 +64,24 @@ const App = () => {
             {isLoggedIn ? (
               <>
                 <Route path="/home" element={<Home />} />
+                {/* MODIFICATION START: Add routes for watchlist and specific folders */}
                 <Route path="/watchlist" element={<Watchlist />} />
+                <Route path="/watchlist/folder/:folderId" element={<Watchlist />} />
+                {/* MODIFICATION END */}
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="/discover" element={<Discover />} />
                 <Route path="/:type/:id" element={<ItemDetailPage />} />
-                
+
                 <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/settings/addons" element={<SettingsPage />} /> 
+                <Route path="/settings/addons" element={<SettingsPage />} />
                 <Route path="/settings/appearance" element={<SettingsPage />} />
                 <Route path="/settings/account" element={<SettingsPage />} />
 
-                <Route path="/" element={<Navigate to="/home" replace />} /> {/* Default for logged in */}
-                <Route path="*" element={<Navigate to="/home" replace />} /> {/* Catch-all for logged in */}
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
               </>
             ) : (
               <>
-                {/* If not logged in, default to login. Specific public routes are above. */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </>

@@ -1,5 +1,5 @@
 // src/components/pages/Watchlist/Watchlist.jsx
-import React, { useState, useEffect, useCallback }  from 'react'; // Removed useRef as it wasn't used here directly for contextMenu
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useNavigate, useParams, useLocation } from 'react-router-dom'; // Import hooks
 
 import { useWatchlist, FOLDER_ICON_OPTIONS } from '../../contexts/WatchlistContext';
 import { usePopup } from '../../contexts/PopupContext';
@@ -27,7 +28,7 @@ import './WatchlistStyle.css';
 import './FolderCard.css';
 import './FolderContentView.css';
 
-// --- SVG Icons --- (Assuming these are defined as before)
+// --- SVG Icons --- (Keep your existing SVG icon definitions)
 const MovieIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"></path></svg>;
 const SeriesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM7 15h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"></path></svg>;
 const DefaultFolderIconSvg = () => (
@@ -74,7 +75,7 @@ const FolderCardInternal = ({ folder, onClick, onContextMenu }) => {
   const handleCardContextMenu = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onContextMenu(e, folder.id, null); // Pass null for itemId for folder context menu
+    onContextMenu(e, folder.id, 'folder'); // Specify targetType as 'folder'
   };
 
   return (
@@ -90,7 +91,7 @@ const FolderCardInternal = ({ folder, onClick, onContextMenu }) => {
   );
 };
 
-const SortableFolderItemInternal = ({ id, itemData, onRemoveItem, onItemContextMenu }) => { // Added onItemContextMenu
+const SortableFolderItemInternal = ({ id, itemData, onRemoveItem, onItemContextMenu }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'folder-item', itemData } });
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -107,7 +108,7 @@ const SortableFolderItemInternal = ({ id, itemData, onRemoveItem, onItemContextM
     const handleContextMenu = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onItemContextMenu(e, itemData.id); // Call the passed handler
+        onItemContextMenu(e, itemData.id);
     };
 
     return (
@@ -134,6 +135,7 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
+    const navigate = useNavigate(); // For the back button
 
     function handleDragStart(event) {
         const { active } = event;
@@ -152,13 +154,18 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
         }
     }
 
+    const handleBackButton = () => {
+      navigate('/watchlist'); // Navigate to the main watchlist view
+      onBack(); // Call the original onBack to reset state in parent if needed
+    };
+
     if (!folder) {
       return (
           <div className="page-container watchlist-page">
                <main className="page-main-content">
                   <div className="empty-message" style={{paddingTop: "50px"}}>
                       List not found. It might have been deleted.
-                      <button onClick={onBack} className="back-to-folders-btn" style={{marginTop: "20px", display: "block", marginLeft: "auto", marginRight: "auto"}}>
+                      <button onClick={handleBackButton} className="back-to-folders-btn" style={{marginTop: "20px", display: "block", marginLeft: "auto", marginRight: "auto"}}>
                           &larr; Back to My Lists
                       </button>
                   </div>
@@ -170,7 +177,8 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
     return (
         <div className="folder-content-view">
             <div className="folder-content-header">
-                <button onClick={onBack} className="back-to-folders-btn">&larr; All Lists</button>
+                {/* MODIFICATION: Use handleBackButton */}
+                <button onClick={handleBackButton} className="back-to-folders-btn">&larr; All Lists</button>
                 <h1 className="page-title folder-view-title">{folder.name}</h1>
                 <span>({itemsWithDetails.length} items)</span>
             </div>
@@ -186,7 +194,7 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
                             id={itemData.id}
                             itemData={itemData}
                             onRemoveItem={() => onRemoveItemFromFolder(folder.id, itemData.id)}
-                            onItemContextMenu={(e, itemId) => onItemContextMenuInFolder(e, itemId, folder.id)} // Pass folder.id
+                            onItemContextMenu={(e, itemId) => onItemContextMenuInFolder(e, itemId, folder.id)}
                         />
                     ))}
                     </div>
@@ -211,18 +219,30 @@ const Watchlist = () => {
     fetchItemDetails
   } = useWatchlist();
   const { showPopup } = usePopup();
+  const navigate = useNavigate();
+  const { folderId: folderIdFromUrl } = useParams(); // Get folderId from URL
+  const location = useLocation(); // To check current path
 
   const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  // Unified context menu state
   const [contextMenuState, setContextMenuState] = useState({
-    visible: false, x: 0, y: 0, targetId: null, targetType: null // type can be 'folder' or 'item'
+    visible: false, x: 0, y: 0, targetId: null, targetType: null, currentFolderIdForContext: null
   });
-
 
   const [activeDragItem, setActiveDragItem] = useState(null);
   const [isLoadingFolderItemsDetails, setIsLoadingFolderItemsDetails] = useState(false);
   const [currentFolderItemsWithDetails, setCurrentFolderItemsWithDetails] = useState([]);
+
+  // Effect to sync selectedFolderId with URL
+  useEffect(() => {
+    if (folderIdFromUrl) {
+      setSelectedFolderId(folderIdFromUrl);
+    } else {
+      // If no folderId in URL (e.g., /watchlist), ensure no folder is selected
+      setSelectedFolderId(null);
+    }
+  }, [folderIdFromUrl]);
+
 
   useEffect(() => {
     const selectedFolderData = selectedFolderId ? folders.find(f => f.id === selectedFolderId) : null;
@@ -263,23 +283,25 @@ const Watchlist = () => {
     addFolder(name);
   };
 
-  const startRenameFolder = (folderId) => {
+  const startRenameFolder = (folderIdToRename) => {
     closeContextMenu();
-    const folder = folders.find(f => f.id === folderId);
+    const folder = folders.find(f => f.id === folderIdToRename);
     if (!folder) {
         showPopup("Could not find the list to rename.", "warning");
         return;
     }
     const newName = prompt("Enter new folder name:", folder.name);
     if (newName && newName.trim() !== "" && newName.trim() !== folder.name) {
-      renameFolder(folderId, newName.trim());
+      renameFolder(folderIdToRename, newName.trim());
     }
   };
 
-  const confirmDeleteFolder = (folderId) => {
+  const confirmDeleteFolder = (folderIdToDelete) => {
     closeContextMenu();
-    if (deleteFolder(folderId)) {
-        if (selectedFolderId === folderId) setSelectedFolderId(null);
+    if (deleteFolder(folderIdToDelete)) {
+        if (selectedFolderId === folderIdToDelete) {
+          navigate('/watchlist'); // Go back to main watchlist view if current folder is deleted
+        }
     }
   };
 
@@ -299,19 +321,28 @@ const Watchlist = () => {
     }
   };
 
-  const handleViewFolderContents = (folderId) => {
-    setSelectedFolderId(folderId);
+  // MODIFICATION: Navigate when viewing folder contents
+  const handleViewFolderContents = (folderIdToView) => {
+    navigate(`/watchlist/folder/${folderIdToView}`); // Update URL
+    // setSelectedFolderId will be updated by the useEffect watching folderIdFromUrl
     closeContextMenu();
   };
+  
+  // MODIFICATION: Navigate when going back
+  const handleBackToFolders = () => {
+      navigate('/watchlist');
+      // setSelectedFolderId will be updated by the useEffect watching folderIdFromUrl
+  };
 
-  const handleContextMenu = (event, targetId, targetType) => {
+
+  const handleContextMenu = (event, targetId, targetType, currentFolderId = null) => {
     event.preventDefault();
     event.stopPropagation();
-    setContextMenuState({ visible: true, x: event.clientX, y: event.clientY, targetId, targetType });
+    setContextMenuState({ visible: true, x: event.clientX, y: event.clientY, targetId, targetType, currentFolderIdForContext: currentFolderId });
   };
 
   const closeContextMenu = useCallback(() => {
-    setContextMenuState(prev => ({ ...prev, visible: false, targetId: null, targetType: null }));
+    setContextMenuState(prev => ({ ...prev, visible: false, targetId: null, targetType: null, currentFolderIdForContext: null }));
   }, []);
 
   const getContextMenuOptions = () => {
@@ -324,21 +355,18 @@ const Watchlist = () => {
         { label: 'Delete List', action: () => confirmDeleteFolder(contextMenuState.targetId) },
       ];
     } else if (contextMenuState.targetType === 'item') {
-        // targetId here is itemId, and we need the current folderId for removal
-        const currentFolderForContext = selectedFolderId; // This should be set if we are in folder view
-        if (!currentFolderForContext) return [];
+        const currentFolderForContextItem = contextMenuState.currentFolderIdForContext || selectedFolderId;
+        if (!currentFolderForContextItem) return [];
       return [
         { label: 'Remove from this List', action: () => {
-            removeItemFromFolder(currentFolderForContext, contextMenuState.targetId);
+            removeItemFromFolder(currentFolderForContextItem, contextMenuState.targetId);
             closeContextMenu();
           }
         },
-        // { label: 'Move to another List...', action: () => { /* TODO: Implement move modal */ closeContextMenu(); } },
       ];
     }
     return [];
   };
-
 
   const selectedFolderDataForView = selectedFolderId ? folders.find(f => f.id === selectedFolderId) : null;
 
@@ -349,7 +377,7 @@ const Watchlist = () => {
   return (
     <div className="page-container watchlist-page">
       <main className="page-main-content">
-        {!selectedFolderId ? (
+        {!selectedFolderId ? ( // Show all folders view
           <>
             <div className="watchlist-header">
               <h1 className="page-title">My Lists</h1>
@@ -366,7 +394,7 @@ const Watchlist = () => {
                         key={folder.id}
                         folder={folder}
                         onClick={handleViewFolderContents}
-                        onContextMenu={(e, folderId) => handleContextMenu(e, folderId, 'folder')}
+                        onContextMenu={(e, fId) => handleContextMenu(e, fId, 'folder')}
                       />
                     ))}
                   </div>
@@ -399,22 +427,22 @@ const Watchlist = () => {
             ) : null
             }
           </>
-        ) : selectedFolderDataForView ? (
+        ) : selectedFolderDataForView ? ( // Show content of a single selected folder
           <FolderContentViewInternal
             folder={selectedFolderDataForView}
             itemsWithDetails={currentFolderItemsWithDetails}
-            onBack={() => setSelectedFolderId(null)}
+            onBack={handleBackToFolders} // MODIFIED: Use new handler
             onReorderItems={reorderItemsInFolder}
-            onRemoveItemFromFolder={removeItemFromFolder} // This is passed to FolderContentViewInternal
+            onRemoveItemFromFolder={removeItemFromFolder}
             isLoadingItems={isLoadingFolderItemsDetails}
-            onItemContextMenuInFolder={(e, itemId) => handleContextMenu(e, itemId, 'item')} // New prop for item context menu
+            onItemContextMenuInFolder={(e, itemId, currentFolderId) => handleContextMenu(e, itemId, 'item', currentFolderId)}
           />
-        ) : (
+        ) : ( // Folder ID in URL but folder not found (or still loading folders)
           <div className="page-container watchlist-page">
             <main className="page-main-content">
                 <div className="empty-message" style={{paddingTop: "50px"}}>
-                    Selected list not found or has been deleted.
-                    <button onClick={() => setSelectedFolderId(null)} className="back-to-folders-btn" style={{marginTop: "20px", display: "block", marginLeft: "auto", marginRight: "auto"}}>
+                    {isLoadingContextFolders ? "Loading lists..." : "Selected list not found."}
+                    <button onClick={handleBackToFolders} className="back-to-folders-btn" style={{marginTop: "20px", display: "block", marginLeft: "auto", marginRight: "auto"}}>
                         &larr; Back to My Lists
                     </button>
                 </div>

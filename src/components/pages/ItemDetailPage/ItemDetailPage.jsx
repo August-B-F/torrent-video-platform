@@ -8,7 +8,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import MediaPlayerModal from '../../common/MediaPlayerModal/MediaPlayerModal';
 import './ItemDetailPage.css';
 
-// SVG Icons
+// SVG Icons (ensure these are defined or imported as they are in your file)
 const PlayIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
 );
@@ -42,8 +42,10 @@ const ItemDetailPage = () => {
 
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
+  // MODIFICATION START: Initialize showMovieTorrents based on item type later in useEffect
   const [showMovieTorrents, setShowMovieTorrents] = useState(false);
-  const [qualityFilter, setQualityFilter] = useState('1080p'); // Default quality filter
+  // MODIFICATION END
+  const [qualityFilter, setQualityFilter] = useState('1080p');
   const availableQualities = useMemo(() => ['All', '4K', '1080p', '720p', 'SD'], []);
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [currentStreamType, setCurrentStreamType] = useState('direct');
@@ -94,19 +96,21 @@ const ItemDetailPage = () => {
     setSelectedEpisode(null);
     setAllStreams([]);
     setFilteredStreams([]);
+    // MODIFICATION START: Reset showMovieTorrents on new item load
     setShowMovieTorrents(false);
+    // MODIFICATION END
     setQualityFilter('1080p');
 
 
     if (isLoadingAddons || !id || !type) return;
 
     const fetchMeta = async () => {
-      if (!cinemeta && !globalAddonErr) { 
-        setMetaError('Cinemeta addon not available. Please configure it in settings.'); 
-        setIsLoadingMeta(false); 
+      if (!cinemeta && !globalAddonErr) {
+        setMetaError('Cinemeta addon not available. Please configure it in settings.');
+        setIsLoadingMeta(false);
         return;
       }
-      if (globalAddonErr) { 
+      if (globalAddonErr) {
         setMetaError(`Cinemeta Addon Error: ${globalAddonErr}`);
         setIsLoadingMeta(false);
         return;
@@ -115,7 +119,11 @@ const ItemDetailPage = () => {
         const fetchedMeta = await fetchItemDetailsFromContext(id, type);
         if (fetchedMeta && fetchedMeta.name) {
           setMetadata(fetchedMeta);
-          if (fetchedMeta.type === 'series' && fetchedMeta.videos && fetchedMeta.videos.length > 0) {
+          // MODIFICATION START: Automatically show torrents for movies
+          if (fetchedMeta.type === 'movie') {
+            setShowMovieTorrents(true);
+          } else if (fetchedMeta.type === 'series' && fetchedMeta.videos && fetchedMeta.videos.length > 0) {
+          // MODIFICATION END
             const processed = processVideos(fetchedMeta.videos);
             const firstRegularSeason = Object.keys(processed.regularSeasons).map(Number).sort((a, b) => a - b)[0];
             if (firstRegularSeason) {
@@ -137,7 +145,7 @@ const ItemDetailPage = () => {
     fetchMeta();
   }, [cinemeta, type, id, isLoadingAddons, fetchItemDetailsFromContext, processVideos, globalAddonErr]);
 
-  // Effect for fetching torrents
+  // Effect for fetching torrents (no changes needed here for this specific request)
   useEffect(() => {
     const fetchTorrents = async () => {
       if (!metadata || (!showMovieTorrents && !selectedEpisode)) {
@@ -157,18 +165,16 @@ const ItemDetailPage = () => {
         const episodeNum = selectedEpisode.number || selectedEpisode.episode;
         const seasonPadded = String(seasonNum).padStart(2, '0');
         const episodePadded = String(episodeNum).padStart(2, '0');
-        // Try multiple search formats for TV shows (most to least specific)
         const baseName = metadata.name.replace(/[:\-–]/g, ' ').replace(/\s+/g, ' ').trim();
 
         searchQueries = [
-          `${baseName} S${seasonPadded}E${episodePadded}`,           // "Fallout S01E01"
-          `${baseName} ${seasonNum}x${episodeNum}`,                  // "Fallout 1x1"
-          `${baseName} Season ${seasonNum} Episode ${episodeNum}`,   // "Fallout Season 1 Episode 1"
-          `${baseName} S${seasonNum}E${episodeNum}`,                 // "Fallout S1E1"
-          `${baseName} ${metadata.year || ''} S${seasonPadded}E${episodePadded}`.trim(), // "Fallout 2024 S01E01"
+          `${baseName} S${seasonPadded}E${episodePadded}`,
+          `${baseName} ${seasonNum}x${episodeNum}`,
+          `${baseName} Season ${seasonNum} Episode ${episodeNum}`,
+          `${baseName} S${seasonNum}E${episodeNum}`,
+          `${baseName} ${metadata.year || ''} S${seasonPadded}E${episodePadded}`.trim(),
         ];
-      } else if (metadata.type === 'movie') { // Ensure this branch is only for movies
-        // Movie search
+      } else if (metadata.type === 'movie') {
         let movieSearch = metadata.name;
         if (metadata.year) {
           movieSearch += ` ${metadata.year}`;
@@ -176,14 +182,12 @@ const ItemDetailPage = () => {
         movieSearch = movieSearch.replace(/[:\-–]/g, ' ').replace(/\s+/g, ' ').trim();
         searchQueries = [movieSearch];
       } else {
-        // If it's neither a movie nor a series with a selected episode, don't search
         setIsLoadingStreams(false);
         return;
       }
 
-      // Try each search query until we find results
       let allResults = [];
-      let queryError = null; // Store the last error if all queries fail
+      let queryError = null;
 
       for (const query of searchQueries) {
         try {
@@ -191,8 +195,7 @@ const ItemDetailPage = () => {
           if (!token) {
             queryError = "Authentication required to search for streams.";
             setIsLoadingStreams(false);
-            // setStreamError needs to be outside the loop or handled after loop if all fail
-            break; // Stop if no token
+            break;
           }
           console.log(`Trying search query: "${query}"`);
           const response = await fetch(`https://188.245.179.212/api/search?query=${encodeURIComponent(query)}`, {
@@ -211,33 +214,31 @@ const ItemDetailPage = () => {
                 console.warn(`Search query "${query}" failed, response not JSON:`, errorText);
             }
             console.warn(`Search failed for query: "${query}" - Status: ${response.status}, Detail: ${errorDetail}`);
-            queryError = `Search for "${query}" failed. Status: ${response.status}.`; // Store the last error
-            continue; // Try next query
+            queryError = `Search for "${query}" failed. Status: ${response.status}.`;
+            continue;
           }
 
           const data = await response.json();
           if (data.Results && data.Results.length > 0) {
             console.log(`Found ${data.Results.length} results for: "${query}"`);
             allResults = data.Results;
-            queryError = null; // Reset error if results are found
-            break; // Stop on first successful search
+            queryError = null;
+            break;
           } else {
             console.log(`No results for: "${query}"`);
-            queryError = `No results found for "${query}".`; // Store message if no results
+            queryError = `No results found for "${query}".`;
           }
         } catch (e) {
           console.warn(`Error with query "${query}":`, e);
-          queryError = `Error processing query "${query}": ${e.message}.`; // Store the error
-          continue; // Try next query
+          queryError = `Error processing query "${query}": ${e.message}.`;
+          continue;
         }
       }
 
-      // Process results
       if (allResults.length > 0) {
         const formattedStreams = allResults.map(stream => ({
           title: stream.Title,
           name: `${stream.Tracker || stream.Site || 'Unknown'} (${stream.Seeders}S/${stream.Peers}P)`,
-          // Adjusted quality detection to be more robust
           quality: stream.Title && typeof stream.Title === 'string' ?
                    (stream.Title.match(/4K|2160p/i) ? '4K' :
                     stream.Title.match(/1080p/i) ? '1080p' :
@@ -249,9 +250,8 @@ const ItemDetailPage = () => {
           publishDate: stream.PublishDate,
         }));
         setAllStreams(formattedStreams);
-        setStreamError(''); // Clear any previous error
+        setStreamError('');
       } else {
-        // If no results from any query, set the error message
         setStreamError(queryError || `No streams found. Tried: ${searchQueries.join(', ')}`);
       }
       setIsLoadingStreams(false);
@@ -261,6 +261,10 @@ const ItemDetailPage = () => {
         fetchTorrents();
     }
   }, [metadata, selectedEpisode, showMovieTorrents, id]);
+
+  // The rest of the component remains the same...
+  // handleOpenSelectFolderModal, handlePlayTrailer, handleEpisodeSelect,
+  // handleMovieWatchNow, handleBackToEpisodes, handleStreamPlay, etc.
 
   useEffect(() => {
     if (qualityFilter === 'All') {
@@ -296,6 +300,7 @@ const ItemDetailPage = () => {
     }
     showPopup(message, "info");
     setCurrentTrailerUrl(urlToPlay);
+    setCurrentStreamType('direct'); // Ensure it's direct for trailers unless specified
     setIsPlayerModalOpen(true);
   };
 
@@ -306,22 +311,22 @@ const ItemDetailPage = () => {
         return;
     }
     setSelectedEpisode(episode);
-    setShowMovieTorrents(false); 
-    setQualityFilter('1080p'); 
+    setShowMovieTorrents(false);
+    setQualityFilter('1080p');
   };
 
   const handleMovieWatchNow = () => {
     setShowMovieTorrents(true);
-    setSelectedEpisode(null); 
-    setQualityFilter('1080p'); 
+    setSelectedEpisode(null);
+    setQualityFilter('1080p');
   };
-  
+
   const handleBackToEpisodes = () => {
       setSelectedEpisode(null);
-      setAllStreams([]); 
+      setAllStreams([]);
       setFilteredStreams([]);
   };
-  
+
 const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
   let fullTitle = metadata?.name || "this item";
   if (selectedEpisode && metadata?.type === 'series') {
@@ -334,58 +339,41 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
   const displayTitle = streamTitleFromTorrent || fullTitle;
 
   showPopup(`Starting stream for: ${displayTitle}`, "info");
-  
+
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       showPopup("Authentication required to start stream.", "warning");
       return;
     }
-    
+
     const response = await fetch('https://188.245.179.212/api/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ magnetLink, movieTitle: displayTitle }) 
+      body: JSON.stringify({ magnetLink, movieTitle: displayTitle })
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok && data.streamUrl) {
       console.log("Stream response:", data);
-      
-      // The stream URL should already be the correct public URL from backend
       let publicStreamUrl = data.streamUrl;
-      
-      // Only replace if it's a direct Peerflix URL (not HLS)
       if (data.streamType !== 'hls' && publicStreamUrl.includes('172.17.0.1:9000')) {
-        publicStreamUrl = publicStreamUrl.replace(
-          'http://172.17.0.1:9000', 
-          'https://188.245.179.212/admin/peerflix'
-        );
+        publicStreamUrl = publicStreamUrl.replace('http://172.17.0.1:9000','https://188.245.179.212/admin/peerflix');
       }
-      
-      console.log("Stream details:", {
-        type: data.streamType,
-        url: publicStreamUrl,
-        needsTranscoding: data.needsTranscoding,
-        format: data.format
-      });
-      
-      // Show appropriate message based on transcoding status
+      console.log("Stream details:", { type: data.streamType, url: publicStreamUrl, needsTranscoding: data.needsTranscoding, format: data.format });
       if (data.needsTranscoding) {
         showPopup(`Preparing stream for ${displayTitle}. Video will start shortly...`, "info", 10000);
       } else {
         showPopup(`Stream ready for ${displayTitle}.`, "success", 5000);
       }
-      
-      // Set the stream type and URL
       setCurrentStreamType(data.streamType || 'direct');
       setCurrentTrailerUrl(publicStreamUrl);
       setIsPlayerModalOpen(true);
-      
+
     } else {
       const errorText = data.error || "Failed to start stream.";
       const suggestion = data.suggestion || "";
@@ -401,15 +389,15 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
   const episodesForCurrentDisplay = selectedSeason === "specials" ? specialEpisodes : (regularSeasons[selectedSeason] || []);
 
 
-  if (isLoadingAddons && isLoadingMeta) return <div className="page-container"><div className="loading-message">Initializing addons & loading details...</div></div>;
-  if (globalAddonErr && !metadata) return <div className="page-container"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{globalAddonErr} Please check Addon Settings.</div></div>;
-  if (!metadata && !isLoadingMeta) return <div className="page-container"><div className="empty-message">Item details could not be loaded. Ensure Cinemeta is configured correctly.</div></div>;
-  if (!metadata && metaError) return <div className="page-container"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{metaError}</div></div>;
-  if (!metadata) return <div className="page-container"><div className="loading-message">Loading item details...</div></div>; 
+  if (isLoadingAddons && isLoadingMeta) return <div className="page-container"><div className="loading-message">Initializing addons & loading details...</div></div>; //
+  if (globalAddonErr && !metadata) return <div className="page-container"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{globalAddonErr} Please check Addon Settings.</div></div>; //
+  if (!metadata && !isLoadingMeta) return <div className="page-container"><div className="empty-message">Item details could not be loaded. Ensure Cinemeta is configured correctly.</div></div>; //
+  if (!metadata && metaError) return <div className="page-container"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{metaError}</div></div>; //
+  if (!metadata) return <div className="page-container"><div className="loading-message">Loading item details...</div></div>;  //
 
 
-  const displayTorrentSection = (metadata.type === 'movie' && showMovieTorrents) || (metadata.type === 'series' && selectedEpisode);
-  const displayEpisodeSection = metadata.type === 'series' && (availableSeasonNumbers.length > 0 || specialEpisodes.length > 0);
+  const displayTorrentSection = (metadata.type === 'movie' && showMovieTorrents) || (metadata.type === 'series' && selectedEpisode); //
+  const displayEpisodeSection = metadata.type === 'series' && (availableSeasonNumbers.length > 0 || specialEpisodes.length > 0); //
 
   return (
     <div className="page-container item-detail-page">
@@ -436,11 +424,13 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
               <button className="action-button secondary" onClick={handleOpenSelectFolderModal}>
                 <AddToListIcon /> Add to List
               </button>
+              {/* MODIFICATION START: Remove conditional rendering for "Watch Now" button */}
               {metadata.type === 'movie' && (
-                <button className="action-button secondary" onClick={handleMovieWatchNow}>
-                  <DownloadIcon /> Watch Now
+                <button className="action-button secondary" onClick={handleMovieWatchNow} disabled={showMovieTorrents}>
+                  <DownloadIcon /> {showMovieTorrents ? "Showing Torrents" : "Watch Now"}
                 </button>
               )}
+              {/* MODIFICATION END */}
             </div>
           </div>
         </div>
@@ -528,7 +518,7 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
                     </button>
                 )}
              </div>
-             { (metadata.type === 'movie' || selectedEpisode) && 
+             { (metadata.type === 'movie' || selectedEpisode) &&
                 <div className="stream-filters">
                     <label htmlFor="qualityFilter">Filter Quality:</label>
                     <select
@@ -563,8 +553,8 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
                             {stream.publishDate && <span className="stream-publish-date">Published: {new Date(stream.publishDate).toLocaleDateString()}</span>}
                         </div>
                     </div>
-                    <button 
-                        className="stream-play-button" 
+                    <button
+                        className="stream-play-button"
                         onClick={() => handleStreamPlay(stream.magnetLink, stream.title)}
                         disabled={!stream.magnetLink}
                     >
@@ -582,9 +572,9 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
         <SelectFolderModal
           isOpen={isSelectFolderModalOpen}
           onClose={() => setIsSelectFolderModalOpen(false)}
-          folders={allFolders} 
-          itemId={metadata.id} 
-          itemType={metadata.type} 
+          folders={allFolders}
+          itemId={metadata.id}
+          itemType={metadata.type}
           itemTitle={metadata.name || "this item"}
         />
       )}
@@ -598,8 +588,8 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
         }}
         trailerUrl={currentTrailerUrl}
         streamType={currentStreamType}
-        title={selectedEpisode ? 
-          `${metadata.name} - S${String(selectedEpisode.season).padStart(2, '0')}E${String(selectedEpisode.number).padStart(2, '0')}` : 
+        title={selectedEpisode ?
+          `${metadata.name} - S${String(selectedEpisode.season).padStart(2, '0')}E${String(selectedEpisode.number).padStart(2, '0')}` :
           metadata?.name
         }
       />
