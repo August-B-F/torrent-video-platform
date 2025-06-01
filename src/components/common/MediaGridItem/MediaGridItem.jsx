@@ -17,7 +17,7 @@ const MediaGridItem = ({ item }) => {
       <div className="media-grid-item-v3" title={title}>
         <div className="grid-item-poster-container-v3">
           <img
-            src={item.poster || 'https://via.placeholder.com/300x450/12151B/FFFFFF?text=No+Poster'}
+            src={item.poster || 'https://dummyimage.com/300x450/000/fff.png&text=No+Poster'}
             alt={title}
             className="grid-item-poster-v3"
             loading="lazy"

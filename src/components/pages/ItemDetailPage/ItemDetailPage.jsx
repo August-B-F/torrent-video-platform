@@ -24,118 +24,11 @@ const BackIcon = () => (
 
 // Helper function to parse size string to MB
 const parseSizeToMB = (sizeStr) => {
-  if (!sizeStr || typeof sizeStr !== 'string') return 0;
-  const value = parseFloat(sizeStr);
-  if (isNaN(value)) return 0;
-  if (sizeStr.toUpperCase().includes('GB')) return value * 1024;
-  if (sizeStr.toUpperCase().includes('MB')) return value;
-  if (sizeStr.toUpperCase().includes('KB')) return value / 1024;
-  return 0;
 };
 
 // Helper function to score and sort torrents
 const scoreAndSortTorrents = (torrents) => {
-  if (!Array.isArray(torrents)) return [];
-
-  const qualityScores = {
-    '4k': 5, '2160p': 5, 'uhd': 5,
-    '1080p': 4, 'fhd': 4,
-    '720p': 3, 'hd': 3,
-    'sd': 1, '480p': 1, '360p': 0,
-  };
-
-  const releaseTypeScores = {
-    'bluray': 5, 'blu-ray': 5, 'bdrip': 5, 'brrip': 5,
-    'web-dl': 4, 'webdl': 4, 'web': 4,
-    'webrip': 3,
-    'hdrip': 2,
-    'hdtv': 2,
-    'dvdrip': 1, 'dvd': 1,
-    'cam': -10, 'hdcam': -10,
-    'telesync': -8, 'ts': -8,
-  };
-
-  const codecScores = {
-    'av1': 3,
-    'x265': 2, 'h265': 2, 'hevc': 2,
-    'x264': 1, 'h264': 1, 'avc': 1,
-    'xvid': -1, 'divx': -1,
-  };
-
-  return torrents
-    .map(stream => {
-      let score = 0;
-      const titleLower = stream.title ? stream.title.toLowerCase() : '';
-
-      if ((stream.Seeders || 0) > 0) {
-        score += (stream.Seeders || 0) * 5;
-        score += (stream.Peers || 0) * 0.5;
-      } else {
-        if ((stream.Peers || 0) === 0) {
-            score = -200;
-        } else {
-            score = -50;
-        }
-      }
-
-      let qualityFound = false;
-      if (stream.quality && stream.quality !== 'N/A') {
-        const qualityKey = stream.quality.toLowerCase().replace('p','');
-        if (qualityScores[qualityKey]) {
-          score += qualityScores[qualityKey] * 2.5;
-          qualityFound = true;
-        }
-      }
-      if (!qualityFound) {
-        for (const q in qualityScores) {
-          if (titleLower.includes(q)) {
-            score += qualityScores[q];
-            qualityFound = true;
-            break;
-          }
-        }
-      }
-       if (!qualityFound) score -= 1;
-
-      for (const rt in releaseTypeScores) {
-        if (titleLower.includes(rt.replace('-', ''))) {
-          score += releaseTypeScores[rt];
-          break;
-        }
-      }
-      
-      for (const c in codecScores) {
-          if (titleLower.includes(c)) {
-              score += codecScores[c];
-              break;
-          }
-      }
-      
-      if (stream.PublishDate) score += 0.2;
-
-      const sizeMB = parseSizeToMB(stream.size);
-      if (sizeMB > 0) {
-        const q = stream.quality || (titleLower.includes('4k') || titleLower.includes('2160p') ? '4K' : titleLower.includes('1080p') ? '1080p' : titleLower.includes('720p') ? '720p' : 'SD');
-        if (q === '4K') {
-            if (sizeMB < 1500) score -=5; else if (sizeMB > 5000) score +=2;
-        } else if (q === '1080p') {
-            if (sizeMB < 600) score -=3; else if (sizeMB > 1500 && sizeMB < 20000) score +=1.5;
-        } else if (q === '720p') {
-            if (sizeMB < 250) score -=2; else if (sizeMB > 700 && sizeMB < 10000) score += 0.5;
-        }
-      } else {
-        score -= 0.5;
-      }
-      
-      if (titleLower.includes('bad') || titleLower.includes('poor') || titleLower.includes("wrong")) score -= 7;
-      if (titleLower.includes('subbed') && !titleLower.includes('multi')) score -= 0.5;
-      if (titleLower.includes('dubbed')) score -= 1;
-      if (titleLower.includes('repack') || titleLower.includes('proper')) score += 1;
-
-      return { ...stream, score };
-    })
-    .sort((a, b) => b.score - a.score);
-};
+}
 
 
 const ItemDetailPage = () => {
@@ -187,148 +80,6 @@ const ItemDetailPage = () => {
     return { regularSeasons: {}, specialEpisodes: [] };
   }, [metadata, processVideos]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    setIsLoadingMeta(true); setMetaError(''); setMetadata(null);
-    setSelectedSeason(null); setSelectedEpisode(null); setAllStreams([]);
-    setShowTorrents(false);
-    setQualityFilter('1080p'); setActiveStreamMagnet(null);
-
-    if (isLoadingAddons || !id || !type) return;
-
-    const fetchMeta = async () => {
-      if (!cinemeta && !globalAddonErr) {
-        setMetaError('Cinemeta addon not available.'); setIsLoadingMeta(false); return;
-      }
-      if (globalAddonErr) {
-        setMetaError(`Cinemeta Error: ${globalAddonErr}`); setIsLoadingMeta(false); return;
-      }
-      try {
-        const fetchedMeta = await fetchItemDetailsFromContext(id, type);
-        if (fetchedMeta && fetchedMeta.name) {
-          setMetadata(fetchedMeta);
-          if (fetchedMeta.type === 'movie') {
-            setShowTorrents(true);
-          } else if (fetchedMeta.type === 'series' && fetchedMeta.videos?.length > 0) {
-            const processed = processVideos(fetchedMeta.videos);
-            const firstRegularSeason = Object.keys(processed.regularSeasons).map(Number).sort((a, b) => a - b)[0];
-            if (firstRegularSeason) setSelectedSeason(firstRegularSeason);
-            else if (processed.specialEpisodes.length > 0) setSelectedSeason("specials");
-          }
-        } else { setMetaError(`Metadata not found for ${type} ID ${id}.`); }
-      } catch (e) {
-        console.error("ItemDetailPage: Error fetching metadata:", e);
-        setMetaError(`Failed to load metadata: ${e.message}.`);
-      } finally { setIsLoadingMeta(false); }
-    };
-    fetchMeta();
-  }, [type, id, isLoadingAddons, cinemeta, globalAddonErr, fetchItemDetailsFromContext, processVideos]);
-
-  useEffect(() => {
-    const fetchTorrents = async () => {
-      if (!metadata || !showTorrents) {
-        if (selectedEpisode && !showTorrents) setAllStreams([]);
-        return;
-      }
-      if (metadata.type === 'series' && !selectedEpisode && !showTorrents) {
-         setIsLoadingStreams(false); return;
-      }
-
-      setIsLoadingStreams(true); setStreamError('');
-      let currentSearchQueries = [];
-
-      if (metadata.type === 'series' && selectedEpisode) {
-        const sn = selectedEpisode.season; const en = selectedEpisode.number || selectedEpisode.episode;
-        const sPad = String(sn).padStart(2,'0'); const ePad = String(en).padStart(2,'0');
-        const name = metadata.name.replace(/[:\-–()']/g, '').replace(/\s+/g, ' ').trim();
-        currentSearchQueries = [`${name} S${sPad}E${ePad}`, `${name} Season ${sn} Episode ${en}`];
-      } else if (metadata.type === 'movie') {
-        let movieName = metadata.name.replace(/[:\-–()']/g, '').replace(/\s+/g, ' ').trim();
-        if (metadata.year) movieName += ` ${metadata.year}`;
-        currentSearchQueries = [movieName];
-      } else {
-        setIsLoadingStreams(false); return;
-      }
-
-       let allResultsAccumulated = [];
-      let queryError = null;
-      let fetchedAny = false;
-
-      for (const query of currentSearchQueries) {
-        try {
-          const token = localStorage.getItem('token');
-          if (!token) { queryError = "Authentication required."; break; }
-
-          // console.log(`ItemDetailPage: Searching with query: "${query}"`);
-          const response = await fetch(`https://188-245-179-212.nip.io/api/search?query=${encodeURIComponent(query)}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          console.log(response);
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            // console.warn(`ItemDetailPage: Search failed for "${query}" - Status: ${response.status}, Detail: ${errorText}`);
-            if (!fetchedAny) queryError = `Search for "${query}" failed.`;
-            continue;
-          }
-
-          const data = await response.json();
-          if (data.Results && data.Results.length > 0) {
-            // console.log(`ItemDetailPage: Found ${data.Results.length} results for: "${query}"`);
-            allResultsAccumulated = allResultsAccumulated.concat(data.Results);
-            fetchedAny = true;
-          } else {
-            if (!fetchedAny) queryError = `No results for "${query}".`;
-          }
-        } catch (e) {
-          console.error(`ItemDetailPage: Error with query "${query}":`, e);
-          if (!fetchedAny) queryError = `Error processing query "${query}".`;
-        }
-      }
-
-      if (allResultsAccumulated.length > 0) {
-        const uniqueResults = Array.from(new Map(allResultsAccumulated.map(stream => [stream.MagnetUri || stream.Link || stream.Title, stream])).values());
-        const formattedStreams = uniqueResults.map(stream => ({
-          title: stream.Title,
-          name: `${stream.Tracker || stream.Site || 'Unknown'} (${stream.Seeders || 0}S/${stream.Peers || 0}P)`,
-          quality: stream.Title && typeof stream.Title === 'string' ?
-                     (stream.Title.match(/4k|2160p|uhd/i) ? '4K' :
-                      stream.Title.match(/1080p|fhd/i) ? '1080p' :
-                      stream.Title.match(/720p|hd/i) ? '720p' :
-                      stream.Title.match(/sd|480p|360p/i) ? 'SD' : 'N/A') : 'N/A',
-          seeders: stream.Seeders || 0,
-          peers: stream.Peers || 0,
-          size: stream.Size ? (parseInt(stream.Size, 10) / 1024 / 1024 / 1024).toFixed(2) + ' GB' : 'N/A',
-          // FIX: Use MagnetUri first, then fall back to Link only if it's a magnet link
-          magnetLink: stream.MagnetUri || (stream.Link && stream.Link.startsWith('magnet:') ? stream.Link : null),
-          publishDate: stream.PublishDate,
-          tracker: stream.Tracker || stream.Site || 'Unknown',
-        }));
-        
-        // Filter out entries without valid magnet links
-        const validStreams = formattedStreams.filter(stream => 
-          stream.magnetLink && stream.magnetLink.startsWith('magnet:')
-        );
-
-        const sortedStreams = scoreAndSortTorrents(formattedStreams);
-        setAllStreams(sortedStreams);
-        setStreamError('');
-      } else {
-        setAllStreams([]);
-        setStreamError(queryError || "No streams found after trying all queries.");
-      }
-      setIsLoadingStreams(false);
-    };
-
-    if (metadata && showTorrents) {
-        fetchTorrents();
-    } else if (metadata && metadata.type === 'series' && !selectedEpisode && showTorrents) {
-        setStreamError("Select an episode to see its sources, or use a search for full season packs.");
-        setAllStreams([]);
-        setIsLoadingStreams(false);
-    }
-  }, [metadata, selectedEpisode, showTorrents]);
 
   useEffect(() => {
     if (qualityFilter === 'All') setFilteredStreams(allStreams);
@@ -388,25 +139,6 @@ const ItemDetailPage = () => {
       setCurrentTrailerUrl(''); 
     }
   };
-
-  const handleEpisodeSelect = (episode) => {
-    if (!episode.isReleased) { showPopup("This episode has not aired yet.", "info"); return; }
-    setSelectedEpisode(episode);
-    setShowTorrents(true);
-    setQualityFilter('1080p');
-    setAllStreams([]);
-  };
-
-  const handleDownloadOrWatch = () => {
-    if (metadata?.type === 'movie') {
-      setShowTorrents(true);
-    } else if (metadata?.type === 'series' && selectedEpisode) {
-      setShowTorrents(true);
-    } else if (metadata?.type === 'series' && !selectedEpisode) {
-        showPopup("Please select an episode first to see download/streaming sources.", "info");
-    }
-    setQualityFilter('1080p');
-  };
   
   const handleBackToEpisodes = () => {
     setSelectedEpisode(null);
@@ -414,101 +146,6 @@ const ItemDetailPage = () => {
     setAllStreams([]);
     setFilteredStreams([]);
   };
-
-const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
-  setActiveStreamMagnet(magnetLink);
-  let fullTitle = metadata?.name || "this item";
-  let currentEpisodeDetails = null;
-
-  if (selectedEpisode && metadata?.type === 'series') {
-      const seasonNum = String(selectedEpisode.season).padStart(2, '0');
-      const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
-      fullTitle = `${metadata.name} S${seasonNum}E${episodeNum}`;
-      currentEpisodeDetails = selectedEpisode;
-  } else if (metadata?.type === 'movie') {
-      fullTitle = metadata.name;
-  }
-  const displayTitle = streamTitleFromTorrent || fullTitle;
-  showPopup(`Requesting stream: ${displayTitle}...`, "info", 20000);
-
-  // Enhanced validation
-  if (!magnetLink) {
-    showPopup("Magnet link is missing for this stream.", "warning");
-    setActiveStreamMagnet(null);
-    return;
-  }
-
-  if (!magnetLink.startsWith('magnet:?xt=urn:btih:')) {
-    showPopup("Invalid magnet link format. Please try a different source.", "warning");
-    setActiveStreamMagnet(null);
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showPopup("Authentication required.", "warning");
-      setActiveStreamMagnet(null);
-      return;
-    }
-
-    // Use HTTP instead of HTTPS to match your server
-    const response = await fetch('http://188-245-179-212.nip.io/api/stream', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ magnetLink, movieTitle: displayTitle })
-    });
-    
-    const data = await response.json();
-
-    if (response.ok && data.streamUrl) {
-      // The server should already provide the correct URL
-      let publicStreamUrl = data.streamUrl;
-      
-      // Only modify if it's not already the correct format
-      if (data.needsTranscoding && !publicStreamUrl.includes('/stream/')) {
-        // For transcoded files, use the streaming endpoint
-        publicStreamUrl = `http://188-245-179-212.nip.io/stream/${data.infoHash}`;
-      } else if (!data.needsTranscoding && publicStreamUrl.includes('172.17.0.1:9000')) {
-        // For direct streams, fix the internal URL
-        publicStreamUrl = publicStreamUrl.replace('http://172.17.0.1:9000', 'http://188-245-179-212.nip.io/admin/peerflix');
-      }
-      
-      localStorage.setItem('playerStreamUrl', publicStreamUrl);
-      localStorage.setItem('playerStreamTitle', displayTitle);
-      localStorage.setItem('playerStreamType', data.streamingType || 'progressive_mp4');
-      localStorage.setItem('playerItemId', id);
-      localStorage.setItem('playerItemType', type);
-
-      if (metadata?.type === 'series') {
-          localStorage.setItem('playerSeriesData', JSON.stringify(metadata));
-          if (currentEpisodeDetails) {
-               localStorage.setItem('playerCurrentEpisodeData', JSON.stringify(currentEpisodeDetails));
-          }
-      } else {
-          localStorage.removeItem('playerSeriesData');
-          localStorage.removeItem('playerCurrentEpisodeData');
-      }
-
-      const playerWindow = window.open(`/play`, '_blank');
-      if (playerWindow) {
-          showPopup(`Opening player for ${displayTitle} in a new tab.`, "success", 5000);
-      } else {
-          showPopup("Could not open player tab. Please check your browser's pop-up blocker.", "warning", 8000);
-      }
-
-    } else {
-      const errorText = data.error || "Failed to start stream.";
-      const suggestion = data.suggestion || "";
-      throw new Error(errorText + (suggestion ? ` Suggestion: ${suggestion}` : ""));
-    }
-  } catch (err) {
-    console.error("Error starting stream:", err);
-    showPopup(`Stream Error: ${err.message}`, "warning", 10000);
-  } finally {
-    setActiveStreamMagnet(null);
-  }
-};
 
   const availableSeasonNumbers = Object.keys(regularSeasons).map(Number).sort((a, b) => a - b);
   const episodesForCurrentDisplay = selectedSeason === "specials" ? specialEpisodes : (regularSeasons[selectedSeason] || []);
@@ -528,6 +165,7 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
       if (metadata.type === 'series' && selectedEpisode && showTorrents) return "Select Source";
       return "Watch / Download";
   };
+
   const isDownloadButtonDisabled = () => {
       if (isLoadingStreams) return true;
       if (showTorrents && allStreams.length > 0) return true; 
@@ -540,7 +178,7 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
       <div className="detail-hero" style={{ backgroundImage: `linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 1) 5%, rgba(var(--bg-primary-rgb, 14,16,21), 0.9) 20%, rgba(var(--bg-primary-rgb, 14,16,21), 0.6) 45%, transparent 100%), url(${metadata.background || metadata.poster || ''})` }}>
         <div className="detail-hero-content-wrapper">
           <div className="detail-poster-container">
-            <img src={metadata.poster || 'https://via.placeholder.com/300x450?text=No+Poster'} alt={metadata.name} className="detail-poster-image" />
+            <img src={metadata.poster || 'https://dummyimage.com/300x450/000/fff.png&text=No+Poster'} alt={metadata.name} className="detail-poster-image" />
           </div>
           <div className="detail-info-actions-container">
             <h1 className="detail-title">{metadata.name}</h1>
@@ -554,13 +192,7 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
             <div className="detail-actions">
               <button className="action-button primary" onClick={handlePlayTrailer}><PlayIcon /> Trailer</button>
               <button className="action-button secondary" onClick={handleOpenSelectFolderModal}><AddToListIcon /> Add to List</button>
-              <button 
-                className="action-button secondary" 
-                onClick={handleDownloadOrWatch}
-                disabled={isDownloadButtonDisabled()}
-              >
-                <DownloadIcon /> {downloadButtonText()}
-              </button>
+              {/* no download button, implement in future version */}
             </div>
           </div>
         </div>
@@ -645,13 +277,9 @@ const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
       </main>
       {isSelectFolderModalOpen && metadata && (<SelectFolderModal isOpen={isSelectFolderModalOpen} onClose={() => setIsSelectFolderModalOpen(false)} folders={allFolders} itemId={metadata.id} itemType={metadata.type} itemTitle={metadata.name || "this item"}/>)}
       {metadata && currentTrailerUrl && (
-      <MediaPlayerModal 
-        isOpen={isPlayerModalOpen && currentStreamType === 'direct'} 
-        onClose={() => {setIsPlayerModalOpen(false); setCurrentTrailerUrl('');}} 
-        trailerUrl={currentTrailerUrl}
-        streamType="direct" // Explicitly set for trailers
-        title={metadata?.name ? `Trailer: ${metadata.name}`: "Trailer"}
-      />
+        <div>
+          {/* media player */}
+        </div>
       )}
     </div>
   );
