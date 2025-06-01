@@ -5,17 +5,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
-    padding: 0 20px; /* Consistent padding */
+    /* margin-top: 15px; */
+    padding: 20px 20px; /* Consistent padding */
     /* background-color: var(--navbar-background, rgba(14, 16, 21, 0.85)); */
-    /* backdrop-filter: blur(10px); */
+    backdrop-filter: blur(5px) brightness(80%);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    height: 35px;
-    box-sizing: border-box;
+    height: 70px;
+    box-sizing: border-box;   
   }
   
   .navbar-left {

@@ -59,36 +59,6 @@
     height: 100%;
 } */
 
-.item-action-btn {
-    background-color: rgba(26, 29, 36, 0.85);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    line-height: 28px;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    position: absolute;
-    top: 8px; /* Adjusted for new card structure if needed */
-    right: 8px; /* Adjusted for new card structure if needed */
-    opacity: 0;
-    visibility: hidden;
-    z-index: 11; /* Ensure it's above the poster */
-}
-.folder-content-grid-item-wrapper:hover .item-action-btn {
-    opacity: 1;
-    visibility: visible;
-}
-
-.item-action-btn:hover {
-    background-color: var(--accent-color-main, #6A5AF9);
-    transform: scale(1.1);
-}
-
 .drag-overlay-item .media-grid-item-v3 { /* If using new item directly */
   box-shadow: 0 10px 25px rgba(0,0,0,0.4);
   transform: scale(1.07);

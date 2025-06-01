@@ -131,11 +131,11 @@ const AccountSettings = () => {
                 type="email"
                 id="email"
                 value={userData.email}
-                onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                readOnly
                 placeholder="your.email@example.com"
-                className={`form-input ${errors.email ? 'input-error' : ''}`}
+                className="form-input readonly-input"
                 />
-                {errors.email && <p className="error-text">{errors.email}</p>}
+                <p className="input-description">Email cannot be changed.</p>
             </div>
         </div>
 
@@ -178,13 +178,13 @@ const AccountSettings = () => {
             />
             {errors.confirmNewPassword && <p className="error-text">{errors.confirmNewPassword}</p>}
           </div>
-        </div>
-
         <div className="settings-actions">
             <button type="submit" className="settings-button primary" disabled={isLoading}>
                 {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
         </div>
+        </div>
+
       </form>
       
       {/* Delete Account Section */}

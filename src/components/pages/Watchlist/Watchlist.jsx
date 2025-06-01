@@ -114,16 +114,6 @@ const SortableFolderItemInternal = ({ id, itemData, onRemoveItem, onItemContextM
     return (
         <div ref={setNodeRef} style={style} className="folder-content-grid-item-wrapper" {...attributes} {...listeners} onContextMenu={handleContextMenu}>
             <MediaGridItem item={itemData.details} />
-            <button
-                className="item-action-btn remove-item"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveItem(itemData.id);
-                }}
-                title="Remove from this list"
-            >
-                 &times;
-            </button>
         </div>
     );
 };

@@ -1,0 +1,168 @@
+/* src/components/pages/Home/ContinueWatchingCard.css - V3 Styles */
+.cw-card-v3-link-wrapper {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    scroll-snap-align: start;
+    min-width: 360px; /* Base width */
+    max-width: 450px; /* Max width */
+    flex: 0 0 auto; 
+    border-radius: 10px; /* Consistent rounding */
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  }
+  
+  .cw-card-v3-link-wrapper:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25), 0 8px 10px rgba(0,0,0,0.22);
+  }
+  .cw-card-v3-link-wrapper:focus-visible {
+    outline: 2px solid var(--accent-color-focus, #887dfa);
+    outline-offset: 3px;
+  }
+  
+  .cw-card-v3 {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: inherit; /* Inherit from wrapper */
+    overflow: hidden;
+    background-color: var(--bg-card-hover, #1F2229); /* Dark fallback */
+  }
+  
+  .cw-card-v3-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s ease-out;
+    z-index: 1;
+  }
+  
+  .cw-card-v3:hover .cw-card-v3-background {
+    transform: scale(1.05);
+    filter: brightness(0.8) contrast(1.1); /* Subtle enhancement on image */
+  }
+  
+  .cw-card-v3-play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3); /* Darken image slightly on hover */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 2;
+  }
+  
+  .cw-card-v3:hover .cw-card-v3-play-overlay {
+    opacity: 1;
+  }
+  
+  .cw-card-v3-play-overlay svg {
+    width: 56px; /* Larger play icon */
+    height: 56px;
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease-out, color 0.2s ease;
+  }
+  
+  
+  .cw-card-v3-info-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(var(--bg-primary-rgb, 14,16,21), 0.95) 20%, rgba(var(--bg-primary-rgb, 14,16,21), 0.8) 60%, transparent 100%);
+    padding: 12px 16px 8px 16px; /* Bottom padding will be for progress bar visual space */
+    z-index: 3;
+    display: flex;
+    flex-direction: column; /* Stack info and progress bar */
+  }
+  
+  .cw-card-v3-info-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px; /* Space before progress bar */
+    min-height: 40px; /* Ensure consistent height for content */
+  }
+  
+  .cw-v3-item-logo {
+    max-height: 28px; /* Adjust logo size */
+    max-width: 120px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+    flex-shrink: 0; /* Prevent logo from shrinking */
+  }
+  
+  .cw-v3-text-details {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0; /* Important for text ellipsis */
+  }
+  
+  .cw-v3-item-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #E0E0E0;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .cw-v3-item-remaining-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #918F98);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  .cw-card-v3-progress-bar-container {
+    width: 100%;
+    height: 3px; /* Slimmer progress bar */
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px; 
+    overflow: hidden; /* Ensure progress bar respects radius */
+    opacity: 0;
+  }
+
+  .cw-card-v3:hover .cw-card-v3-progress-bar-container{
+    opacity: 1;
+  }
+  
+  .cw-card-v3-progress-bar {
+    height: 100%;
+    background-color: var(--secondary-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  
+  /* Responsive adjustments for the new card */
+  @media (max-width: 480px) {
+    .cw-card-v3-link-wrapper {
+      min-width: 300px; /* Adjust for smaller screens */
+      max-width: 340px;
+    }
+     .cw-card-v3-play-overlay svg {
+      width: 48px;
+      height: 48px;
+    }
+    .cw-v3-item-logo {
+      max-height: 24px;
+    }
+    .cw-v3-item-title {
+      font-size: 0.9rem;
+    }
+  }

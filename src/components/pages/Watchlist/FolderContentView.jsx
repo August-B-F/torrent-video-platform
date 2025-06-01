@@ -41,10 +41,6 @@ const SortableFolderItem = ({ id, itemData, onRemove, onMove }) => {
   return (
     <div ref={setNodeRef} style={style} className="folder-content-grid-item-wrapper" {...attributes} {...listeners}>
       <MediaGridItem item={itemData.details} />
-      <div className="item-actions-overlay">
-        <button onClick={() => onRemove(itemData.id)} className="item-action-btn" title="Remove from this folder">×</button>
-        {/* <button onClick={() => onMove(itemData.id)} className="item-action-btn" title="Move to another folder">➔</button> */}
-      </div>
     </div>
   );
 };

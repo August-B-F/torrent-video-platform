@@ -121,7 +121,7 @@
   }
   
   .settings-button.primary {
-    background-color: var(--accent-color-main);
+    background-color: var(--accent-color-main, #5848e3);
     color: var(--text-on-accent, #FFFFFF);
   }
   .settings-button.primary:hover:not(:disabled) {

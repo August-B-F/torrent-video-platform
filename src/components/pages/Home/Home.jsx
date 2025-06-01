@@ -1,7 +1,8 @@
+// src/components/pages/Home/Home.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link }
-from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
+import ContinueWatchingCard from './ContinueWatchingCard'; // Import the new card
 import './HomeStyle.css';
 
 // --- SVG Icons for Hero Carousel ---
@@ -17,27 +18,24 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-const PlayIcon = () => (
+const PlayIconHero = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
 );
 
-
-// --- Updated HeroSection ---
+// --- HeroSection (No changes from previous version, kept for context) ---
 const HeroSection = ({ items, isLoading }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevIndex, setPrevIndex] = useState(null); // For transition direction
+  const [prevIndex, setPrevIndex] = useState(null); 
   const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);
   const progressTimerRef = useRef(null);
-
-  const slideDuration = 30000; // 10 seconds per slide
+  const slideDuration = 30000; 
 
   const goToIndex = useCallback((index, direction = 'next') => {
     setPrevIndex(currentIndex);
     setCurrentIndex(index);
     setProgress(0);
   }, [currentIndex]);
-
 
   const goToNext = useCallback(() => {
     goToIndex((currentIndex + 1) % (items?.length || 1), 'next');
@@ -47,15 +45,12 @@ const HeroSection = ({ items, isLoading }) => {
     goToIndex((currentIndex - 1 + (items?.length || 1)) % (items?.length || 1), 'prev');
   };
 
-
   useEffect(() => {
     if (items && items.length > 0) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-
       timerRef.current = setInterval(goToNext, slideDuration);
-
-      const progressInterval = 50; // Update progress bar more frequently
+      const progressInterval = 50; 
       progressTimerRef.current = setInterval(() => {
         setProgress(prev => {
           const nextProgress = prev + (progressInterval / slideDuration) * 100;
@@ -76,12 +71,7 @@ const HeroSection = ({ items, isLoading }) => {
       </section>
     );
   }
-
   const currentItem = items[currentIndex];
-   // To help with transitions, we can keep track of the previous item for a moment
-  const previousItem = prevIndex !== null && items[prevIndex] ? items[prevIndex] : null;
-
-
   if (!currentItem) {
     return (
       <section className="hero-section loading-hero">
@@ -89,18 +79,15 @@ const HeroSection = ({ items, isLoading }) => {
       </section>
     );
   }
-
   return (
-    // Add a key to the section to help React re-render for transitions
     <section
-      key={currentItem.id} // Key change will trigger re-render and CSS transition
+      key={currentItem.id} 
       className="hero-section"
       style={{ backgroundImage: `url(${currentItem.background || currentItem.poster})` }}
     >
-      <div className="hero-background-overlay"></div> {/* Gradient overlay */}
-      <div className="hero-content-wrapper"> {/* Wrapper for content and controls */}
+      <div className="hero-background-overlay"></div>
+      <div className="hero-content-wrapper"> 
         <div className="hero-content-main">
-          {/* Text content with transition */}
           <div className="hero-text-content">
             <h1 className="hero-title">{currentItem.name}</h1>
             {currentItem.description && <p className="hero-description">{currentItem.description}</p>}
@@ -109,7 +96,7 @@ const HeroSection = ({ items, isLoading }) => {
             {currentItem.id && currentItem.type && (
               <div className="hero-actions">
                 <Link to={`/${currentItem.type}/${currentItem.id}`} className="hero-button primary">
-                  <PlayIcon />
+                  <PlayIconHero />
                   View Details
                 </Link>
               </div>
@@ -127,7 +114,6 @@ const HeroSection = ({ items, isLoading }) => {
           </div>
         </div>
       </div>
-
       {items.length > 1 && (
         <div className="hero-progress-bar-container">
           <div className="hero-progress-bar" style={{ width: `${progress}%` }}></div>
@@ -137,33 +123,31 @@ const HeroSection = ({ items, isLoading }) => {
   );
 };
 
-
-// --- MediaThumbnail (can be kept as is or adjusted if needed) ---
-const MediaThumbnail = ({ item }) => {
-  if (!item || !item.id || !item.type) {
-    return null;
-  }
-  const detailPath = `/${item.type}/${item.id}`;
-
-  return (
-    <Link to={detailPath} className="media-thumbnail-link-wrapper" title={item.name || item.title}>
+// Standard MediaGridItem for other rows
+const MediaGridItem = ({ item }) => {
+    if (!item) return null;
+    const detailPath = `/${item.type || 'movie'}/${item.id}`;
+    const title = item.name || item.title || 'Untitled';
+    return (
+      <Link to={detailPath} className="media-thumbnail-link-wrapper" title={title}>
         <div className="media-thumbnail">
-            <img
-                src={item.poster || item.logo || 'https://via.placeholder.com/300x450/2a2a2a/FFFFFF?text=No+Poster'}
-                alt={item.name || item.title || 'Poster'}
-                className="thumbnail-image"
-                loading="lazy"
-            />
-            <div className="thumbnail-info">
-                <h4 className="thumbnail-title">{item.name || item.title || 'Untitled'}</h4>
-            </div>
+          <img
+            src={item.poster || 'https://via.placeholder.com/300x450/12151B/FFFFFF?text=No+Poster'}
+            alt={title}
+            className="thumbnail-image"
+            loading="lazy"
+          />
+          <div className="thumbnail-info">
+            <h4 className="thumbnail-title">{title}</h4>
+          </div>
         </div>
-    </Link>
-  );
+      </Link>
+    );
 };
 
+
 // --- ContentRow (can be kept as is or adjusted) ---
-const ContentRow = ({ title, items, isLoading, error }) => {
+const ContentRow = ({ title, items, isLoading, error, CardComponent = MediaGridItem }) => {
   if (isLoading) {
     return (
       <section className="content-row">
@@ -193,20 +177,15 @@ const ContentRow = ({ title, items, isLoading, error }) => {
             </section>
           );
     }
-    return (
-      <section className="content-row">
-        <h3 className="row-title">{title}</h3>
-        <p className="empty-message" style={{ paddingLeft: '5px' }}>No items found in this category.</p>
-      </section>
-    );
+    return null; // Don't render empty rows other than "Continue Watching" with its specific message
   }
 
   return (
-    <section className="content-row">
+    <section className={`content-row ${title === "Continue Watching" ? 'continue-watching-row' : ''}`}>
       <h3 className="row-title">{title}</h3>
       <div className="row-items-scrollable">
         {items.map(item => (
-          <MediaThumbnail key={item.id} item={item} />
+          <CardComponent key={item.id} item={item} />
         ))}
       </div>
     </section>
@@ -220,11 +199,19 @@ const Home = () => {
   const [featuredItems, setFeaturedItems] = useState([]);
   const [continueWatchingItems, setContinueWatchingItems] = useState([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
-  const [isLoadingContinueWatching, setIsLoadingContinueWatching] = useState(false);
+  const [isLoadingContinueWatching, setIsLoadingContinueWatching] = useState(true);
   const [contentError, setContentError] = useState('');
 
+  // Base mock data for what items are being watched and their progress
+  const mockWatchedItemsBase = useRef([
+    { id: 'tt0816692', type: 'movie', progress: 0.75, mockDuration: 169 * 60 },
+    { id: 'tt1375666', type: 'movie', progress: 0.20, mockDuration: 148 * 60 }, // Inception
+    { id: 'tt0468569', type: 'movie', progress: 0.30, mockDuration: 152 * 60 },
+  ]);
+  // If your Cinemeta uses different ID structures for episodes (e.g., imdb_id:season:episode), adjust idParts.
 
   useEffect(() => {
+    // Fetch Featured Items (Hero Section)
     if (cinemeta && cinemeta.manifest && cinemeta.manifest.catalogs) {
       const topMoviesCatalog = cinemeta.manifest.catalogs.find(c => c.type === 'movie' && c.id === 'top');
       if (topMoviesCatalog) {
@@ -232,17 +219,21 @@ const Home = () => {
         setContentError('');
         cinemeta.get('catalog', topMoviesCatalog.type, topMoviesCatalog.id, { skip: 0 })
           .then(response => {
-            setFeaturedItems((response.metas || []).slice(0, 5));
-            setIsLoadingFeatured(false);
-            if ((response.metas || []).length === 0) {
+            const heroData = (response.metas || []).slice(0, 5).map(item => ({
+                ...item,
+                name: item.name || item.title, 
+                background: item.background || item.fanart || item.poster 
+            }));
+            setFeaturedItems(heroData);
+            if (heroData.length === 0) {
               setContentError("No featured content found from Cinemeta's top movies.");
             }
           })
           .catch(error => {
             console.error("Error fetching top movies for hero:", error);
             setContentError(`Failed to load featured content: ${error.message}.`);
-            setIsLoadingFeatured(false);
-          });
+          })
+          .finally(() => setIsLoadingFeatured(false));
       } else {
         setContentError("Cinemeta 'top movies' catalog not found in manifest.");
         setIsLoadingFeatured(false);
@@ -254,28 +245,73 @@ const Home = () => {
   }, [cinemeta, isLoadingCinemeta]);
 
   useEffect(() => {
-    // Placeholder: Fetch actual continue watching items
-    // Example:
-    // const mockContinueWatching = [
-    //   { id: 'tt0816692', name: 'Interstellar', type: 'movie', poster: 'https://image.tmdb.org/t/p/w300/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
-    //   { id: 'tt0468569', name: 'The Dark Knight', type: 'movie', poster: 'https://image.tmdb.org/t/p/w300/qJ2tW6WMUDux911r6m7haRef0WH.jpg' },
-    // ];
-    // setContinueWatchingItems(mockContinueWatching);
-    setIsLoadingContinueWatching(false);
-  }, []);
+    // Fetch Details for Continue Watching Items
+    if (cinemeta && !isLoadingCinemeta && mockWatchedItemsBase.current.length > 0) {
+      setIsLoadingContinueWatching(true);
+      
+      const fetchAllDetails = async () => {
+        const detailedItems = await Promise.all(
+          mockWatchedItemsBase.current.map(async (watchedItem) => {
+            try {
+              let metaId = watchedItem.id;
+              // For series episodes, the ID to fetch full series metadata might be different
+              // For Cinemeta, if id is 'ttxxxxxxx:s:e', the meta call should be for 'ttxxxxxxx'
+              if (watchedItem.type === 'series' && watchedItem.id.includes(':')) {
+                  metaId = watchedItem.id.split(':')[0];
+              }
+              
+              const res = await cinemeta.get('meta', watchedItem.type, metaId);
+              if (res && res.meta) {
+                let episodeTitle = '';
+                if (watchedItem.type === 'series' && watchedItem.idParts) {
+                    const ep = res.meta.videos?.find(v => v.season === watchedItem.idParts.season && v.episode === watchedItem.idParts.episode);
+                    episodeTitle = ep ? ` - S${String(watchedItem.idParts.season).padStart(2, '0')}E${String(watchedItem.idParts.episode).padStart(2, '0')}${ep.title ? `: ${ep.title}` : ''}` : '';
+                }
+
+                return {
+                  ...watchedItem, // Keep original ID for linking if it's an episode ID
+                  name: (res.meta.name || res.meta.title || 'Unknown Title') + episodeTitle,
+                  poster: res.meta.poster,
+                  background: res.meta.background || res.meta.fanart || res.meta.poster, // Prioritize backdrop/fanart
+                  logo: res.meta.logo,
+                  runtime: res.meta.runtime, // Actual runtime from meta for display if needed
+                  // mockDuration and progress come from your mockWatchedItemsBase
+                };
+              }
+            } catch (error) {
+              console.error(`Failed to fetch metadata for ${watchedItem.type} ${watchedItem.id}:`, error);
+              // Return a basic object so the row doesn't break
+              return { 
+                  ...watchedItem, 
+                  name: `Item ${watchedItem.id}`, 
+                  poster: 'https://via.placeholder.com/300x450/12151B/FFFFFF?text=Error',
+                  background: 'https://via.placeholder.com/800x450/101215/33363D?text=Error+Loading'
+                };
+            }
+            return null; 
+          })
+        );
+        setContinueWatchingItems(detailedItems.filter(item => item !== null));
+        setIsLoadingContinueWatching(false);
+      };
+
+      fetchAllDetails();
+    } else if (!cinemeta && !isLoadingCinemeta) {
+        setIsLoadingContinueWatching(false); // Cinemeta not available
+    }
+  }, [cinemeta, isLoadingCinemeta]);
 
 
-  if (isLoadingCinemeta && isLoadingFeatured) { // Show general loading if both are true initially
+  if (isLoadingCinemeta && isLoadingFeatured && isLoadingContinueWatching) {
     return <div className="page-container home-page"><div className="loading-message">Initializing and loading content...</div></div>;
   }
 
   if (cinemetaError) {
     return <div className="page-container home-page"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{cinemetaError} Please check Addon Settings.</div></div>;
   }
-   if (!cinemeta && !isLoadingCinemeta) {
+   if (!cinemeta && !isLoadingCinemeta) { // Only show this if not already showing cinemetaError
        return <div className="page-container home-page"><div className="empty-message" style={{textAlign:'center', padding: '20px'}}>Cinemeta addon not loaded. Configure it in settings to see content.</div></div>;
    }
-
 
   return (
     <div className="home-container">
@@ -287,6 +323,7 @@ const Home = () => {
           title="Continue Watching"
           items={continueWatchingItems}
           isLoading={isLoadingContinueWatching}
+          CardComponent={ContinueWatchingCard} 
         />
       </main>
     </div>

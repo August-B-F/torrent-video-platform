@@ -260,9 +260,11 @@ const ItemDetailPage = () => {
           if (!token) { queryError = "Authentication required."; break; }
 
           // console.log(`ItemDetailPage: Searching with query: "${query}"`);
-          const response = await fetch(`https://188.245.179.212/api/search?query=${encodeURIComponent(query)}`, {
+          const response = await fetch(`https://188-245-179-212.nip.io/api/search?query=${encodeURIComponent(query)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
+
+          console.log(response);
 
           if (!response.ok) {
             const errorText = await response.text();
@@ -298,10 +300,17 @@ const ItemDetailPage = () => {
           seeders: stream.Seeders || 0,
           peers: stream.Peers || 0,
           size: stream.Size ? (parseInt(stream.Size, 10) / 1024 / 1024 / 1024).toFixed(2) + ' GB' : 'N/A',
-          magnetLink: stream.MagnetUri || stream.Link,
+          // FIX: Use MagnetUri first, then fall back to Link only if it's a magnet link
+          magnetLink: stream.MagnetUri || (stream.Link && stream.Link.startsWith('magnet:') ? stream.Link : null),
           publishDate: stream.PublishDate,
           tracker: stream.Tracker || stream.Site || 'Unknown',
         }));
+        
+        // Filter out entries without valid magnet links
+        const validStreams = formattedStreams.filter(stream => 
+          stream.magnetLink && stream.magnetLink.startsWith('magnet:')
+        );
+
         const sortedStreams = scoreAndSortTorrents(formattedStreams);
         setAllStreams(sortedStreams);
         setStreamError('');
@@ -406,82 +415,100 @@ const ItemDetailPage = () => {
     setFilteredStreams([]);
   };
 
-  const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
-    setActiveStreamMagnet(magnetLink);
-    let fullTitle = metadata?.name || "this item";
-    let currentEpisodeDetails = null;
+const handleStreamPlay = async (magnetLink, streamTitleFromTorrent) => {
+  setActiveStreamMagnet(magnetLink);
+  let fullTitle = metadata?.name || "this item";
+  let currentEpisodeDetails = null;
 
-    if (selectedEpisode && metadata?.type === 'series') {
-        const seasonNum = String(selectedEpisode.season).padStart(2, '0');
-        const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
-        fullTitle = `${metadata.name} S${seasonNum}E${episodeNum}`;
-        currentEpisodeDetails = selectedEpisode;
-    } else if (metadata?.type === 'movie') {
-        fullTitle = metadata.name;
-    }
-    const displayTitle = streamTitleFromTorrent || fullTitle;
-    showPopup(`Requesting stream: ${displayTitle}...`, "info", 20000);
+  if (selectedEpisode && metadata?.type === 'series') {
+      const seasonNum = String(selectedEpisode.season).padStart(2, '0');
+      const episodeNum = String(selectedEpisode.number || selectedEpisode.episode).padStart(2, '0');
+      fullTitle = `${metadata.name} S${seasonNum}E${episodeNum}`;
+      currentEpisodeDetails = selectedEpisode;
+  } else if (metadata?.type === 'movie') {
+      fullTitle = metadata.name;
+  }
+  const displayTitle = streamTitleFromTorrent || fullTitle;
+  showPopup(`Requesting stream: ${displayTitle}...`, "info", 20000);
 
-    if (!magnetLink) {
-      showPopup("Magnet link is missing for this stream.", "warning");
+  // Enhanced validation
+  if (!magnetLink) {
+    showPopup("Magnet link is missing for this stream.", "warning");
+    setActiveStreamMagnet(null);
+    return;
+  }
+
+  if (!magnetLink.startsWith('magnet:?xt=urn:btih:')) {
+    showPopup("Invalid magnet link format. Please try a different source.", "warning");
+    setActiveStreamMagnet(null);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showPopup("Authentication required.", "warning");
       setActiveStreamMagnet(null);
       return;
     }
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showPopup("Authentication required.", "warning");
-        setActiveStreamMagnet(null);
-        return;
+
+    // Use HTTP instead of HTTPS to match your server
+    const response = await fetch('http://188-245-179-212.nip.io/api/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ magnetLink, movieTitle: displayTitle })
+    });
+    
+    const data = await response.json();
+
+    if (response.ok && data.streamUrl) {
+      // The server should already provide the correct URL
+      let publicStreamUrl = data.streamUrl;
+      
+      // Only modify if it's not already the correct format
+      if (data.needsTranscoding && !publicStreamUrl.includes('/stream/')) {
+        // For transcoded files, use the streaming endpoint
+        publicStreamUrl = `http://188-245-179-212.nip.io/stream/${data.infoHash}`;
+      } else if (!data.needsTranscoding && publicStreamUrl.includes('172.17.0.1:9000')) {
+        // For direct streams, fix the internal URL
+        publicStreamUrl = publicStreamUrl.replace('http://172.17.0.1:9000', 'http://188-245-179-212.nip.io/admin/peerflix');
       }
-      const response = await fetch('https://188.245.179.212/api/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ magnetLink, movieTitle: displayTitle })
-      });
-      const data = await response.json();
+      
+      localStorage.setItem('playerStreamUrl', publicStreamUrl);
+      localStorage.setItem('playerStreamTitle', displayTitle);
+      localStorage.setItem('playerStreamType', data.streamingType || 'progressive_mp4');
+      localStorage.setItem('playerItemId', id);
+      localStorage.setItem('playerItemType', type);
 
-      if (response.ok && data.streamUrl) {
-        let publicStreamUrl = data.streamUrl;
-        if (data.streamType !== 'hls' && publicStreamUrl.includes('172.17.0.1:9000')) {
-          publicStreamUrl = publicStreamUrl.replace('http://172.17.0.1:9000', 'https://188.245.179.212/admin/peerflix');
-        }
-        
-        localStorage.setItem('playerStreamUrl', publicStreamUrl);
-        localStorage.setItem('playerStreamTitle', displayTitle);
-        localStorage.setItem('playerStreamType', data.streamType || 'direct');
-        localStorage.setItem('playerItemId', id); // Main series/movie ID
-        localStorage.setItem('playerItemType', type); // 'movie' or 'series'
-
-        if (metadata?.type === 'series') {
-            localStorage.setItem('playerSeriesData', JSON.stringify(metadata)); // Store full series data
-            if (currentEpisodeDetails) { // If playing an episode, store its details
-                 localStorage.setItem('playerCurrentEpisodeData', JSON.stringify(currentEpisodeDetails));
-            }
-        } else {
-            localStorage.removeItem('playerSeriesData');
-            localStorage.removeItem('playerCurrentEpisodeData');
-        }
-
-        const playerWindow = window.open(`/play`, '_blank');
-        if (playerWindow) {
-            showPopup(`Opening player for ${displayTitle} in a new tab.`, "success", 5000);
-        } else {
-            showPopup("Could not open player tab. Please check your browser's pop-up blocker.", "warning", 8000);
-        }
-
+      if (metadata?.type === 'series') {
+          localStorage.setItem('playerSeriesData', JSON.stringify(metadata));
+          if (currentEpisodeDetails) {
+               localStorage.setItem('playerCurrentEpisodeData', JSON.stringify(currentEpisodeDetails));
+          }
       } else {
-        const errorText = data.error || "Failed to start stream.";
-        const suggestion = data.suggestion || "";
-        throw new Error(errorText + (suggestion ? ` Suggestion: ${suggestion}` : ""));
+          localStorage.removeItem('playerSeriesData');
+          localStorage.removeItem('playerCurrentEpisodeData');
       }
-    } catch (err) {
-      console.error("Error starting stream:", err);
-      showPopup(`Stream Error: ${err.message}`, "warning", 10000);
-    } finally {
-      setActiveStreamMagnet(null);
+
+      const playerWindow = window.open(`/play`, '_blank');
+      if (playerWindow) {
+          showPopup(`Opening player for ${displayTitle} in a new tab.`, "success", 5000);
+      } else {
+          showPopup("Could not open player tab. Please check your browser's pop-up blocker.", "warning", 8000);
+      }
+
+    } else {
+      const errorText = data.error || "Failed to start stream.";
+      const suggestion = data.suggestion || "";
+      throw new Error(errorText + (suggestion ? ` Suggestion: ${suggestion}` : ""));
     }
-  };
+  } catch (err) {
+    console.error("Error starting stream:", err);
+    showPopup(`Stream Error: ${err.message}`, "warning", 10000);
+  } finally {
+    setActiveStreamMagnet(null);
+  }
+};
 
   const availableSeasonNumbers = Object.keys(regularSeasons).map(Number).sort((a, b) => a - b);
   const episodesForCurrentDisplay = selectedSeason === "specials" ? specialEpisodes : (regularSeasons[selectedSeason] || []);
