@@ -1,0 +1,353 @@
+/* MediaPlayerPage.css */
+.media-player-page {
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden; /* Important for fullscreen and control containment */
+  }
+  
+  .media-player-page.fullscreen {
+    /* Styles when in native fullscreen, if needed, though browser usually handles it */
+  }
+  
+  .main-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Or 'cover' if you prefer */
+    display: block;
+  }
+  
+  .player-error-overlay,
+  .player-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 30;
+    padding: 20px;
+  }
+  
+  .player-error-overlay .error-icon {
+    color: var(--warning-color, #F75A58);
+    margin-bottom: 15px;
+  }
+  
+  .player-error-overlay .error-message-text {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    max-width: 80%;
+  }
+  
+  .retry-button-overlay, .back-button-overlay {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin: 5px;
+  }
+  
+  .retry-button-overlay {
+    background-color: var(--accent-color, #6A5AF9);
+    color: white;
+  }
+  .retry-button-overlay:hover {
+    background-color: var(--accent-color-hover, #5848e3);
+  }
+  .back-button-overlay {
+    background-color: var(--bg-secondary, #2A2D34);
+    color: var(--text-primary);
+  }
+  .back-button-overlay:hover {
+    background-color: var(--border-color, #333842);
+  }
+  
+  
+  .player-loading-overlay .animate-spin {
+    color: var(--accent-color, #6A5AF9);
+  }
+  
+  .player-loading-overlay p {
+    margin-top: 10px;
+    font-size: 1.1rem;
+  }
+  
+  
+  .player-controls-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
+    padding: 10px 20px 15px 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s, transform 0.3s ease;
+    z-index: 25;
+    color: #e0e0e0;
+  }
+  
+  .player-controls-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, visibility 0s linear 0s, transform 0.3s ease;
+  }
+  
+  .player-title-bar {
+      position: absolute;
+      top: -45px; /* Adjust based on control bar height + desired spacing */
+      left: 20px;
+      right: 20px;
+      padding: 8px 0;
+      text-align: left;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  .player-title-bar h3 {
+      margin: 0;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  }
+  .transcoding-status-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background-color: rgba(0,0,0,0.5);
+      color: #ccc;
+  }
+  .transcoding-status-badge.transcoding {
+      color: var(--warning-color, #f7dc6f); /* Light yellow for transcoding */
+  }
+  .transcoding-status-badge.ready {
+      color: var(--success-color, #7bed9f); /* Light green for ready */
+  }
+  
+  
+  .progress-bar-wrapper {
+    width: 100%;
+    padding: 5px 0;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .timeline-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: transparent; /* Handled by divs below */
+    outline: none;
+    opacity: 0; /* Make the default slider invisible */
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .progress-bar-bg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 6px;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+    pointer-events: none; /* So clicks go to the input range */
+    overflow: hidden;
+  }
+  .progress-bar-buffered, .progress-bar-played {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.1s linear;
+  }
+  .progress-bar-buffered {
+    background-color: rgba(255, 255, 255, 0.4);
+    z-index: 0;
+  }
+  .progress-bar-played {
+    background-color: var(--accent-color, #6A5AF9);
+    z-index: 1;
+  }
+  /* Thumb styling (can be tricky across browsers, might need pseudo-elements or separate div) */
+  .timeline-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -4px; /* Center thumb on track */
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+  }
+  .timeline-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+  }
+  
+  
+  .main-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+  }
+  
+  .controls-left, .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .control-btn {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+  .control-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+  }
+  .control-btn svg {
+      pointer-events: none; /* Clicks should be on the button */
+  }
+  
+  .volume-control {
+    display: flex;
+    align-items: center;
+  }
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 70px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2.5px;
+    outline: none;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .time-display {
+    font-size: 0.85rem;
+    min-width: 90px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .settings-control {
+    position: relative;
+  }
+  .settings-menu {
+    position: absolute;
+    bottom: 120%; /* Position above the button */
+    right: 0;
+    background-color: rgba(20, 20, 20, 0.95);
+    border-radius: 6px;
+    padding: 10px;
+    width: 160px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    z-index: 30;
+  }
+  .settings-menu p {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin: 0 0 8px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #444;
+  }
+  .settings-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #ddd;
+    padding: 6px 8px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .settings-menu button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .settings-menu button.active {
+    color: var(--accent-color, #6A5AF9);
+    font-weight: 500;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .player-controls-container {
+      padding: 8px 12px 10px 12px;
+    }
+    .controls-left, .controls-right { gap: 5px; }
+    .control-btn svg { width: 20px; height: 20px; }
+    .time-display { font-size: 0.8rem; min-width: 75px; }
+    .volume-slider { width: 50px; }
+     .player-title-bar {
+          font-size: 0.8rem;
+          top: -35px;
+      }
+  }
+  @media (max-width: 480px) {
+    .volume-control { display: none; } /* Hide volume slider on smallest screens, rely on mute */
+    .settings-menu { width: 130px; }
+  }

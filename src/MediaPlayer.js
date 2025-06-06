@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, Settings } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, Settings, AlertCircle } from 'lucide-react';
 
 const MediaPlayer = ({ streamData, onError }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [fullDuration, setFullDuration] = useState(null);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -17,71 +16,102 @@ const MediaPlayer = ({ streamData, onError }) => {
   const [buffered, setBuffered] = useState(0);
   const [error, setError] = useState(null);
   const [videoSrc, setVideoSrc] = useState(null);
-  const [transcodingProgress, setTranscodingProgress] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  // Stremio-specific state (simplified)
+  const [stremioProgress, setStremioProgress] = useState(0);
+  const [downloadSpeed, setDownloadSpeed] = useState(0);
+  const [peers, setPeers] = useState(0);
 
   const controlsTimeoutRef = useRef(null);
+  const pollingIntervalRef = useRef(null);
 
-  // Create authenticated video URL
-  useEffect(() => {
-    if (streamData && streamData.streamUrl) {
-      const token = localStorage.getItem('token');
-      
-      // Create a URL with auth token as query parameter
+  // Create video URL for Stremio
+  const createVideoUrl = useCallback(() => {
+    if (!streamData?.streamUrl) return null;
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication token missing');
+      return null;
+    }
+    
+    try {
       const url = new URL(streamData.streamUrl);
       url.searchParams.set('token', token);
-      
-      setVideoSrc(url.toString());
-      console.log('Setting video source with auth:', url.toString());
-
-      // Set full duration if provided in streamData
-      if (streamData.fullDuration) {
-        setFullDuration(streamData.fullDuration);
-        console.log('Got full duration from stream data:', streamData.fullDuration);
-      }
+      return url.toString();
+    } catch (err) {
+      console.error('Error creating video URL:', err);
+      setError('Invalid stream URL');
+      return null;
     }
   }, [streamData]);
 
-  // Fetch video metadata including full duration
-  useEffect(() => {
-    if (streamData && streamData.infoHash) {
-      const fetchMetadata = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`https://188-245-179-212.nip.io/api/streams/${streamData.infoHash}/metadata`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            const metadata = await response.json();
-            console.log('Metadata response:', metadata);
-            
-            if (metadata.fullDuration && !fullDuration) {
-              setFullDuration(metadata.fullDuration);
-              console.log('Got full video duration from metadata:', metadata.fullDuration, 'seconds');
-            }
-            
-            // Update transcoding progress
-            setTranscodingProgress(metadata);
+  // Poll Stremio for progress (much simpler than before)
+  const fetchStremioProgress = useCallback(async () => {
+    if (!streamData?.infoHash) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`https://188-245-179-212.nip.io/api/streams/${streamData.infoHash}/metadata`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update Stremio progress
+        if (data.stremioStats) {
+          setStremioProgress(data.stremioStats.progress || 0);
+          setDownloadSpeed(data.stremioStats.downloadSpeed || 0);
+          setPeers(data.stremioStats.peers || 0);
+        }
+        
+        // Set video source when ready
+        if (data.fileReady && !videoSrc) {
+          const url = createVideoUrl();
+          if (url) {
+            setVideoSrc(url);
           }
-        } catch (error) {
-          console.warn('Could not fetch video metadata:', error);
         }
-      };
-
-      fetchMetadata();
-      
-      // Poll for metadata updates while transcoding
-      const interval = setInterval(() => {
-        if (streamData.needsTranscoding) {
-          fetchMetadata();
-        }
-      }, 5000);
-      
-      return () => clearInterval(interval);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch Stremio progress:', error);
     }
-  }, [streamData, fullDuration]);
+  }, [streamData?.infoHash, videoSrc, createVideoUrl]);
+
+  // Initialize video
+  useEffect(() => {
+    if (streamData) {
+      console.log('🎬 Initializing Stremio stream:', streamData);
+      
+      // For Stremio, start polling immediately
+      if (streamData.needsTranscoding) {
+        fetchStremioProgress();
+      } else {
+        // Direct stream - set source immediately
+        const url = createVideoUrl();
+        if (url) {
+          setVideoSrc(url);
+        }
+      }
+    }
+  }, [streamData, createVideoUrl, fetchStremioProgress]);
+
+  // Polling for Stremio progress
+  useEffect(() => {
+    if (streamData?.needsTranscoding && streamData?.infoHash) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchStremioProgress();
+      }, 3000); // Poll every 3 seconds
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [streamData?.needsTranscoding, streamData?.infoHash, fetchStremioProgress]);
 
   // Auto-hide controls
   const resetControlsTimeout = () => {
@@ -105,27 +135,27 @@ const MediaPlayer = ({ streamData, onError }) => {
     };
   }, [isPlaying]);
 
-  // Video event handlers
+  // Video event handlers (simplified)
   const handleLoadStart = () => {
     setIsLoading(true);
     setError(null);
-    console.log('Video load started');
+    console.log('🎬 Video load started');
   };
 
   const handleCanPlay = () => {
     setIsLoading(false);
-    console.log('Video can play');
+    setRetryCount(0);
+    console.log('🎬 Video ready to play');
   };
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
       
-      // Update buffered amount
       const video = videoRef.current;
       if (video.buffered.length > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        const bufferedPercent = (bufferedEnd / (video.duration || fullDuration || 1)) * 100;
+        const bufferedPercent = (bufferedEnd / (video.duration || 1)) * 100;
         setBuffered(bufferedPercent);
       }
     }
@@ -135,12 +165,7 @@ const MediaPlayer = ({ streamData, onError }) => {
     if (videoRef.current) {
       const videoDuration = videoRef.current.duration;
       setDuration(videoDuration);
-      console.log('Video metadata loaded, duration:', videoDuration);
-      
-      // If we don't have full duration yet, use the video duration
-      if (!fullDuration && videoDuration && videoDuration > 0) {
-        setFullDuration(videoDuration);
-      }
+      console.log('🎬 Video metadata loaded, duration:', videoDuration);
     }
   };
 
@@ -148,34 +173,25 @@ const MediaPlayer = ({ streamData, onError }) => {
     const video = videoRef.current;
     let errorMessage = 'Video playback error';
     
-    console.error('Video error event:', e);
-    console.error('Video error object:', video?.error);
-    
     if (video && video.error) {
       switch (video.error.code) {
-        case video.error.MEDIA_ERR_ABORTED:
-          errorMessage = 'Video playback was aborted';
-          break;
         case video.error.MEDIA_ERR_NETWORK:
-          errorMessage = 'Network error occurred while loading video';
-          break;
-        case video.error.MEDIA_ERR_DECODE:
-          errorMessage = 'Video decoding error';
+          errorMessage = 'Network error - torrent may still be downloading';
           break;
         case video.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          errorMessage = 'Video format not supported or authentication failed';
+          errorMessage = 'Video not ready yet - torrent still downloading';
           break;
         default:
-          errorMessage = 'Unknown video error';
+          errorMessage = 'Video error - check if torrent has enough seeders';
       }
     }
     
-    setError(errorMessage);
     setIsLoading(false);
+    setError(errorMessage);
     if (onError) onError(errorMessage);
   };
 
-  // Control functions
+  // Control functions (unchanged)
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -184,7 +200,7 @@ const MediaPlayer = ({ streamData, onError }) => {
       } else {
         videoRef.current.play().catch(error => {
           console.error('Play failed:', error);
-          setError('Failed to play video');
+          setError('Failed to play video - torrent may still be downloading');
         });
         setIsPlaying(true);
       }
@@ -192,21 +208,14 @@ const MediaPlayer = ({ streamData, onError }) => {
   };
 
   const handleSeek = (e) => {
-    const displayDuration = fullDuration || duration;
-    
-    if (videoRef.current && displayDuration) {
+    if (videoRef.current && duration) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickRatio = clickX / rect.width;
-      const newTime = clickRatio * displayDuration;
+      const newTime = clickRatio * duration;
       
-      // Only allow seeking within the currently available video
-      const maxSeekTime = Math.min(newTime, duration || displayDuration);
-      
-      console.log('Seeking to:', newTime, 'max allowed:', maxSeekTime);
-      
-      videoRef.current.currentTime = maxSeekTime;
-      setCurrentTime(maxSeekTime);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
     }
   };
 
@@ -256,6 +265,19 @@ const MediaPlayer = ({ streamData, onError }) => {
     }
   };
 
+  const retry = () => {
+    setError(null);
+    setRetryCount(prev => prev + 1);
+    
+    if (videoRef.current) {
+      const url = createVideoUrl();
+      if (url) {
+        setVideoSrc(url);
+        videoRef.current.load();
+      }
+    }
+  };
+
   const formatTime = (seconds) => {
     if (isNaN(seconds) || seconds === null || seconds === undefined) return '0:00';
     const hours = Math.floor(seconds / 3600);
@@ -268,11 +290,15 @@ const MediaPlayer = ({ streamData, onError }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const displayDuration = fullDuration || duration;
-  const progressPercentage = displayDuration ? (currentTime / displayDuration) * 100 : 0;
-  
-  // Calculate transcoding progress if available
-  const transcodingPercentage = fullDuration && duration ? (duration / fullDuration) * 100 : 0;
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 B/s';
+    const k = 1024;
+    const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const progressPercentage = duration ? (currentTime / duration) * 100 : 0;
 
   if (!streamData) {
     return (
@@ -305,22 +331,28 @@ const MediaPlayer = ({ streamData, onError }) => {
       )}
 
       {/* Loading Overlay */}
-      {isLoading && (
+      {(isLoading || (!videoSrc && streamData?.needsTranscoding)) && !error && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="text-white text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-lg">
-              {streamData.needsTranscoding ? 'Transcoding video...' : 'Loading video...'}
+              {!videoSrc ? 'Stremio is preparing your stream...' : 'Loading video...'}
             </p>
-            {streamData.transcoding && (
-              <p className="text-sm text-gray-300 mt-2">
-                Converting {streamData.transcoding.originalFormat} to {streamData.transcoding.targetFormat}
-              </p>
-            )}
-            {fullDuration && streamData.needsTranscoding && (
-              <p className="text-sm text-gray-400 mt-1">
-                Full duration: {formatTime(fullDuration)}
-              </p>
+            
+            {streamData.needsTranscoding && (
+              <div className="mt-3 space-y-1">
+                <p className="text-sm text-yellow-400">
+                  📦 Download: {stremioProgress.toFixed(1)}%
+                </p>
+                {downloadSpeed > 0 && (
+                  <p className="text-sm text-blue-400">
+                    📥 {formatBytes(downloadSpeed)} • 👥 {peers} peers
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-2">
+                  Powered by Stremio • Professional transcoding
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -329,42 +361,35 @@ const MediaPlayer = ({ streamData, onError }) => {
       {/* Error Overlay */}
       {error && (
         <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-          <div className="text-white text-center p-6">
+          <div className="text-white text-center p-6 max-w-md">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <p className="text-lg mb-4">⚠️ {error}</p>
-            <div className="space-y-2">
+            
+            <div className="space-y-2 mb-4">
               <button 
-                onClick={() => {
-                  setError(null);
-                  setIsLoading(true);
-                  if (videoRef.current) {
-                    videoRef.current.load();
-                  }
-                }} 
-                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mr-2"
+                onClick={retry}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mr-2 transition-colors"
               >
-                Retry
+                Retry Stream
               </button>
               <button 
-                onClick={() => window.location.reload()} 
-                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded"
+                onClick={() => window.location.reload()}
+                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded transition-colors"
               >
                 Reload Page
               </button>
             </div>
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 text-xs text-left bg-gray-800 p-2 rounded max-w-md">
-                <p><strong>Debug Info:</strong></p>
-                <p>Stream URL: {streamData.streamUrl}</p>
-                <p>Auth URL: {videoSrc}</p>
-                <p>Token: {localStorage.getItem('token') ? 'Present' : 'Missing'}</p>
-                <p>Duration: {duration} / Full: {fullDuration}</p>
-              </div>
-            )}
+            
+            <div className="text-xs text-gray-400">
+              <p>Retry attempts: {retryCount}/5</p>
+              <p>Download progress: {stremioProgress.toFixed(1)}%</p>
+              <p>Peers: {peers}</p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Controls Overlay */}
+      {/* Controls (simplified - removed progressive streaming complexity) */}
       {showControls && !isLoading && !error && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
           {/* Progress Bar */}
@@ -373,12 +398,12 @@ const MediaPlayer = ({ streamData, onError }) => {
               className="w-full h-2 bg-gray-600 rounded cursor-pointer relative"
               onClick={handleSeek}
             >
-              {/* Transcoding Progress (background) */}
-              {streamData.needsTranscoding && transcodingPercentage > 0 && (
+              {/* Download Progress (background) */}
+              {stremioProgress > 0 && (
                 <div 
                   className="absolute h-full bg-yellow-600 rounded opacity-50"
-                  style={{ width: `${transcodingPercentage}%` }}
-                  title={`Transcoded: ${transcodingPercentage.toFixed(1)}%`}
+                  style={{ width: `${stremioProgress}%` }}
+                  title={`Downloaded: ${stremioProgress.toFixed(1)}%`}
                 />
               )}
               {/* Buffered Progress */}
@@ -401,22 +426,19 @@ const MediaPlayer = ({ streamData, onError }) => {
             </div>
           </div>
 
-          {/* Control Buttons */}
+          {/* Controls */}
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-4">
-              {/* Play/Pause */}
-              <button onClick={togglePlay} className="hover:text-red-500">
+              <button onClick={togglePlay} className="hover:text-red-500 transition-colors">
                 {isPlaying ? <Pause size={24} /> : <Play size={24} />}
               </button>
 
-              {/* Restart */}
-              <button onClick={restart} className="hover:text-red-500">
+              <button onClick={restart} className="hover:text-red-500 transition-colors">
                 <RotateCcw size={20} />
               </button>
 
-              {/* Volume */}
               <div className="flex items-center space-x-2">
-                <button onClick={toggleMute} className="hover:text-red-500">
+                <button onClick={toggleMute} className="hover:text-red-500 transition-colors">
                   {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
                 </button>
                 <input
@@ -430,23 +452,26 @@ const MediaPlayer = ({ streamData, onError }) => {
                 />
               </div>
 
-              {/* Time Display */}
               <div className="text-sm">
-                <span>{formatTime(currentTime)} / {formatTime(displayDuration)}</span>
-                {fullDuration && fullDuration !== duration && streamData.needsTranscoding && (
-                  <span className="text-yellow-400 ml-2 text-xs">
-                    (transcoding: {transcodingPercentage.toFixed(1)}%)
+                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+                {downloadSpeed > 0 && (
+                  <span className="text-green-400 ml-2 text-xs">
+                    📥 {formatBytes(downloadSpeed)}
+                  </span>
+                )}
+                {peers > 0 && (
+                  <span className="text-blue-400 ml-2 text-xs">
+                    👥 {peers}
                   </span>
                 )}
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Settings */}
               <div className="relative">
                 <button 
                   onClick={() => setShowSettings(!showSettings)}
-                  className="hover:text-red-500"
+                  className="hover:text-red-500 transition-colors"
                 >
                   <Settings size={20} />
                 </button>
@@ -458,7 +483,7 @@ const MediaPlayer = ({ streamData, onError }) => {
                       <button
                         key={rate}
                         onClick={() => changePlaybackRate(rate)}
-                        className={`block w-full text-left px-2 py-1 text-sm hover:bg-gray-700 rounded ${
+                        className={`block w-full text-left px-2 py-1 text-sm hover:bg-gray-700 rounded transition-colors ${
                           playbackRate === rate ? 'text-red-500' : ''
                         }`}
                       >
@@ -469,8 +494,7 @@ const MediaPlayer = ({ streamData, onError }) => {
                 )}
               </div>
 
-              {/* Fullscreen */}
-              <button onClick={toggleFullscreen} className="hover:text-red-500">
+              <button onClick={toggleFullscreen} className="hover:text-red-500 transition-colors">
                 <Maximize size={20} />
               </button>
             </div>
@@ -481,38 +505,24 @@ const MediaPlayer = ({ streamData, onError }) => {
       {/* Video Info */}
       <div className="absolute top-4 left-4 text-white bg-black bg-opacity-50 rounded px-3 py-1">
         <p className="text-sm">
-          {streamData.fileName} ({streamData.fileSizeGB} GB)
+          {streamData.movieTitle || 'Stremio Stream'}
         </p>
-        {streamData.needsTranscoding && (
-          <div className="text-xs">
+        <div className="text-xs">
+          <p className="text-green-400">
+            🎬 Powered by Stremio • Smart Transcoding
+          </p>
+          {stremioProgress > 0 && (
             <p className="text-yellow-400">
-              Transcoding: {streamData.transcoding?.originalFormat} → {streamData.transcoding?.targetFormat}
+              📦 Download: {stremioProgress.toFixed(1)}% • 👥 {peers} peers
             </p>
-            {transcodingProgress && (
-              <p className="text-gray-300">
-                Status: {transcodingProgress.status} 
-                {fullDuration && ` | Full: ${formatTime(fullDuration)}`}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Transcoding Status Bar */}
-      {streamData.needsTranscoding && transcodingPercentage > 0 && transcodingPercentage < 100 && (
-        <div className="absolute top-16 left-4 right-4 bg-black bg-opacity-50 rounded px-3 py-2">
-          <div className="flex justify-between items-center text-white text-xs">
-            <span>Transcoding Progress</span>
-            <span>{transcodingPercentage.toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-1 mt-1">
-            <div 
-              className="bg-yellow-500 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${transcodingPercentage}%` }}
-            />
-          </div>
+          )}
+          {downloadSpeed > 0 && (
+            <p className="text-blue-400">
+              📊 Speed: {formatBytes(downloadSpeed)}
+            </p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
