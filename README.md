@@ -1,10 +1,6 @@
-\<div align="center"\>
-
 # Torrent Streaming Platform
 
 A modern, web-based platform for streaming video content directly from torrents, inspired by services like Stremio.
-
-\</div\>
 
 ## ⚠️ Project Status
 
