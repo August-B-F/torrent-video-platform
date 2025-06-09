@@ -1,13 +1,8 @@
-/* Navbar.css */
-/* ... (previous .app-navbar, .navbar-left, .navbar-links-desktop, .navbar-link styles remain) ... */
-
 .app-navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* margin-top: 15px; */
-    padding: 20px 20px; /* Consistent padding */
-    /* background-color: var(--navbar-background, rgba(14, 16, 21, 0.85)); */
+    padding: 20px 20px; 
     backdrop-filter: blur(5px) brightness(80%);
     position: fixed;
     top: 0;
@@ -56,25 +51,23 @@
   .navbar-right {
     display: flex;
     align-items: center;
-    gap: 10px; /* Reduced gap to accommodate search expansion */
+    gap: 10px; 
   }
-  
-  /* Search Container and Input Styles */
+ 
   .navbar-search-container {
     display: flex;
     align-items: center;
-    position: relative; /* For positioning the input */
+    position: relative; 
   }
   
-  .search-icon-btn { /* This is the main button for the icon */
-    /* Styles for navbar-icon-button already cover this if it shares the class */
+  .search-icon-btn { 
   }
   .navbar-icon-button {
     background: none;
     border: none;
     color: var(--secondary-text-color, #918F98);
     cursor: pointer;
-    padding: 8px; /* Slightly more clickable area */
+    padding: 8px; 
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -89,7 +82,7 @@
     color: var(--primary-text-color, #E0E0E0);
     background-color: rgba(255, 255, 255, 0.08);
   }
-  .navbar-icon-button.active { /* For search icon when search is active */
+  .navbar-icon-button.active { 
     color: var(--accent-color, #6A5AF9);
   }
   
@@ -99,53 +92,34 @@
   }
   
   .search-input-field {
-    width: 0; /* Initially collapsed */
+    width: 0; 
     opacity: 0;
     visibility: hidden;
-    padding: 8px 10px 8px 35px; /* Left padding for icon */
+    padding: 8px 10px 8px 35px; 
     border: none;
-    border-radius: 20px; /* Rounded like the image */
-    background-color: rgba(40, 43, 50, 0.8); /* Semi-transparent dark background */
+    border-radius: 20px; 
+    background-color: rgba(40, 43, 50, 0.8);
     color: var(--primary-text-color, #E0E0E0);
     font-size: 0.9rem;
     outline: none;
     transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, padding 0.3s ease-in-out;
-    margin-left: -30px; /* Overlap with icon initially then push icon left */
+    margin-left: -30px;
     position: relative;
     box-sizing: border-box;
   }
   
   .navbar-search-container.active .search-input-field {
-    width: 220px; /* Expanded width */
+    width: 220px; 
     opacity: 1;
     visibility: visible;
-    margin-left: 0; /* Normal margin */
-    padding-left: 15px; /* Adjust padding when icon is part of button, not inside input bg */
+    margin-left: 0; 
+    padding-left: 15px; 
   }
   
-  /* To place icon inside input field background (alternative styling) */
-  /*
   .navbar-search-container.active .search-icon-btn {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none; // So it doesn't interfere with input click
-    color: var(--secondary-text-color); // Icon color inside input
+    margin-right: -5px; 
   }
-  .navbar-search-container.active .search-input-field {
-    padding-left: 35px; // Space for the icon
-  }
-  */
-  
-  /* Simplified: Icon remains as a button, input expands next to it */
-  .navbar-search-container.active .search-icon-btn {
-    margin-right: -5px; /* Adjust spacing when input is active */
-    /* color: var(--accent-color); // Keep it active looking */
-  }
-  
-  
-  /* Profile Dropdown (styles remain largely the same) */
+
   .navbar-profile-container {
     position: relative;
   }
@@ -180,14 +154,12 @@
     background-color: var(--accent-color, #6A5AF9);
     color: #FFFFFF;
   }
-  
-  /* Mobile Menu Button (styles remain largely the same) */
+
   .navbar-mobile-menu-button {
     display: none;
     color: var(--primary-text-color, #E0E0E0);
   }
-  
-  /* Mobile Menu (styles remain largely the same) */
+
   .navbar-mobile-menu {
     display: none;
     position: absolute;
@@ -247,7 +219,7 @@
     box-sizing: border-box;
     cursor: pointer;
   }
-  .navbar-mobile-link:last-of-type { /* Target the actual last link if logout is a button */
+  .navbar-mobile-link:last-of-type { 
       border-bottom: none;
   }
   .navbar-mobile-link.active,
@@ -256,17 +228,15 @@
     color: var(--accent-color, #6A5AF9);
     border-left-color: var(--accent-color, #6A5AF9);
   }
-  .mobile-menu-divider { /* This is used for the logout button separation */
+  .mobile-menu-divider { 
       width: 90%;
       margin: 10px auto;
       border-color: var(--border-color);
   }
   
-  
-  /* Responsive Adjustments (styles remain largely the same) */
   @media (max-width: 768px) {
     .app-navbar {
-      padding: 0 15px; /* Reduced padding for mobile */
+      padding: 0 15px; 
     }
     .navbar-links-desktop {
       display: none;
@@ -275,22 +245,21 @@
       display: flex;
     }
     .navbar-search-container.active .search-input-field {
-      width: 150px; /* Adjust expanded search for mobile navbar */
+      width: 150px; 
     }
     .navbar-right {
-      gap: 5px; /* Tighter gap on mobile for icons */
+      gap: 5px; 
     }
   }
   
   @media (max-width: 480px) {
     .navbar-search-container.active .search-input-field {
-      width: calc(100vw - 150px); /* Example: make it take more available space */
+      width: calc(100vw - 150px); 
       max-width: 180px;
     }
      .navbar-profile-container {
-      display: none; /* Optionally hide profile on very small screens if space is tight */
+      display: none; 
     }
     .navbar-right {
-        /* If profile is hidden, search can take its place or be more central */
     }
   }

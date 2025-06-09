@@ -1,4 +1,3 @@
-/* WatchlistStyle.css */
 .page-container {
     min-height: 100vh;
     padding-top: 70px;
@@ -23,7 +22,7 @@
 
 .watchlist-page .page-main-content {
     max-width: 100%;
-    padding: 20px; /* Ensure watchlist page itself has some padding */
+    padding: 20px; 
 }
 
 .watchlist-header {
@@ -57,24 +56,18 @@
     background-color: var(--accent-color-hover);
 }
 
-/* Folder Grid Layout */
 .folder-grid {
     display: grid;
-    /*
-      Adjust minmax for desired folder card size.
-      If cards are 160px min, a larger gap should now be more apparent.
-      Consider a slightly smaller min if you want more cards or more gap.
-    */
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); /* Slightly larger min card width */
-    gap: 35px; /* << INCREASED GAP SIGNIFICANTLY */
-    padding: 5px; /* Added a little padding to the grid container itself */
+
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); 
+    gap: 35px;
+    padding: 5px; 
     padding-bottom: 30px;
 }
 
-/* Drag overlay for folder cards - Neutral Gray Background */
 .drag-overlay-folder-card-active {
   padding: 20px;
-  background-color: var(--card-background-color, #1F2229); /* Neutral gray */
+  background-color: var(--card-background-color, #1F2229); 
   color: var(--text-primary);
   border: 1px solid var(--border-color, #333842);
   border-radius: 12px;
@@ -87,8 +80,8 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  width: 170px; /* Match the min-width of folder-grid columns for consistency */
-  aspect-ratio: 1 / 1; /* Match card aspect ratio */
+  width: 170px; 
+  aspect-ratio: 1 / 1; 
   box-sizing: border-box;
   text-align: center;
 }
@@ -137,7 +130,6 @@
     color: var(--text-secondary);
 }
 
-/* General messages */
 .loading-message,
 .empty-message,
 .error-message {
@@ -148,7 +140,6 @@
   width: 100%;
 }
 
-/* Empty Watchlist State */
 .empty-watchlist-container {
     display: flex;
     flex-direction: column;
@@ -185,11 +176,10 @@
     font-size: 1.1rem;
 }
 
-/* Responsive adjustments for folder grid */
 @media (max-width: 1200px) {
     .folder-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 30px; /* Maintain a good gap */
+        gap: 30px; 
     }
 }
 @media (max-width: 768px) {
@@ -203,19 +193,18 @@
     }
     .folder-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 25px; /* Decent gap for tablet sizes */
+        gap: 25px; 
     }
 }
 @media (max-width: 480px) {
-    .watchlist-page .page-main-content { /* Target watchlist page specifically for this padding */
+    .watchlist-page .page-main-content { 
       padding: 15px;
     }
     .folder-grid {
-        grid-template-columns: repeat(auto-fill, minmax(calc(50% - 10px), 1fr)); /* Aim for 2 cards with a clear gap */
-        /* Forcing two columns: grid-template-columns: 1fr 1fr; */
-        gap: 20px; /* Visible gap on small screens */
+        grid-template-columns: repeat(auto-fill, minmax(calc(50% - 10px), 1fr)); 
+        gap: 20px; 
     }
-    .page-title { /* This is a general class, ensure it's correctly scoped if needed */
+    .page-title { 
       font-size: 1.5rem;
     }
 }

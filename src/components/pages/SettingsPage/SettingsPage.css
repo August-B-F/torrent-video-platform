@@ -1,10 +1,6 @@
-/* SettingsPage.css */
-/* Assumes .page-container, .page-main-content, .page-title are available from shared styles */
-/* If not, copy them from WatchlistStyle.css or SearchResultsStyle.css */
-
 .settings-hub-page .page-main-content,
-.settings-subpage-container .page-main-content { /* Ensure sub-pages also use this if they don't define their own */
-  max-width: 900px; /* Max width for settings pages */
+.settings-subpage-container .page-main-content { 
+  max-width: 900px; 
 }
 
 .settings-category-list {
@@ -16,12 +12,12 @@
   display: flex;
   align-items: center;
   padding: 20px 15px;
-  background-color: transparent; /* Or var(--card-background-color) for distinct items */
+  background-color: transparent; 
   border-bottom: 1px solid var(--border-color, #22252A);
   text-decoration: none;
   color: var(--primary-text-color, #E0E0E0);
   transition: background-color 0.2s ease;
-  border-radius: 0px; /* If items have background */
+  border-radius: 0px; 
 }
 
 .settings-category-item:hover {
@@ -30,7 +26,7 @@
 
 .category-icon {
   margin-right: 20px;
-  color: var(--accent-color, #6A5AF9); /* Icon color */
+  color: var(--accent-color, #6A5AF9); 
 }
 .category-icon svg {
     width: 28px;
@@ -59,8 +55,6 @@
   color: var(--secondary-text-color, #918F98);
 }
 
-
-/* General Settings Section */
 .settings-section {
   margin-bottom: 30px;
   padding: 20px;
@@ -93,12 +87,11 @@
     padding-left: 5px;
 }
 
-/* Toggle Switch Styles (from previous examples, adapt if needed) */
 .switch {
   position: relative;
   display: inline-block;
-  width: 50px; /* Adjusted width */
-  height: 28px; /* Adjusted height */
+  width: 50px; 
+  height: 28px; 
 }
 
 .switch input {
@@ -114,17 +107,17 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #393c41; /* Darker grey for off state */
+  background-color: #393c41; 
   transition: .3s;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px; /* Adjusted handle size */
-  width: 20px;  /* Adjusted handle size */
-  left: 4px;    /* Adjusted position */
-  bottom: 4px;  /* Adjusted position */
+  height: 20px; 
+  width: 20px;  
+  left: 4px;    
+  bottom: 4px;
   background-color: white;
   transition: .3s;
 }
@@ -138,18 +131,17 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(22px); /* Adjusted translation */
+  transform: translateX(22px); 
 }
 
 .slider.round {
-  border-radius: 28px; /* Keep it pill-shaped */
+  border-radius: 28px; 
 }
 
 .slider.round:before {
   border-radius: 50%;
 }
 
-/* Back button for sub-pages if implemented within SettingsPage.jsx */
 .back-to-settings-btn {
     display: inline-block;
     margin-bottom: 20px;
@@ -163,5 +155,5 @@ input:checked + .slider:before {
     transition: background-color 0.2s ease;
 }
 .back-to-settings-btn:hover {
-    background-color: var(--input-background-color); /* Slightly different shade */
+    background-color: var(--input-background-color); 
 }

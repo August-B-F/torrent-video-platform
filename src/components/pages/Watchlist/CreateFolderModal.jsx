@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './CreateFolderModal.css'; // We'll create this CSS
+import './CreateFolderModal.css'; 
 
 const CreateFolderModal = ({ isOpen, onClose, onCreateFolder }) => {
   const [folderName, setFolderName] = useState('');

@@ -1,9 +1,8 @@
-/* AppearanceSettings.css */
 .appearance-settings-content {
   padding: 0px 10px;
 }
 
-.main-settings-title { /* Specific for the main title of this page */
+.main-settings-title { 
   font-size: 1.8rem;
   color: var(--text-primary);
   margin-bottom: 15px;
@@ -12,10 +11,10 @@
 }
 
 .settings-section-title {
-  font-size: 1.5rem; /* Slightly larger for section headers */
+  font-size: 1.5rem; 
   font-weight: 600;
   color: var(--text-primary);
-  margin-top: 30px; /* More top margin for sections */
+  margin-top: 30px; 
   margin-bottom: 10px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color-soft);
@@ -31,39 +30,38 @@
 .setting-item-group {
   margin-bottom: 40px;
   padding: 20px;
-  background-color: var(--card-background-color); /* Give groups a card-like feel */
+  background-color: var(--card-background-color); 
   border-radius: 8px;
   border: 1px solid var(--border-color-soft);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1); /* Subtle shadow */
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
 }
 .setting-item-group:last-child {
   margin-bottom: 20px;
 }
 
 .setting-item-group-title {
-  font-size: 1.2rem; /* Consistent and clear */
+  font-size: 1.2rem; 
   font-weight: 500;
   color: var(--text-primary);
-  margin-top: 0; /* Remove top margin if group has padding */
+  margin-top: 0; 
   margin-bottom: 20px;
 }
 
-/* Theme Options Styling */
 .theme-options {
   display: flex;
-  gap: 25px; /* More space between options */
+  gap: 25px; 
   flex-wrap: wrap;
 }
 
 .theme-option {
   cursor: pointer;
   padding: 15px;
-  border: 2px solid transparent; /* Transparent base border */
-  border-radius: 10px; /* Softer radius */
+  border: 2px solid transparent;
+  border-radius: 10px;
   text-align: center;
-  width: 140px; /* Slightly larger */
+  width: 140px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  background-color: var(--bg-secondary); /* Background for the option itself */
+  background-color: var(--bg-secondary);
 }
 
 .theme-option:hover {
@@ -73,14 +71,14 @@
 
 .theme-option.selected {
   border-color: var(--accent-color-main);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.4); /* More prominent selection */
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.4);
 }
 
 .theme-option input[type="radio"] { display: none; }
 
 .theme-preview {
-  width: 100%; /* Full width of parent option */
-  height: 70px; /* Taller preview */
+  width: 100%; 
+  height: 70px; 
   border-radius: 6px;
   margin: 0 auto 10px auto;
   overflow: hidden;
@@ -88,7 +86,7 @@
   display: flex;
   flex-direction: column;
 }
-/* Light/Dark preview styles remain similar but ensure they use correct variables */
+
 .light-preview { background-color: #f0f2f5; }
 .light-preview .preview-header { height: 20px; background-color: #d1d8e0; }
 .light-preview .preview-content { flex-grow: 1; color: #2c3e50; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; }
@@ -97,22 +95,20 @@
 .dark-preview .preview-header { height: 20px; background-color: #2a2d34; }
 .dark-preview .preview-content { flex-grow: 1; color: #bdc3c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold;}
 
-
-/* Folder Appearance Settings */
 .folder-appearance-setting {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 10px; /* Increased padding */
+  padding: 18px 10px; 
   border-bottom: 1px solid var(--border-color-soft);
-  gap: 20px; /* More gap */
+  gap: 20px;
 }
 .folder-appearance-setting:last-child { border-bottom: none; }
 
 .folder-name-label {
   font-size: 1rem;
   color: var(--text-primary);
-  flex-basis: 35%; /* More space */
+  flex-basis: 35%; 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -122,7 +118,7 @@
 .folder-controls {
   display: flex;
   align-items: center;
-  gap: 25px; /* More space */
+  gap: 25px;
   flex-grow: 1;
   justify-content: flex-end;
 }
@@ -130,12 +126,12 @@
 .control-group {
   display: flex;
   align-items: center;
-  gap: 10px; /* More space within group */
+  gap: 10px;
 }
 .control-group label {
   font-size: 0.9rem;
   color: var(--text-secondary);
-  white-space: nowrap; /* Prevent label wrapping */
+  white-space: nowrap; 
 }
 
 .icon-input-label {
@@ -156,7 +152,7 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .folder-icon-input {
-  width: 180px; /* Adjust as needed */
+  width: 180px; 
 }
 .folder-icon-preset-select {
     min-width: 140px;
@@ -168,23 +164,23 @@
 }
 
 .icon-preview {
-  width: 36px; /* Slightly larger */
+  width: 36px; 
   height: 36px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border-color);
-  color: var(--text-on-accent); /* Default icon color, can be overridden by SVG fill */
-  overflow: hidden; /* For image icons */
+  color: var(--text-on-accent); 
+  overflow: hidden; 
 }
 .icon-preview svg { width: 20px; height: 20px; }
-.icon-preview.custom-image-icon { /* For <img> tags */
+.icon-preview.custom-image-icon { 
   width: 36px; height: 36px; object-fit: cover; padding: 0; border: 1px solid var(--border-color);
 }
 .icon-preview.emoji-icon-preview {
-  font-size: 20px; /* Adjust for emoji size */
-  line-height: 36px; /* Center emoji vertically */
+  font-size: 20px; 
+  line-height: 36px; 
 }
 
 
@@ -192,46 +188,44 @@
     margin-right: 5px;
 }
 .folder-appearance-color-picker {
-  width: 36px; /* Larger tap target */
+  width: 36px; 
   height: 36px;
-  border: none; /* Remove default border */
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   padding: 0; 
   background-color: transparent;
-  box-shadow: 0 0 0 1px var(--border-color); /* Custom border */
+  box-shadow: 0 0 0 1px var(--border-color); 
 }
 
-
-/* Accent Color Options Styling */
 .accent-color-options {
   display: flex;
-  flex-wrap: wrap; /* Allow swatches to wrap */
+  flex-wrap: wrap; 
   gap: 12px;
   margin-bottom: 15px;
 }
 
 .accent-color-swatch {
-  width: 34px; /* Larger swatches */
+  width: 34px; 
   height: 34px;
   border-radius: 50%;
-  border: 3px solid transparent; /* Base border for inactive state */
+  border: 3px solid transparent;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .accent-color-swatch:hover {
   transform: scale(1.1);
-  border-color: var(--text-secondary); /* Highlight border on hover */
+  border-color: var(--text-secondary); 
 }
 .accent-color-swatch.active {
-  border-color: #FFFFFF; /* White border for active swatch */
-  box-shadow: 0 0 0 2px #000000, 0 0 0 4px #FFFFFF; /* Outer glow effect */
+  border-color: #FFFFFF; 
+  box-shadow: 0 0 0 2px #000000, 0 0 0 4px #FFFFFF; 
   transform: scale(1.05);
 }
 .custom-accent-color-picker {
     width: 100%;
-    max-width: 200px; /* Or a suitable width */
+    max-width: 200px; 
     height: 40px;
     border: 1px solid var(--border-color);
     border-radius: 5px;

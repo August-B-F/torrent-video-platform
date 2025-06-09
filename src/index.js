@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PopupProvider } from './components/contexts/PopupContext.jsx' // Keep this high
+import { PopupProvider } from './components/contexts/PopupContext.jsx' 
 import './index.css';
 import App from './App';
 
@@ -10,7 +10,7 @@ import { WatchlistProvider } from './components/contexts/WatchlistContext.jsx';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <PopupProvider> {/* PopupProvider should ideally wrap context providers that might use it */}
+    <PopupProvider> 
       <AddonProvider>
         <WatchlistProvider> 
           <App />

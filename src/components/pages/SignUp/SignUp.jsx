@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./SignUpStyle.css"; // We'll create this CSS file
+import "./SignUpStyle.css"; 
 
-const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used for auto-login
+const SignUp = ({ setIsLoggedIn }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,6 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
   const [infoPopupTheme, setInfoPopupTheme] = useState("info");
   const [showPopup, setShowPopup] = useState(false);
   
-  // State for individual field errors for better UX
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
@@ -48,7 +47,6 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
       newErrors.password = "Password is required.";
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters.";
-      // Add more password strength rules if needed
     }
 
     if (!confirmPassword) {
@@ -64,8 +62,8 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setShowPopup(false); // Clear previous popups
-    setErrors({}); // Clear previous errors
+    setShowPopup(false);
+    setErrors({}); 
 
     if (!validateForm()) {
         displayPopup("Please correct the errors in the form.", "warning");
@@ -75,30 +73,9 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
     setIsLoading(true);
 
     try {
-      // Replace with your actual API endpoint:
-      // const response = await fetch("/api/signup", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ fullName, email, password }),
-      // });
-
-      // const data = await response.json();
-
-      // if (response.ok) {
-      //   displayPopup("Sign up successful! Redirecting to login...", "info");
-      //   // Optional: auto-login
-      //   // localStorage.setItem("token", data.token);
-      //   // setIsLoggedIn(true);
-      //   // navigate("/home");
-      //   setTimeout(() => navigate("/login"), 2000);
-      // } else {
-      //   displayPopup(data.message || "Sign up failed. Please try again.", "warning");
-      // }
-
-      // --- SIMULATED RESPONSE ---
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
       console.log("Sign up attempt:", { fullName, email, password });
-      // Simulate success or specific error like email taken
+      
       if (email === "taken@example.com") {
           displayPopup("This email address is already registered.", "warning");
           setErrors({ email: "This email address is already registered." });
@@ -106,7 +83,6 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
           displayPopup("Sign up successful! Please check your email to verify your account (optional step). Redirecting to login...", "info");
           setTimeout(() => navigate("/login"), 3000);
       }
-      // --- END SIMULATION ---
 
     } catch (error) {
       console.error("Sign up request failed:", error);
@@ -123,7 +99,7 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
           {infoPopupMessage}
         </div>
       )}
-      <div className="auth-form-wrapper signup-wrapper"> {/* Add signup-wrapper if specific width needed */}
+      <div className="auth-form-wrapper signup-wrapper"> 
         <div className="auth-header">
           <h1 className="auth-title">Create Your Account</h1>
           <p className="auth-subtitle">Join our community today!</p>
@@ -189,11 +165,6 @@ const SignUp = ({ setIsLoggedIn }) => { // Assuming setIsLoggedIn might be used 
             />
             {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
           </div>
-          
-          {/* Optional: Terms and conditions checkbox */}
-          {/* <div className="form-group">
-            <Checkbox id="terms" label="I agree to the Terms and Conditions" ... />
-          </div> */}
 
           <button type="submit" className="auth-button" disabled={isLoading}>
             {isLoading ? (

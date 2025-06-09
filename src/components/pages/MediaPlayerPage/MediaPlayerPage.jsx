@@ -15,10 +15,10 @@ const MediaPlayerPage = () => {
   const metadataPollIntervalRef = useRef(null);
 
   const [streamData, setStreamData] = useState(initialStreamData);
-  const [isPlaying, setIsPlaying] = useState(true); // Autoplay
+  const [isPlaying, setIsPlaying] = useState(true); 
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0); // Duration of currently loaded/playable media
-  const [fullDuration, setFullDuration] = useState(initialStreamData?.fullDuration || 0); // Total duration of the content
+  const [duration, setDuration] = useState(0);
+  const [fullDuration, setFullDuration] = useState(initialStreamData?.fullDuration || 0); 
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -27,24 +27,22 @@ const MediaPlayerPage = () => {
   const [error, setError] = useState(null);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const [buffered, setBuffered] = useState(0); // Percentage
+  const [buffered, setBuffered] = useState(0); 
   const [transcodingDetails, setTranscodingDetails] = useState(initialStreamData?.transcoding || null);
   const [apiBaseUrl, setApiBaseUrl] = useState('');
 
 
   useEffect(() => {
-    // Determine API base URL dynamically or from a config
-    // For this example, using the one from temp.js or assuming it's the same origin
     setApiBaseUrl(window.location.origin.includes('localhost') ? 'https://188-245-179-212.nip.io' : window.location.origin);
   }, []);
 
 
   const videoSrc = useMemo(() => {
     if (streamData?.streamUrl) {
-      if (streamData.streamUrl.startsWith('/')) { // Relative URL from our backend
+      if (streamData.streamUrl.startsWith('/')) { 
         return `${apiBaseUrl}${streamData.streamUrl}`;
       }
-      return streamData.streamUrl; // Absolute URL (e.g., direct from Peerflix if no transcode)
+      return streamData.streamUrl; 
     }
     return null;
   }, [streamData, apiBaseUrl]);
@@ -66,7 +64,7 @@ const MediaPlayerPage = () => {
     if (!initialStreamData) {
       setError('No stream data provided.');
       setIsLoading(false);
-      navigate(-1); // Go back if no data
+      navigate(-1); 
       return;
     }
     setStreamData(initialStreamData);
@@ -101,8 +99,6 @@ const MediaPlayerPage = () => {
             setFullDuration(metadata.fullDuration);
           }
            if (streamData.needsTranscoding) {
-            // Update current playable duration if transcoded file size gives a hint
-            // This is tricky as `duration` from video element is more reliable for current playability
             const videoElementDuration = videoRef.current?.duration;
             if (videoElementDuration && isFinite(videoElementDuration)) {
                 setDuration(videoElementDuration);
@@ -114,7 +110,7 @@ const MediaPlayerPage = () => {
             }));
 
             if(metadata.status === 'ready' && metadataPollIntervalRef.current) {
-                 clearInterval(metadataPollIntervalRef.current); // Stop polling if ready
+                 clearInterval(metadataPollIntervalRef.current); 
             }
           }
         }
@@ -125,12 +121,12 @@ const MediaPlayerPage = () => {
   }, [streamData, apiBaseUrl, fullDuration]);
 
   useEffect(() => {
-    sendActivityPing(); // Initial ping
-    activityIntervalRef.current = setInterval(sendActivityPing, 30 * 1000); // Ping every 30s
+    sendActivityPing();
+    activityIntervalRef.current = setInterval(sendActivityPing, 30 * 1000); 
 
     if (streamData?.needsTranscoding || !fullDuration) {
-        fetchMetadata(); // Initial metadata fetch
-        metadataPollIntervalRef.current = setInterval(fetchMetadata, 7000); // Poll metadata every 7s
+        fetchMetadata(); 
+        metadataPollIntervalRef.current = setInterval(fetchMetadata, 7000);
     }
     return cleanupIntervals;
   }, [sendActivityPing, fetchMetadata, streamData, fullDuration, cleanupIntervals]);
@@ -194,7 +190,7 @@ const MediaPlayerPage = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     videoRef.current.muted = newMuted;
-    if (!newMuted && volume === 0) setVolume(0.5); // Unmute to a sensible volume
+    if (!newMuted && volume === 0) setVolume(0.5); 
   }, [isMuted, volume]);
 
   const handleFullscreenToggle = useCallback(() => {
@@ -224,13 +220,12 @@ const MediaPlayerPage = () => {
     if(videoRef.current) videoRef.current.currentTime = 0;
   }, [])
 
-  // Video Element Event Handlers
   const onLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       const videoElementDuration = videoRef.current.duration;
       if (isFinite(videoElementDuration) && videoElementDuration > 0) {
         setDuration(videoElementDuration);
-         if (!fullDuration || fullDuration === 0) { // If fullDuration wasn't provided or fetched yet
+         if (!fullDuration || fullDuration === 0) { 
             setFullDuration(videoElementDuration);
         }
       }
@@ -277,7 +272,7 @@ const MediaPlayerPage = () => {
       else if (e.key === 'ArrowRight' && videoRef.current) { e.preventDefault(); videoRef.current.currentTime += 10; }
       else if (e.key === 'ArrowLeft' && videoRef.current) { e.preventDefault(); videoRef.current.currentTime -= 10; }
       else if (e.key === 'Escape' && isFullscreen) { handleFullscreenToggle(); }
-      else if (e.key === 'Escape' && !isFullscreen) { navigate(-1); } // Go back if not fullscreen
+      else if (e.key === 'Escape' && !isFullscreen) { navigate(-1); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);

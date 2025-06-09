@@ -1,20 +1,18 @@
-/* LoginStyle.css */
 :root {
     --background-color: #0E1015;
     --warning-color: #F75A58;
     --primary-color: #CECECE; 
     --secondary-color: #918F98; 
-    --accent-color: #6A5AF9; /* A vibrant accent for CTAs and highlights */
-    --card-background-color: #1A1D24; /* Slightly lighter than main bg for card */
-    --input-background-color: #12151B; /* Darker for inputs */
-    --border-color: #333842; /* Subtle borders */
-    --success-color: #4CAF50; /* For success states if needed */
+    --accent-color: #6A5AF9; 
+    --card-background-color: #1A1D24; 
+    --input-background-color: #12151B; 
+    --border-color: #333842; 
+    --success-color: #4CAF50; 
   
-    --font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Modern font stack */
+    --font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
   }
-  
-  /* Global page styles */
-  body { /* Apply to body or a root div if your app structure requires */
+
+  body { 
     margin: 0;
     font-family: var(--font-family-main);
     background-color: var(--background-color);
@@ -32,12 +30,11 @@
     box-sizing: border-box;
   }
   
-  /* Info Popup Styling */
   .info-popup {
     position: fixed;
     top: 20px;
     left: 50%;
-    transform: translate(-50%, -150%); /* Start off-screen */
+    transform: translate(-50%, -150%); 
     padding: 12px 25px;
     border-radius: 6px;
     font-size: 15px;
@@ -51,12 +48,12 @@
   }
   
   .info-popup.show {
-    transform: translate(-50%, 0); /* Slide in */
+    transform: translate(-50%, 0); 
     opacity: 1;
   }
   
   .info-popup.info {
-    background-color: var(--accent-color); /* Or a dedicated info color */
+    background-color: var(--accent-color); 
     color: #FFFFFF;
   }
   
@@ -64,20 +61,18 @@
     background-color: var(--warning-color);
     color: #FFFFFF;
   }
-  
-  /* Login Form Wrapper (the card) */
+
   .login-form-wrapper {
     background-color: var(--card-background-color);
-    padding: 30px 40px; /* More padding for desktop */
+    padding: 30px 40px;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     width: 100%;
-    max-width: 420px; /* Max width for the form card */
+    max-width: 420px; 
     text-align: center;
     border: 1px solid var(--border-color);
   }
-  
-  /* Login Header (Title, Subtitle, Logo) */
+
   .login-header {
     margin-bottom: 30px;
   }
@@ -99,12 +94,11 @@
     color: var(--secondary-color);
     margin: 0;
   }
-  
-  /* Form Elements */
+
   .login-form {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Space between form groups */
+    gap: 20px; 
   }
   
   .form-group {
@@ -142,23 +136,21 @@
   .form-group input[type="password"]:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color), 0.3); /* Use accent color for focus ring */
+    box-shadow: 0 0 0 3px rgba(var(--accent-color), 0.3); 
   }
   
   .form-group input.input-error {
     border-color: var(--warning-color);
-    box-shadow: 0 0 0 3px rgba(247, 90, 88, 0.3); /* Warning color focus ring */
+    box-shadow: 0 0 0 3px rgba(247, 90, 88, 0.3); 
   }
   
-  
-  /* Form Options (Remember me & Forgot Password) */
   .form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
-    margin-top: -5px; /* Pull up slightly */
-    margin-bottom: 5px; /* Add some space before button */
+    margin-top: -5px; 
+    margin-bottom: 5px; 
   }
   
   .auxiliary-link {
@@ -171,8 +163,7 @@
     color: var(--accent-color);
     text-decoration: underline;
   }
-  
-  /* Login Button */
+
   .login-button {
     background-color: var(--accent-color);
     color: #FFFFFF;
@@ -190,7 +181,7 @@
   }
   
   .login-button:hover:not(:disabled) {
-    background-color: #5848e3; /* Darker shade of accent */
+    background-color: #5848e3; 
   }
   
   .login-button:active:not(:disabled) {
@@ -202,8 +193,7 @@
     cursor: not-allowed;
     opacity: 0.7;
   }
-  
-  /* Spinner inside button */
+
   .spinner-container {
     display: flex;
     align-items: center;
@@ -211,9 +201,9 @@
   }
   
   .spinner {
-    border: 3px solid rgba(255, 255, 255, 0.3); /* Light border for spinner */
+    border: 3px solid rgba(255, 255, 255, 0.3); 
     border-radius: 50%;
-    border-top-color: #FFFFFF; /* White top border to show rotation */
+    border-top-color: #FFFFFF;
     width: 18px;
     height: 18px;
     animation: spin 0.8s linear infinite;
@@ -226,7 +216,6 @@
     }
   }
   
-  /* Alternative Action (Sign Up) */
   .alternative-action {
     margin-top: 30px;
     font-size: 15px;
@@ -241,11 +230,10 @@
   }
   
   .highlight-link:hover {
-    color: #5848e3; /* Darker accent */
+    color: #5848e3; 
     text-decoration: underline;
   }
-  
-  /* Footer */
+
   .login-footer {
       margin-top: 40px;
       font-size: 13px;
@@ -253,11 +241,10 @@
       text-align: center;
   }
   
-  /* Responsive Design */
   @media (max-width: 768px) {
     .login-form-wrapper {
-      padding: 25px 20px; /* Slightly less padding on mobile */
-      margin: 0 10px; /* Ensure some margin from screen edges */
+      padding: 25px 20px;
+      margin: 0 10px; 
     }
   
     .login-title {
@@ -270,21 +257,21 @@
   
     .form-group input[type="email"],
     .form-group input[type="password"] {
-      padding: 14px 15px; /* Slightly larger tap targets */
+      padding: 14px 15px; 
       font-size: 15px;
     }
   
     .login-button {
-      padding: 15px 20px; /* Larger tap target */
+      padding: 15px 20px; 
       font-size: 15px;
     }
   
     .form-options {
-      flex-direction: column; /* Stack options on smaller screens */
+      flex-direction: column; 
       align-items: flex-start;
       gap: 10px;
     }
-    .auxiliary-link { /* Ensure it's easily tappable */
+    .auxiliary-link { 
       padding-top: 5px; 
     }
   }

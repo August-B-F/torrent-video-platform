@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Checkbox from "../../buttons/Checkbox/Checkbox"; // Assuming path is correct
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate for programmatic navigation
+import Checkbox from "../../buttons/Checkbox/Checkbox";
+import { Link, useNavigate } from "react-router-dom"; 
 import "./LoginStyle.css";
 
 const Login = ({ setIsLoggedIn }) => {
@@ -9,11 +9,11 @@ const Login = ({ setIsLoggedIn }) => {
   const [rememberMe, setRememberMe] = useState(false);
 
   const [infoPopupMessage, setInfoPopupMessage] = useState("");
-  const [infoPopupTheme, setInfoPopupTheme] = useState("info"); // 'info' or 'warning'
+  const [infoPopupTheme, setInfoPopupTheme] = useState("info"); 
   const [showPopup, setShowPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate(); // For react-router v6 navigation
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     let timer;
@@ -34,7 +34,7 @@ const Login = ({ setIsLoggedIn }) => {
   const handleLogin = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    setShowPopup(false); // Hide any existing popups
+    setShowPopup(false); 
 
     if (email === "" || password === "") {
       displayPopup("Please fill in all fields.", "warning");
@@ -56,7 +56,7 @@ const Login = ({ setIsLoggedIn }) => {
     }
 
     try {
-      const response = await fetch("/login", { // Ensure your backend is running and accessible at this endpoint
+      const response = await fetch("/login", { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,14 +68,9 @@ const Login = ({ setIsLoggedIn }) => {
         const data = await response.json();
         localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
-        // Optional: show a success message before redirecting
-        // displayPopup("Login successful! Redirecting...", "info");
-        // setTimeout(() => {
-        //   navigate("/home"); // Use navigate for SPA navigation
-        // }, 1500); // Delay for success message visibility
-        navigate("/home"); // Immediate redirect after setting state
+
+        navigate("/home"); 
       } else {
-        // Try to parse error message from backend, otherwise show generic one
         let errorMessage = "Invalid email or password.";
         try {
             const errorData = await response.json();
@@ -83,7 +78,6 @@ const Login = ({ setIsLoggedIn }) => {
                 errorMessage = errorData.message;
             }
         } catch (e) {
-            // Failed to parse JSON, use default message or statusText
             if(response.statusText) errorMessage = response.statusText;
         }
         displayPopup(errorMessage, "warning");
@@ -105,8 +99,6 @@ const Login = ({ setIsLoggedIn }) => {
       )}
       <div className="login-form-wrapper">
         <div className="login-header">
-          {/* You can add a logo here if you have one */}
-          {/* <img src="/path/to/your/logo.svg" alt="App Logo" className="login-logo" /> */}
           <h1 className="login-title">Welcome Back!</h1>
           <p className="login-subtitle">Sign in to continue to your account.</p>
         </div>
@@ -168,7 +160,6 @@ const Login = ({ setIsLoggedIn }) => {
       </div>
        <footer className="login-footer">
         <p>&copy; {new Date().getFullYear()} Your Company. All rights reserved.</p>
-        {/* Add other footer links if needed, e.g., Privacy Policy, Terms of Service */}
       </footer>
     </div>
   );

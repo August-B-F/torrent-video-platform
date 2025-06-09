@@ -11,7 +11,7 @@ const ContextMenu = ({ x, y, options, onClose }) => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('contextmenu', handleClickOutside); // Close on another right click
+    document.addEventListener('contextmenu', handleClickOutside); 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('contextmenu', handleClickOutside);

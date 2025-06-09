@@ -1,16 +1,13 @@
-// src/components/contexts/WatchlistContext.jsx
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAddons } from './AddonContext';
 import { usePopup } from './PopupContext';
 
-// Expanded folder icon options
 export const FOLDER_ICON_OPTIONS = {
-  DEFAULT: 'default_folder_icon', // Keyword for the default SVG folder
-  MOVIE: 'default_movie_icon',   // Keyword for a movie SVG
-  SERIES: 'default_series_icon', // Keyword for a series SVG
-  IMAGE_URL: 'image_url',        // Type identifier for custom image URLs
-  EMOJI: 'emoji_type'            // Type identifier if storing emoji as 'type' and actual emoji in 'iconValue'
-  // Add more keywords for other SVGs or allow direct emoji/URL input
+  DEFAULT: 'default_folder_icon', 
+  MOVIE: 'default_movie_icon',   
+  SERIES: 'default_series_icon', 
+  IMAGE_URL: 'image_url',       
+  EMOJI: 'emoji_type'           
 };
 
 export const WatchlistContext = createContext({
@@ -19,15 +16,15 @@ export const WatchlistContext = createContext({
   addFolder: (name) => {},
   renameFolder: (folderId, newName) => {},
   deleteFolder: (folderId) => false,
-  updateFolderAppearance: (folderId, { iconType, iconValue, color }) => {}, // Updated signature
-  addItemToFolders: async (itemId, itemTypeHint, targetFolderIds) => {}, // Changed from addItemToFolder
+  updateFolderAppearance: (folderId, { iconType, iconValue, color }) => {}, 
+  addItemToFolders: async (itemId, itemTypeHint, targetFolderIds) => {}, 
   removeItemFromFolder: (folderId, itemIdToRemove) => {},
   reorderItemsInFolder: (folderId, reorderedItems) => {},
   reorderFolders: (reorderedFoldersArray) => {},
   itemDetailsCache: {},
   fetchItemDetails: async (itemId, itemTypeHint) => null,
   moveItemToFolder: (sourceFolderId, targetFolderId, itemId, itemType) => {},
-  isItemInFolder: (itemId, folderId) => false, // New helper
+  isItemInFolder: (itemId, folderId) => false, 
 });
 
 export const WatchlistProvider = ({ children }) => {
@@ -101,7 +98,7 @@ export const WatchlistProvider = ({ children }) => {
             setItemDetailsCache(prevCache => ({ ...prevCache, [itemId]: detailWithOtherType }));
             return detailWithOtherType;
           }
-        } catch (e2) { /* console.warn(...) */ }
+        } catch (e2) { }
       }
     }
     return { id: itemId, name: `Item ${itemId}`, poster: '', posterUrl: '', type: itemTypeHint || 'movie' };
@@ -185,7 +182,6 @@ export const WatchlistProvider = ({ children }) => {
     const folderIdsArray = Array.isArray(targetFolderIds) ? targetFolderIds : [targetFolderIds].filter(Boolean);
 
     if (folderIdsArray.length === 0) {
-        // This case might not be hit if the modal handles "no selection"
         showPopup("No lists selected to add the item to.", "info");
         return;
     }
@@ -196,7 +192,7 @@ export const WatchlistProvider = ({ children }) => {
     setFolders(prevFolders =>
       prevFolders.map(folder => {
         if (folderIdsArray.includes(folder.id)) {
-          if (!folder.items.some(i => i.id === itemId)) { // Only add if not already present
+          if (!folder.items.some(i => i.id === itemId)) {
             itemsActuallyAddedCount++;
             addedToFolderNames.push(folder.name);
             return { ...folder, items: [itemToAdd, ...folder.items] };
@@ -209,7 +205,6 @@ export const WatchlistProvider = ({ children }) => {
     if (itemsActuallyAddedCount > 0) {
         showPopup(`"${itemDetail.name}" added to ${addedToFolderNames.map(name => `"${name}"`).join(', ')}.`, "success");
     } else if (folderIdsArray.length > 0) {
-        // If targetFolderIds was not empty, but nothing was added, it means it was already in all of them.
         const allTargetFolders = folders.filter(f => folderIdsArray.includes(f.id)).map(f => f.name);
          showPopup(`"${itemDetail.name}" is already in ${allTargetFolders.map(name => `"${name}"`).join(', ')}.`, "info");
     }
@@ -235,7 +230,7 @@ export const WatchlistProvider = ({ children }) => {
   }, [folders]);
 
 
-  const reorderItemsInFolder = (folderId, reorderedItems) => { // reorderedItems is now the full array of items for that folder
+  const reorderItemsInFolder = (folderId, reorderedItems) => { 
     setFolders(prev =>
       prev.map(f => (f.id === folderId ? { ...f, items: reorderedItems.map(item => ({id: item.id, type: item.type})) } : f))
     );
@@ -284,14 +279,14 @@ export const WatchlistProvider = ({ children }) => {
       renameFolder,
       deleteFolder,
       updateFolderAppearance,
-      addItemToFolders, // Updated name
+      addItemToFolders,
       removeItemFromFolder,
       reorderItemsInFolder,
       reorderFolders,
       itemDetailsCache,
       fetchItemDetails,
       moveItemToFolder,
-      isItemInFolder, // Export new helper
+      isItemInFolder,
     }}>
       {children}
     </WatchlistContext.Provider>

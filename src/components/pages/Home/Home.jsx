@@ -1,11 +1,9 @@
-// src/components/pages/Home/Home.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
-import ContinueWatchingCard from './ContinueWatchingCard'; // Import the new card
+import ContinueWatchingCard from './ContinueWatchingCard'; 
 import './HomeStyle.css';
 
-// --- SVG Icons for Hero Carousel ---
 const ChevronLeftIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="15 18 9 12 15 6"></polyline>
@@ -22,7 +20,6 @@ const PlayIconHero = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
 );
 
-// --- HeroSection (No changes from previous version, kept for context) ---
 const HeroSection = ({ items, isLoading }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(null); 
@@ -123,7 +120,6 @@ const HeroSection = ({ items, isLoading }) => {
   );
 };
 
-// Standard MediaGridItem for other rows
 const MediaGridItem = ({ item }) => {
     if (!item) return null;
     const detailPath = `/${item.type || 'movie'}/${item.id}`;
@@ -145,8 +141,6 @@ const MediaGridItem = ({ item }) => {
     );
 };
 
-
-// --- ContentRow (can be kept as is or adjusted) ---
 const ContentRow = ({ title, items, isLoading, error, CardComponent = MediaGridItem }) => {
   if (isLoading) {
     return (
@@ -177,7 +171,7 @@ const ContentRow = ({ title, items, isLoading, error, CardComponent = MediaGridI
             </section>
           );
     }
-    return null; // Don't render empty rows other than "Continue Watching" with its specific message
+    return null; 
   }
 
   return (
@@ -192,8 +186,6 @@ const ContentRow = ({ title, items, isLoading, error, CardComponent = MediaGridI
   );
 };
 
-
-// --- Main Home Component ---
 const Home = () => {
   const { cinemeta, isLoadingCinemeta, cinemetaError } = useAddons();
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -202,16 +194,13 @@ const Home = () => {
   const [isLoadingContinueWatching, setIsLoadingContinueWatching] = useState(true);
   const [contentError, setContentError] = useState('');
 
-  // Base mock data for what items are being watched and their progress
   const mockWatchedItemsBase = useRef([
     { id: 'tt0816692', type: 'movie', progress: 0.75, mockDuration: 169 * 60 },
-    { id: 'tt1375666', type: 'movie', progress: 0.20, mockDuration: 148 * 60 }, // Inception
+    { id: 'tt1375666', type: 'movie', progress: 0.20, mockDuration: 148 * 60 }, 
     { id: 'tt0468569', type: 'movie', progress: 0.30, mockDuration: 152 * 60 },
   ]);
-  // If your Cinemeta uses different ID structures for episodes (e.g., imdb_id:season:episode), adjust idParts.
-
+ 
   useEffect(() => {
-    // Fetch Featured Items (Hero Section)
     if (cinemeta && cinemeta.manifest && cinemeta.manifest.catalogs) {
       const topMoviesCatalog = cinemeta.manifest.catalogs.find(c => c.type === 'movie' && c.id === 'top');
       if (topMoviesCatalog) {
@@ -245,7 +234,6 @@ const Home = () => {
   }, [cinemeta, isLoadingCinemeta]);
 
   useEffect(() => {
-    // Fetch Details for Continue Watching Items
     if (cinemeta && !isLoadingCinemeta && mockWatchedItemsBase.current.length > 0) {
       setIsLoadingContinueWatching(true);
       
@@ -254,8 +242,7 @@ const Home = () => {
           mockWatchedItemsBase.current.map(async (watchedItem) => {
             try {
               let metaId = watchedItem.id;
-              // For series episodes, the ID to fetch full series metadata might be different
-              // For Cinemeta, if id is 'ttxxxxxxx:s:e', the meta call should be for 'ttxxxxxxx'
+
               if (watchedItem.type === 'series' && watchedItem.id.includes(':')) {
                   metaId = watchedItem.id.split(':')[0];
               }
@@ -269,18 +256,17 @@ const Home = () => {
                 }
 
                 return {
-                  ...watchedItem, // Keep original ID for linking if it's an episode ID
+                  ...watchedItem, 
                   name: (res.meta.name || res.meta.title || 'Unknown Title') + episodeTitle,
                   poster: res.meta.poster,
-                  background: res.meta.background || res.meta.fanart || res.meta.poster, // Prioritize backdrop/fanart
+                  background: res.meta.background || res.meta.fanart || res.meta.poster,
                   logo: res.meta.logo,
-                  runtime: res.meta.runtime, // Actual runtime from meta for display if needed
-                  // mockDuration and progress come from your mockWatchedItemsBase
+                  runtime: res.meta.runtime, 
                 };
               }
             } catch (error) {
               console.error(`Failed to fetch metadata for ${watchedItem.type} ${watchedItem.id}:`, error);
-              // Return a basic object so the row doesn't break
+            
               return { 
                   ...watchedItem, 
                   name: `Item ${watchedItem.id}`, 
@@ -297,7 +283,7 @@ const Home = () => {
 
       fetchAllDetails();
     } else if (!cinemeta && !isLoadingCinemeta) {
-        setIsLoadingContinueWatching(false); // Cinemeta not available
+        setIsLoadingContinueWatching(false); 
     }
   }, [cinemeta, isLoadingCinemeta]);
 
@@ -309,7 +295,7 @@ const Home = () => {
   if (cinemetaError) {
     return <div className="page-container home-page"><div className="error-message global-error" style={{textAlign:'center', padding: '20px'}}>{cinemetaError} Please check Addon Settings.</div></div>;
   }
-   if (!cinemeta && !isLoadingCinemeta) { // Only show this if not already showing cinemetaError
+   if (!cinemeta && !isLoadingCinemeta) { 
        return <div className="page-container home-page"><div className="empty-message" style={{textAlign:'center', padding: '20px'}}>Cinemeta addon not loaded. Configure it in settings to see content.</div></div>;
    }
 

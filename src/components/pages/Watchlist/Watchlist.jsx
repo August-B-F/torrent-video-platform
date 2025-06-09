@@ -1,4 +1,3 @@
-// src/components/pages/Watchlist/Watchlist.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   DndContext,
@@ -17,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useNavigate, useParams, useLocation } from 'react-router-dom'; // Import hooks
+import { useNavigate, useParams, useLocation } from 'react-router-dom'; 
 
 import { useWatchlist, FOLDER_ICON_OPTIONS } from '../../contexts/WatchlistContext';
 import { usePopup } from '../../contexts/PopupContext';
@@ -28,7 +27,6 @@ import './WatchlistStyle.css';
 import './FolderCard.css';
 import './FolderContentView.css';
 
-// --- SVG Icons --- (Keep your existing SVG icon definitions)
 const MovieIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"></path></svg>;
 const SeriesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM7 15h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"></path></svg>;
 const DefaultFolderIconSvg = () => (
@@ -37,7 +35,6 @@ const DefaultFolderIconSvg = () => (
         <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
     </svg>
 );
-// --- End Icons ---
 
 const renderFolderListCardIcon = (iconType, iconValue) => {
     if (iconType === FOLDER_ICON_OPTIONS.IMAGE_URL && iconValue) {
@@ -75,7 +72,7 @@ const FolderCardInternal = ({ folder, onClick, onContextMenu }) => {
   const handleCardContextMenu = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onContextMenu(e, folder.id, 'folder'); // Specify targetType as 'folder'
+    onContextMenu(e, folder.id, 'folder'); 
   };
 
   return (
@@ -125,7 +122,7 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
-    const navigate = useNavigate(); // For the back button
+    const navigate = useNavigate(); 
 
     function handleDragStart(event) {
         const { active } = event;
@@ -145,8 +142,8 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
     }
 
     const handleBackButton = () => {
-      navigate('/watchlist'); // Navigate to the main watchlist view
-      onBack(); // Call the original onBack to reset state in parent if needed
+      navigate('/watchlist'); 
+      onBack(); 
     };
 
     if (!folder) {
@@ -167,7 +164,6 @@ const FolderContentViewInternal = ({ folder, itemsWithDetails, onBack, onReorder
     return (
         <div className="folder-content-view">
             <div className="folder-content-header">
-                {/* MODIFICATION: Use handleBackButton */}
                 <button onClick={handleBackButton} className="back-to-folders-btn">&larr; All Lists</button>
                 <h1 className="page-title folder-view-title">{folder.name}</h1>
                 <span>({itemsWithDetails.length} items)</span>
@@ -210,8 +206,8 @@ const Watchlist = () => {
   } = useWatchlist();
   const { showPopup } = usePopup();
   const navigate = useNavigate();
-  const { folderId: folderIdFromUrl } = useParams(); // Get folderId from URL
-  const location = useLocation(); // To check current path
+  const { folderId: folderIdFromUrl } = useParams(); 
+  const location = useLocation(); 
 
   const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -223,12 +219,10 @@ const Watchlist = () => {
   const [isLoadingFolderItemsDetails, setIsLoadingFolderItemsDetails] = useState(false);
   const [currentFolderItemsWithDetails, setCurrentFolderItemsWithDetails] = useState([]);
 
-  // Effect to sync selectedFolderId with URL
   useEffect(() => {
     if (folderIdFromUrl) {
       setSelectedFolderId(folderIdFromUrl);
     } else {
-      // If no folderId in URL (e.g., /watchlist), ensure no folder is selected
       setSelectedFolderId(null);
     }
   }, [folderIdFromUrl]);
@@ -290,7 +284,7 @@ const Watchlist = () => {
     closeContextMenu();
     if (deleteFolder(folderIdToDelete)) {
         if (selectedFolderId === folderIdToDelete) {
-          navigate('/watchlist'); // Go back to main watchlist view if current folder is deleted
+          navigate('/watchlist'); 
         }
     }
   };
@@ -311,17 +305,13 @@ const Watchlist = () => {
     }
   };
 
-  // MODIFICATION: Navigate when viewing folder contents
   const handleViewFolderContents = (folderIdToView) => {
-    navigate(`/watchlist/folder/${folderIdToView}`); // Update URL
-    // setSelectedFolderId will be updated by the useEffect watching folderIdFromUrl
+    navigate(`/watchlist/folder/${folderIdToView}`); 
     closeContextMenu();
   };
-  
-  // MODIFICATION: Navigate when going back
+
   const handleBackToFolders = () => {
       navigate('/watchlist');
-      // setSelectedFolderId will be updated by the useEffect watching folderIdFromUrl
   };
 
 
@@ -367,7 +357,7 @@ const Watchlist = () => {
   return (
     <div className="page-container watchlist-page">
       <main className="page-main-content">
-        {!selectedFolderId ? ( // Show all folders view
+        {!selectedFolderId ? ( 
           <>
             <div className="watchlist-header">
               <h1 className="page-title">My Lists</h1>
@@ -417,17 +407,17 @@ const Watchlist = () => {
             ) : null
             }
           </>
-        ) : selectedFolderDataForView ? ( // Show content of a single selected folder
+        ) : selectedFolderDataForView ? ( 
           <FolderContentViewInternal
             folder={selectedFolderDataForView}
             itemsWithDetails={currentFolderItemsWithDetails}
-            onBack={handleBackToFolders} // MODIFIED: Use new handler
+            onBack={handleBackToFolders} 
             onReorderItems={reorderItemsInFolder}
             onRemoveItemFromFolder={removeItemFromFolder}
             isLoadingItems={isLoadingFolderItemsDetails}
             onItemContextMenuInFolder={(e, itemId, currentFolderId) => handleContextMenu(e, itemId, 'item', currentFolderId)}
           />
-        ) : ( // Folder ID in URL but folder not found (or still loading folders)
+        ) : ( 
           <div className="page-container watchlist-page">
             <main className="page-main-content">
                 <div className="empty-message" style={{paddingTop: "50px"}}>

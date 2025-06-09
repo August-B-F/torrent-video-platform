@@ -1,22 +1,21 @@
-/* DiscoverStyle.css */
 .discover-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 15px; /* Gap between title and controls */
+  gap: 15px; 
 }
 
 .discover-header .page-title {
-  margin-bottom: 0; /* Reset margin if in flex container */
-  flex-grow: 1; /* Allow title to take space */
+  margin-bottom: 0;
+  flex-grow: 1;
 }
 
 .discover-controls {
   display: flex;
   align-items: center;
-  gap: 15px; /* Gap between primary type select and filter button */
+  gap: 15px; 
 }
 
 .main-type-select {
@@ -34,7 +33,7 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 12px 12px;
-  padding-right: 35px; /* Space for custom arrow */
+  padding-right: 35px;
 }
 .main-type-select:focus {
   outline: none;
@@ -74,41 +73,41 @@
   opacity: 0;
   transform: translateY(-15px) scaleY(0.95);
   overflow: hidden;
-  border-radius: 8px; /* Match panel border radius */
+  border-radius: 8px; 
 }
 .filters-panel-container.open {
-  max-height: 600px; /* Generous height */
+  max-height: 600px; 
   opacity: 1;
   transform: translateY(0) scaleY(1);
   overflow: visible;
-  border: 1px solid var(--border-color-soft, #2a2d34); /* Border on container when open */
+  border: 1px solid var(--border-color-soft, #2a2d34); 
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .filters-panel {
   background-color: var(--card-background-color, #1f2229);
-  padding: 20px 25px; /* Good padding */
+  padding: 20px 25px; 
   display: flex;
   flex-wrap: wrap;
-  gap: 20px 30px; /* Row and column gap */
-  align-items: flex-end; /* Align reset button nicely */
+  gap: 20px 30px; 
+  align-items: flex-end; 
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1 1 220px; /* Allow groups to grow and wrap, base size */
-  min-width: 180px; /* Minimum sensible width */
+  flex: 1 1 220px; 
+  min-width: 180px; 
 }
 
 .filter-group label {
   font-size: 0.8rem;
   color: var(--secondary-text-color, #918F98);
-  font-weight: 600; /* Bolder label */
+  font-weight: 600; 
   margin-left: 2px;
   text-transform: uppercase;
-  letter-spacing: 0.5px; /* Slight letter spacing */
+  letter-spacing: 0.5px; 
   opacity: 0.9;
 }
 
@@ -125,7 +124,7 @@
   background-repeat: no-repeat;
   background-position: right 15px center;
   background-size: 14px 14px;
-  padding-right: 40px; /* Space for custom arrow */
+  padding-right: 40px; 
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .filter-select:focus {
@@ -150,21 +149,20 @@
   font-weight: 500;
   transition: background-color 0.2s ease;
   height: fit-content;
-  margin-top: auto; /* if in a flex column with label, helps align if label causes diff height */
+  margin-top: auto; 
 }
 .filter-reset-btn:hover {
   background-color: var(--secondary-color-hover, #717480);
 }
 
-/* Media Grid - Adjust card size here */
 .media-grid.discover-grid {
-  display: grid; /* Ensure grid is explicitly set */
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* UPDATED for wider cards */
-  gap: 40px; /* Gap between cards */
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+  gap: 40px; 
 }
-/* Ensure child items of media-grid take up the cell space */
+
 .discover-grid > * {
-    min-width: 0; /* Fix for flex/grid item sizing issues sometimes */
+    min-width: 0; 
 }
 
 
@@ -179,17 +177,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%; /* Ensure it takes full width in grid scenarios */
-  grid-column: 1 / -1; /* Span all columns if direct child of grid */
+  width: 100%; 
+  grid-column: 1 / -1; 
 }
 .discover-content-error {
   color: var(--warning-color, #F75A58);
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .media-grid.discover-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for tablet */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
     gap: 15px;
   }
 }
@@ -197,38 +194,38 @@
 @media (max-width: 768px) {
   .discover-header {
     flex-direction: column;
-    align-items: stretch; /* Make controls full width */
+    align-items: stretch; 
   }
   .discover-controls {
-    flex-direction: column; /* Stack controls on mobile */
-    align-items: stretch; /* Make them full width */
+    flex-direction: column; 
+    align-items: stretch; 
     width: 100%;
   }
   .main-type-select, .filter-toggle-btn {
-    width: 100%; /* Full width for controls */
+    width: 100%; 
   }
   .filters-panel {
-    flex-direction: column; /* Stack filter groups vertically */
+    flex-direction: column; 
     align-items: stretch;
     gap: 20px;
   }
   .filter-group {
-    min-width: 100%; /* Each filter group takes full width */
+    min-width: 100%; 
   }
   .filter-reset-btn {
-    margin-top: 10px; /* Add some space if it's the last item */
-    align-self: stretch; /* Full width button on mobile filter panel */
+    margin-top: 10px; 
+    align-self: stretch; 
   }
 }
 
 @media (max-width: 480px) {
   .media-grid.discover-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller cards on very small screens if still too wide */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
   }
 }
 
-.icon-button { /* General style for icon buttons if not globally defined */
+.icon-button { 
     background: none;
     border: none;
     color: var(--secondary-text-color, #918F98);

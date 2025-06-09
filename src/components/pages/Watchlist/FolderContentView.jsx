@@ -17,9 +17,8 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import MediaGridItem from '../../common/MediaGridItem/MediaGridItem';
-import './FolderContentView.css'; // New CSS
+import './FolderContentView.css'; 
 
-// Sortable Item for FolderContentView
 const SortableFolderItem = ({ id, itemData, onRemove, onMove }) => {
   const {
     attributes,
@@ -37,7 +36,6 @@ const SortableFolderItem = ({ id, itemData, onRemove, onMove }) => {
     cursor: 'grab',
   };
 
-  // TODO: Implement onMove (dropdown to select another folder)
   return (
     <div ref={setNodeRef} style={style} className="folder-content-grid-item-wrapper" {...attributes} {...listeners}>
       <MediaGridItem item={itemData.details} />
@@ -55,7 +53,6 @@ const FolderContentView = ({ folder, itemsWithDetails, onBack, onReorderItems, o
 
   function handleDragStart(event) {
     const { active } = event;
-    // Find the full item data for the DragOverlay
     const draggedItemData = itemsWithDetails.find(i => i.id === active.id);
     setActiveDragItem({ ...active, data: { ...active.data.current, itemData: draggedItemData } });
   }
@@ -94,14 +91,14 @@ const FolderContentView = ({ folder, itemsWithDetails, onBack, onReorderItems, o
                   id={itemData.id}
                   itemData={itemData}
                   onRemove={() => onRemoveItem(folder.id, itemData.id)}
-                  onMove={() => onMoveItem(folder.id, itemData.id)} // TODO: Implement move UI
+                  onMove={() => onMoveItem(folder.id, itemData.id)} 
                 />
               ))}
             </div>
           </SortableContext>
           <DragOverlay>
             {activeDragItem && activeDragItem.data?.itemData?.details ? (
-              <div className="drag-overlay-item"> {/* Re-use class from WatchlistStyle.css if applicable */}
+              <div className="drag-overlay-item"> 
                 <MediaGridItem item={activeDragItem.data.itemData.details} />
               </div>
             ) : null}

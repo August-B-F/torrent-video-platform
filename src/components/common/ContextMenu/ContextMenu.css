@@ -1,11 +1,10 @@
-/* ContextMenu.css */
 .context-menu {
-    position: fixed; /* Use fixed to position relative to viewport */
+    position: fixed; 
     background-color: var(--bg-card, #1A1D24);
     border: 1px solid var(--border-color, #333842);
     border-radius: 6px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-    z-index: 1200; /* Above modal overlay */
+    z-index: 1200; 
     min-width: 150px;
   }
   

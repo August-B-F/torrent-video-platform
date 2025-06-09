@@ -3,9 +3,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import './FolderCard.css';
 
-// Assuming getItemDetails is a helper function you have or can create
-// e.g., const getItemDetails = (itemId) => allMediaItems.find(media => media.id === itemId);
-
 const FolderCard = ({ folder, getItemDetails, onClick, onContextMenu }) => {
   const {
     attributes,
@@ -26,7 +23,6 @@ const FolderCard = ({ folder, getItemDetails, onClick, onContextMenu }) => {
   const previewItems = folder.previewItemDetails || [];
 
   const handleCardClick = (e) => {
-    // Prevent click if it's part of a drag operation
     if (isDragging || (e.target.closest('button') || e.target.closest('input'))) {
         return;
     }
@@ -41,8 +37,8 @@ const FolderCard = ({ folder, getItemDetails, onClick, onContextMenu }) => {
       className="folder-card"
       onClick={handleCardClick}
       onContextMenu={(e) => onContextMenu(e, folder.id)}
-      {...attributes} // Spread attributes for dnd-kit sortable
-      {...listeners}  // Spread listeners for dnd-kit sortable (drag handle)
+      {...attributes} 
+      {...listeners}  
     >
       <div className="folder-card-preview">
         {previewItems.length > 0 ? (
@@ -52,7 +48,6 @@ const FolderCard = ({ folder, getItemDetails, onClick, onContextMenu }) => {
         ) : (
           <div className="empty-preview-placeholder">Folder is Empty</div>
         )}
-        {/* Fill remaining spots if less than 4 items, for consistent grid look */}
         {Array.from({ length: Math.max(0, 4 - previewItems.length) }).map((_, i) => (
             <div key={`placeholder-${i}`} className="preview-poster placeholder"></div>
         ))}

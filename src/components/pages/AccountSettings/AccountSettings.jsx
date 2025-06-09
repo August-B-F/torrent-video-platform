@@ -1,23 +1,18 @@
-// src/components/pages/AccountSettings/AccountSettings.jsx
 import React, { useState, useEffect } from 'react';
-import { usePopup } from '../../contexts/PopupContext'; // Assuming you'll use popups
+import { usePopup } from '../../contexts/PopupContext'; 
 import './AccountSettings.css';
 
-// --- SVG Icons (Optional, can be replaced with text or other icons) ---
 const UserCircleIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>;
 const MailIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>;
 const LockIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"></path></svg>;
 const TrashIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>;
-// --- End Icons ---
-
 
 const AccountSettings = () => {
-  const { showPopup } = usePopup(); // For feedback messages
+  const { showPopup } = usePopup();
 
-  // Mock user data - in a real app, this would come from context or an API
   const [userData, setUserData] = useState({
-    username: 'CurrentUser', // Placeholder
-    email: 'user@example.com', // Placeholder
+    username: 'CurrentUser',
+    email: 'user@example.com', 
   });
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -26,9 +21,8 @@ const AccountSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Effect to load user data if needed (e.g., from localStorage or API on mount)
   useEffect(() => {
-    // const storedEmail = localStorage.getItem('userEmail'); // Example
+    // const storedEmail = localStorage.getItem('userEmail'); 
     // if (storedEmail) {
     //   setUserData(prev => ({ ...prev, email: storedEmail }));
     // }
@@ -41,7 +35,7 @@ const AccountSettings = () => {
       newErrors.email = "Invalid email format.";
     }
 
-    if (newPassword || currentPassword) { // Validate password fields only if user intends to change
+    if (newPassword || currentPassword) { 
       if (!currentPassword) newErrors.currentPassword = "Current password is required to change password.";
       if (!newPassword) newErrors.newPassword = "New password is required.";
       else if (newPassword.length < 8) newErrors.newPassword = "New password must be at least 8 characters.";
@@ -68,7 +62,7 @@ const AccountSettings = () => {
     // Placeholder logic for updating user data
     const updatePayload = { email: userData.email };
     if (newPassword) {
-      updatePayload.password = newPassword; // Send new password
+      updatePayload.password = newPassword; 
     }
     console.log("Updating account with:", updatePayload);
 
@@ -82,9 +76,8 @@ const AccountSettings = () => {
     setConfirmNewPassword('');
     setErrors({});
 
-    // On error from API:
     // showPopup("Failed to update settings. Please try again.", "warning");
-    // setErrors({ api: "API error message here" });
+    // setErrors({ api: "API error message" });
   };
 
   const handleDeleteAccount = async () => {
@@ -96,10 +89,8 @@ const AccountSettings = () => {
       console.log("Account deletion requested for:", userData.email);
       setIsLoading(false);
       showPopup("Account deleted successfully. You will be logged out.", "info");
-      // Here you would typically call a logout function and redirect
-      // For now, just log:
+ 
       console.log("User would be logged out and redirected now.");
-      // Example: navigate('/logout');
     }
   };
 
@@ -111,7 +102,6 @@ const AccountSettings = () => {
       </p>
 
       <form onSubmit={handleSaveChanges} className="settings-form">
-        {/* Profile Section */}
         <div className="setting-item-group profile-details-group">
             <h3 className="setting-item-group-title">Profile</h3>
             <div className="form-group">
@@ -120,7 +110,7 @@ const AccountSettings = () => {
                 type="text"
                 id="username"
                 value={userData.username}
-                readOnly // Or handle change if username is editable
+                readOnly
                 className="form-input readonly-input" 
                 />
                  <p className="input-description">Username cannot be changed.</p>
@@ -139,7 +129,6 @@ const AccountSettings = () => {
             </div>
         </div>
 
-        {/* Password Change Section */}
         <div className="setting-item-group password-change-group">
           <h3 className="setting-item-group-title">Change Password</h3>
           <div className="form-group">
@@ -187,7 +176,6 @@ const AccountSettings = () => {
 
       </form>
       
-      {/* Delete Account Section */}
       <div className="setting-item-group delete-account-group">
         <h3 className="setting-item-group-title danger-zone-title">Danger Zone</h3>
         <div className="danger-zone-content">

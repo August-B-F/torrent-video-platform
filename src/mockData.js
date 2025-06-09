@@ -15,5 +15,4 @@ export const allMediaItems = [
     { id: 's4', title: 'Stranger Things', posterUrl: 'https://image.tmdb.org/t/p/w300/49WJfeN0moxb9IPfGn8AIqMGskD.jpg', year: 2016, type: 'Series'},
   ];
   
-  // Simulate user's watchlist with item IDs
   export const mockUserWatchlistIds = ['m1', 's1', 'm5', 's4', 'm8'];

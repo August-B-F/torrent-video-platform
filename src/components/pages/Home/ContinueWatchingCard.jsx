@@ -1,11 +1,9 @@
-// src/components/pages/Home/ContinueWatchingCard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './ContinueWatchingCard.css'; // Will use the new v3 styles
+import './ContinueWatchingCard.css'; 
 
-// Play icon - can be the same or updated if the new style demands
 const PlayIconV3 = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"> {/* Slightly larger */}
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"> 
     <path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path>
   </svg>
 );
@@ -51,7 +49,7 @@ const ContinueWatchingCard = ({ item }) => {
           className="cw-card-v3-background" 
           style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-          {/* Play button centered */}
+
           <div className="cw-card-v3-play-overlay">
             <PlayIconV3 />
           </div>

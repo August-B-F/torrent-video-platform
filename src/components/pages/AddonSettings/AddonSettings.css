@@ -1,8 +1,5 @@
-/* AddonSettings.css */
-/* Uses .page-container, .page-main-content, .page-title from shared styles if available */
-
 .addon-settings-page .page-main-content {
-    max-width: 800px; /* Narrower content for settings */
+    max-width: 800px;
   }
   
   .addon-form {
@@ -77,7 +74,7 @@
     transition: background-color 0.3s ease;
   }
   .addon-submit-button:hover {
-    background-color: #5848e3; /* Darker accent */
+    background-color: #5848e3; 
   }
   
   .added-addons-list .list-title {
@@ -95,7 +92,7 @@
   }
   
   .addon-item {
-    background-color: rgba(var(--card-rgb, 26, 29, 36), 0.7); /* Use card background with alpha */
+    background-color: rgba(var(--card-rgb, 26, 29, 36), 0.7); 
     padding: 12px 15px;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -114,7 +111,7 @@
       color: var(--secondary-text-color);
       margin-left: 10px;
       word-break: break-all;
-      flex-shrink: 1; /* Allow URL to shrink if name is long */
+      flex-shrink: 1; 
       margin-right: 10px;
   }
   
@@ -127,10 +124,10 @@
     font-size: 0.8rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    flex-shrink: 0; /* Prevent button from shrinking */
+    flex-shrink: 0; 
   }
   .remove-addon-button:hover {
-    background-color: #d84341; /* Darker warning */
+    background-color: #d84341; 
   }
   
   .cors-notice {
@@ -148,5 +145,3 @@
     border-radius: 3px;
     font-family: monospace;
   }
-
-  /* Assuming .empty-message is styled globally or in shared CSS */

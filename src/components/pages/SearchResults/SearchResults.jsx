@@ -1,11 +1,10 @@
-// src/components/pages/SearchResults/SearchResults.jsx
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
 import MediaGridItem from '../../common/MediaGridItem/MediaGridItem';
 import './SearchResultsStyle.css';
 
-const ITEMS_PER_PAGE = 20; // This is for EACH type (movie/series) when fetching both
+const ITEMS_PER_PAGE = 20; 
 
 const FilterIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -31,7 +30,6 @@ const scoreAndSortSearchResults = (results, query, selectedTypeFilter = '') => {
   const queryYear = queryYearMatch ? queryYearMatch[0] : null;
 
   const levenshteinDistance = (s1, s2) => {
-    // ... (levenshteinDistance function remains the same)
     if (!s1) return s2 ? s2.length : 0;
     if (!s2) return s1.length;
     const arr = [];
@@ -75,15 +73,11 @@ const scoreAndSortSearchResults = (results, query, selectedTypeFilter = '') => {
       const imdbRating = parseFloat(imdbRatingValue);
       if (!isNaN(imdbRating) && imdbRating > 0) score += imdbRating * 6;
       
-      // --- NEW: Add popularity to the score ---
-      // You might need to adjust the multiplier (e.g., 10) depending on the scale of 'popularity'
-      // and how much weight you want to give it compared to other factors.
       const popularity = parseFloat(item.popularity);
       if (!isNaN(popularity) && popularity > 0) {
-        score += popularity * 10; // Adjust multiplier as needed
+        score += popularity * 10; 
       }
-      // --- END NEW ---
-
+ 
       if (queryYear && (String(item.year) === queryYear || (item.releaseInfo && String(item.releaseInfo).startsWith(queryYear)))) score += 25;
       if (selectedTypeFilter && item.type === selectedTypeFilter) score += 15;
       if (item.poster) score += 3;
@@ -130,9 +124,9 @@ const SearchResults = () => {
 
     if (isNewQueryContext) {
       setIsLoading(true);
-      setAllResults([]); // Clear results for a new query or primary filter change
-      setCurrentPage(0);  // Reset page number
-      setHasMore(true);   // Assume there are more items initially
+      setAllResults([]);
+      setCurrentPage(0);  
+      setHasMore(true);  
     } else {
       setIsLoadingMore(true);
     }
@@ -168,9 +162,9 @@ const SearchResults = () => {
       } else if (selectedType === 'series') {
         newFetchedItems = seriesResults;
         itemsExpectedThisFetch = ITEMS_PER_PAGE;
-      } else { // 'all' types
+      } else { 
         newFetchedItems = interleaveArrays(movieResults, seriesResults);
-        itemsExpectedThisFetch = ITEMS_PER_PAGE * 2; // Expecting from both types
+        itemsExpectedThisFetch = ITEMS_PER_PAGE * 2; 
       }
       
       const uniqueNewItems = Array.from(new Map(newFetchedItems.filter(item => item && item.id).map(item => [item.id, item])).values());
@@ -191,7 +185,6 @@ const SearchResults = () => {
     }
   }, [query, cinemeta, selectedType]);
 
-  // Effect for handling new search query or addon changes
   useEffect(() => {
     window.scrollTo(0, 0);
     if (isLoadingCinemeta) { setSearchError("Initializing addon service..."); return; }
@@ -205,20 +198,17 @@ const SearchResults = () => {
         setSelectedType(''); setSelectedGenre(''); setSelectedYear('');
         return; 
     }
-    // New query, so reset panel filters and treat as new context for performSearch
     setSelectedGenre(''); 
     setSelectedYear('');
     performSearch(0, true);
-  }, [query, cinemeta, isLoadingCinemeta, globalAddonErr]); // performSearch removed
+  }, [query, cinemeta, isLoadingCinemeta, globalAddonErr]); 
 
-  // Effect for re-fetching when selectedType (primary filter) changes
   useEffect(() => {
     if (query && cinemeta && !isLoadingCinemeta && !globalAddonErr) {
-      performSearch(0, true); // Treat as a new query context
+      performSearch(0, true); 
     }
-  }, [selectedType]); // performSearch removed
+  }, [selectedType]); 
 
-  // Effect for secondary filtering (Genre/Year) and sorting
   useEffect(() => {
     let itemsToProcess = [...allResults];
     if (selectedGenre) {
@@ -237,7 +227,7 @@ const SearchResults = () => {
     setFilteredAndSortedResults(sortedItems);
   }, [selectedGenre, selectedYear, allResults, query, selectedType]);
 
-  const availableGenres = useMemo(() => { /* ... (no change) ... */
+  const availableGenres = useMemo(() => { 
     const genres = new Set();
     allResults.forEach(item => {
       if (item.genres && Array.isArray(item.genres)) { 
@@ -249,7 +239,7 @@ const SearchResults = () => {
     return Array.from(genres).sort();
    }, [allResults]);
 
-  const availableYears = useMemo(() => { /* ... (no change) ... */
+  const availableYears = useMemo(() => {
     const years = new Set();
     allResults.forEach(item => {
       let yearStr = null;
@@ -263,7 +253,7 @@ const SearchResults = () => {
   const handleResetPanelFilters = () => { setSelectedGenre(''); setSelectedYear(''); };
   const toggleFilterVisibility = () => setShowFilters(prev => !prev);
 
-  useEffect(() => { /* ... (no change to click outside logic) ... */
+  useEffect(() => { 
     const handleClickOutside = (event) => {
       if (filterPanelRef.current && !filterPanelRef.current.contains(event.target)) {
         const toggleButton = document.getElementById('search-filter-toggle-button');
@@ -274,19 +264,18 @@ const SearchResults = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showFilters]);
 
-  // Infinite scroll observer
   const lastItemElementRef = useCallback(node => {
-    if (isLoadingMore || isLoading) return; // Do not re-attach if already loading
+    if (isLoadingMore || isLoading) return; 
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         setCurrentPage(prevPage => {
           const nextPageToFetch = prevPage + 1;
-          performSearch(nextPageToFetch, false); // false for isNewQueryContext
+          performSearch(nextPageToFetch, false); 
           return nextPageToFetch; 
         });
       }
-    }, { rootMargin: "300px 0px" }); // Trigger 300px before element is visible
+    }, { rootMargin: "300px 0px" }); 
     if (node) observer.current.observe(node);
   }, [isLoadingMore, isLoading, hasMore, performSearch]);
 
@@ -337,15 +326,14 @@ const SearchResults = () => {
         {isLoading && !isLoadingMore && <div className="loading-message">Searching...</div>}
         {searchError && !isLoading && !isLoadingMore && filteredAndSortedResults.length === 0 && <div className="error-message search-results-error">{searchError}</div>}
         
-        {!isLoading && !searchError && filteredAndSortedResults.length === 0 && allResults.length > 0 && ( /* This means filters resulted in no items */
+        {!isLoading && !searchError && filteredAndSortedResults.length === 0 && allResults.length > 0 && ( 
           <div className="empty-message">No items match your current filters for "{query}".</div>
         )}
         
-        {/* Grid should always render if there are items, even if loading more */}
         {filteredAndSortedResults.length > 0 && (
           <div className="media-grid search-results-grid">
             {filteredAndSortedResults.map((item, index) => {
-               const key = item.id ? `${item.id}-${index}` : `search-result-${index}`; // Ensure unique key
+               const key = item.id ? `${item.id}-${index}` : `search-result-${index}`; 
                if (filteredAndSortedResults.length === index + 1 && hasMore && !isLoadingMore) {
                  return <div ref={lastItemElementRef} key={key}><MediaGridItem item={item} /></div>;
                }

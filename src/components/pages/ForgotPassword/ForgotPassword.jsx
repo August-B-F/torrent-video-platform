@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./ForgotPasswordStyle.css"; // We'll create this CSS file
+import "./ForgotPasswordStyle.css"; 
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [infoPopupMessage, setInfoPopupMessage] = useState("");
-  const [infoPopupTheme, setInfoPopupTheme] = useState("info"); // 'info' or 'warning'
+  const [infoPopupTheme, setInfoPopupTheme] = useState("info");
   const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
 
@@ -15,7 +15,7 @@ const ForgotPassword = () => {
     if (showPopup) {
       timer = setTimeout(() => {
         setShowPopup(false);
-      }, 5000); // Longer display for confirmation messages
+      }, 5000); 
     }
     return () => clearTimeout(timer);
   }, [showPopup]);
@@ -45,29 +45,14 @@ const ForgotPassword = () => {
     }
 
     try {
-      // Simulate API call
-      // Replace with your actual API endpoint:
-      // const response = await fetch("/api/forgot-password", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email }),
-      // });
-
-      // if (response.ok) {
-      //   displayPopup("If an account with this email exists, a password reset link has been sent.", "info");
-      // } else {
-      //   // Even on error, for security reasons, you might show a generic success message
-      //   // Or handle specific errors if your API provides them and it's safe to do so
-      //   displayPopup("If an account with this email exists, a password reset link has been sent. Check your spam folder too.", "info");
-      // }
-
-      // --- SIMULATED RESPONSE ---
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+      // API call
+  
+      // SIMULATED RESPONSE 
+      await new Promise(resolve => setTimeout(resolve, 1500));
       console.log("Password reset requested for:", email);
       displayPopup("If an account with that email exists, we've sent instructions to reset your password. Please check your inbox (and spam folder).", "info");
-      // --- END SIMULATION ---
 
-      setEmail(""); // Clear field after submission
+      setEmail(""); 
     } catch (error) {
       console.error("Forgot password request failed:", error);
       displayPopup("An unexpected error occurred. Please try again.", "warning");

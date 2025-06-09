@@ -1,9 +1,8 @@
-/* src/components/pages/AccountSettings/AccountSettings.css */
 .account-settings-content {
-    padding: 0px 10px; /* Consistent with AppearanceSettings */
+    padding: 0px 10px;
   }
   
-  .main-settings-title { /* Reused from AppearanceSettings if needed */
+  .main-settings-title { 
     font-size: 1.8rem;
     color: var(--text-primary);
     margin-bottom: 15px;
@@ -11,7 +10,7 @@
     border-bottom: 1px solid var(--border-color);
   }
   
-  .settings-section-description { /* Reused */
+  .settings-section-description { 
     font-size: 0.95rem;
     color: var(--text-secondary);
     margin-bottom: 25px;
@@ -21,11 +20,11 @@
   .settings-form {
     display: flex;
     flex-direction: column;
-    gap: 25px; /* Space between form groups */
+    gap: 25px; 
   }
   
   .setting-item-group {
-    margin-bottom: 20px; /* Reduced from 40px for a tighter layout */
+    margin-bottom: 20px; 
     padding: 25px;
     background-color: var(--card-background-color);
     border-radius: 8px;
@@ -34,21 +33,21 @@
   }
   
   .setting-item-group-title {
-    font-size: 1.3rem; /* Slightly larger for group titles */
+    font-size: 1.3rem; 
     font-weight: 500;
     color: var(--text-primary);
     margin-top: 0;
     margin-bottom: 25px;
-    padding-bottom: 10px; /* Add padding for the border */
-    border-bottom: 1px solid var(--border-color); /* Separator line */
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
   }
   
   .form-group {
-    margin-bottom: 20px; /* Space between individual form elements */
+    margin-bottom: 20px; 
   }
   
   .form-group label {
-    display: flex; /* Align icon with label text */
+    display: flex;
     align-items: center;
     font-size: 0.9rem;
     font-weight: 500;
@@ -103,8 +102,8 @@
   
   .settings-actions {
     display: flex;
-    justify-content: flex-end; /* Align button to the right */
-    margin-top: 10px; /* Space above the save button */
+    justify-content: flex-end; 
+    margin-top: 10px; 
   }
   
   .settings-button {
@@ -115,7 +114,7 @@
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease, opacity 0.2s ease;
-    display: inline-flex; /* For icon alignment */
+    display: inline-flex; 
     align-items: center;
     gap: 8px;
   }
@@ -133,7 +132,7 @@
     color: #FFFFFF;
   }
   .settings-button.danger:hover:not(:disabled) {
-    background-color: #d84341; /* Darker warning */
+    background-color: #d84341;
   }
   
   .settings-button:disabled {
@@ -152,7 +151,6 @@
       line-height: 1.5;
   }
   
-  /* Responsive */
   @media (max-width: 768px) {
     .account-settings-content {
       padding: 0 5px;
@@ -170,7 +168,7 @@
     .settings-button {
       padding: 10px 20px;
       font-size: 0.95rem;
-      width: 100%; /* Full width buttons on mobile */
+      width: 100%; 
       justify-content: center;
     }
     .settings-actions {

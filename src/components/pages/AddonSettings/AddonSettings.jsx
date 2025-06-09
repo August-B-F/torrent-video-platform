@@ -1,14 +1,11 @@
-// src/components/pages/AddonSettings/AddonSettings.jsx
 import React, { useState, useEffect } from 'react';
-// REMINDER: You are using AddonClient from 'stremio-addon-client' directly here,
-// but also through AddonContext. This is fine, but ensure consistency.
 import AddonClient from 'stremio-addon-client';
 import './AddonSettings.css';
-import { useAddons } from '../../contexts/AddonContext'; // For refreshCinemeta
+import { useAddons } from '../../contexts/AddonContext'; 
 
 const AddonSettings = () => {
   const [addonUrlInput, setAddonUrlInput] = useState('');
-  const [addonUrls, setAddonUrls] = useState([]); // This will now store { id, url, name, manifest }
+  const [addonUrls, setAddonUrls] = useState([]); 
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +16,6 @@ const AddonSettings = () => {
       const storedAddonsRaw = localStorage.getItem('stremioUserAddons');
       if (storedAddonsRaw) {
         const storedAddons = JSON.parse(storedAddonsRaw);
-        // Ensure all addons in localStorage have the manifest property
         const validatedAddons = storedAddons.map(addon => ({
             ...addon,
             manifest: addon.manifest || { name: `Addon at ${addon.url}`, id: `custom-${Date.now()}` } // Provide a fallback manifest shell
@@ -28,7 +24,7 @@ const AddonSettings = () => {
       }
     } catch (e) {
         console.error("Error loading addons from localStorage:", e);
-        setAddonUrls([]); // Fallback to empty if localStorage is corrupted
+        setAddonUrls([]); 
     }
   }, []);
 
@@ -62,16 +58,15 @@ const AddonSettings = () => {
 
     setIsLoading(true);
     try {
-      // Always fetch fresh manifest details using detectFromURL
       const detectionResult = await AddonClient.detectFromURL(trimmedUrl);
       let detectedAddonInterface;
 
       if (detectionResult && detectionResult.addon) {
         detectedAddonInterface = detectionResult.addon;
       } else if (detectionResult && Array.isArray(detectionResult.addons) && detectionResult.addons.length > 0) {
-        detectedAddonInterface = detectionResult.addons[0]; // Use the first if it's a collection
+        detectedAddonInterface = detectionResult.addons[0];
       } else if (detectionResult && detectionResult.manifest) {
-        detectedAddonInterface = detectionResult; // It might be an AddonInterface directly
+        detectedAddonInterface = detectionResult; 
       } else {
         throw new Error('Could not detect a valid addon structure from the URL.');
       }
@@ -82,25 +77,23 @@ const AddonSettings = () => {
       
       const { manifest } = detectedAddonInterface;
       const addonName = manifest.name || `Addon at ${new URL(trimmedUrl).hostname}`;
-      // Use manifest.id if available, otherwise generate one. Crucially, ensure it's unique if possible.
+      // Use manifest.id if available, otherwise generate one. 
       const addonId = manifest.id || `custom-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-      // Check if an addon with this ID (from manifest) already exists
       if (manifest.id && addonUrls.find(addon => addon.id === manifest.id)) {
           setError(`An addon with ID "${manifest.id}" (${addonName}) is already listed. You might want to remove the existing one first if this is an update.`);
           setIsLoading(false);
           return;
       }
 
-      // Log the fetched manifest to ensure it's complete *at the time of adding*
       console.log("AddonSettings: Fetched manifest for new addon:", JSON.stringify(manifest, null, 2));
 
 
       const newAddonEntry = { 
-        id: addonId, // Use the ID from the manifest
+        id: addonId,
         url: trimmedUrl, 
         name: addonName, 
-        manifest: manifest // Store the fetched manifest
+        manifest: manifest 
       };
       
       const updatedAddons = [...addonUrls, newAddonEntry];
@@ -159,7 +152,7 @@ const AddonSettings = () => {
           {addonUrls.length > 0 ? (
             <ul>
               {addonUrls.map((addon) => (
-                <li key={addon.id || addon.url} className="addon-item"> {/* Fallback key to URL if ID is somehow missing */}
+                <li key={addon.id || addon.url} className="addon-item"> 
                   <div>
                     <span className="addon-name">{addon.name || 'Unnamed Addon'}</span>
                     <span className="addon-url-display"> (ID: {addon.id || 'N/A'}, URL: {addon.url})</span>

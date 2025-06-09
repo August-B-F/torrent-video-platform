@@ -1,4 +1,3 @@
-/* MediaPlayerPage.css */
 .media-player-page {
     width: 100vw;
     height: 100vh;
@@ -8,17 +7,16 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden; /* Important for fullscreen and control containment */
+    overflow: hidden; 
   }
   
   .media-player-page.fullscreen {
-    /* Styles when in native fullscreen, if needed, though browser usually handles it */
   }
   
   .main-video-element {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Or 'cover' if you prefer */
+    object-fit: contain; 
     display: block;
   }
   
@@ -112,7 +110,7 @@
   
   .player-title-bar {
       position: absolute;
-      top: -45px; /* Adjust based on control bar height + desired spacing */
+      top: -45px; 
       left: 20px;
       right: 20px;
       padding: 8px 0;
@@ -138,10 +136,10 @@
       color: #ccc;
   }
   .transcoding-status-badge.transcoding {
-      color: var(--warning-color, #f7dc6f); /* Light yellow for transcoding */
+      color: var(--warning-color, #f7dc6f); 
   }
   .transcoding-status-badge.ready {
-      color: var(--success-color, #7bed9f); /* Light green for ready */
+      color: var(--success-color, #7bed9f); 
   }
   
   
@@ -157,9 +155,9 @@
     appearance: none;
     width: 100%;
     height: 6px;
-    background: transparent; /* Handled by divs below */
+    background: transparent; 
     outline: none;
-    opacity: 0; /* Make the default slider invisible */
+    opacity: 0; 
     position: relative;
     z-index: 2;
     cursor: pointer;
@@ -173,7 +171,7 @@
     transform: translateY(-50%);
     background-color: rgba(255, 255, 255, 0.25);
     border-radius: 3px;
-    pointer-events: none; /* So clicks go to the input range */
+    pointer-events: none; 
     overflow: hidden;
   }
   .progress-bar-buffered, .progress-bar-played {
@@ -192,7 +190,7 @@
     background-color: var(--accent-color, #6A5AF9);
     z-index: 1;
   }
-  /* Thumb styling (can be tricky across browsers, might need pseudo-elements or separate div) */
+
   .timeline-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -201,7 +199,7 @@
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
-    margin-top: -4px; /* Center thumb on track */
+    margin-top: -4px; 
     box-shadow: 0 0 2px rgba(0,0,0,0.5);
   }
   .timeline-slider::-moz-range-thumb {
@@ -249,7 +247,7 @@
       cursor: not-allowed;
   }
   .control-btn svg {
-      pointer-events: none; /* Clicks should be on the button */
+      pointer-events: none; 
   }
   
   .volume-control {
@@ -297,7 +295,7 @@
   }
   .settings-menu {
     position: absolute;
-    bottom: 120%; /* Position above the button */
+    bottom: 120%; 
     right: 0;
     background-color: rgba(20, 20, 20, 0.95);
     border-radius: 6px;
@@ -332,8 +330,7 @@
     color: var(--accent-color, #6A5AF9);
     font-weight: 500;
   }
-  
-  /* Responsive */
+
   @media (max-width: 768px) {
     .player-controls-container {
       padding: 8px 12px 10px 12px;
@@ -348,6 +345,6 @@
       }
   }
   @media (max-width: 480px) {
-    .volume-control { display: none; } /* Hide volume slider on smallest screens, rely on mute */
+    .volume-control { display: none; }
     .settings-menu { width: 130px; }
   }

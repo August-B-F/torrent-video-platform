@@ -1,10 +1,7 @@
-// src/components/common/MediaPlayerModal/MediaPlayerModal.jsx
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import './MediaPlayerModal.css';
 
-// ... (Icon components remain the same) ...
 const PlayArrowIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>;
 const PauseIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>;
 const VolumeUpIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>;
@@ -14,7 +11,6 @@ const FullscreenExitIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><p
 
 
 const formatTime = (seconds) => {
-  // ... (formatTime function remains the same)
   if (isNaN(seconds) || seconds === Infinity || seconds === null) {
     return '00:00';
   }
@@ -29,10 +25,9 @@ const formatTime = (seconds) => {
 };
 
 const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'direct' }) => {
-  // ... (other state and refs remain the same)
-  const [playing, setPlaying] = useState(false); // Will be set to true for autoplay
+  const [playing, setPlaying] = useState(false); 
   const [volume, setVolume] = useState(0.8);
-  const [muted, setMuted] = useState(false); // MODIFICATION: Start trailers muted for better autoplay probability
+  const [muted, setMuted] = useState(false); 
   const [played, setPlayed] = useState(0);
   const [seeking, setSeeking] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -60,8 +55,8 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
       setDuration(0);
       setRetryCount(0);
       setIsHlsReady(false);
-      setPlaying(true); // MODIFICATION: Set to true for autoplay
-      // setMuted(false); // Consider starting muted for better autoplay success
+      setPlaying(true); 
+
     } else if (!isOpen) {
       setPlaying(false);
       if (hlsRef.current) {
@@ -74,7 +69,6 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
     }
   }, [isOpen, trailerUrl]);
 
-  // ... (HLS.js setup useEffect remains the same) ...
   useEffect(() => {
     if (!isOpen || !trailerUrl || !isHlsStream || !videoRef.current) return;
 
@@ -86,7 +80,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
         if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = trailerUrl;
           setIsHlsReady(true);
-          if(playing) video.play().catch(e => console.warn("Native HLS autoplay failed", e)); // Attempt autoplay
+          if(playing) video.play().catch(e => console.warn("Native HLS autoplay failed", e)); 
           return;
         }
         const Hls = (await import('hls.js')).default;
@@ -96,7 +90,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
         }
         hls = new Hls({
           debug: false,
-          // ... other HLS config ...
+    
         });
         hlsRef.current = hls;
         hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(trailerUrl));
@@ -106,7 +100,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
           if (data.levels && data.levels[0]?.details?.totalduration) {
             setDuration(data.levels[0].details.totalduration);
           }
-          if(playing && videoRef.current) videoRef.current.play().catch(e => console.warn("HLS.js autoplay failed", e)); // Attempt autoplay
+          if(playing && videoRef.current) videoRef.current.play().catch(e => console.warn("HLS.js autoplay failed", e)); 
         });
         hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
             if (data.details.totalduration && data.details.totalduration !== Infinity) {
@@ -114,7 +108,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
             }
         });
         hls.on(Hls.Events.ERROR, (event, data) => {
-          // ... (HLS error handling)
+       
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
@@ -135,10 +129,9 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
     };
     setupHls();
     return () => { if (hls) hls.destroy(); };
-  }, [isOpen, trailerUrl, isHlsStream, retryCount, playing]); // Added playing to dependencies
+  }, [isOpen, trailerUrl, isHlsStream, retryCount, playing]); 
 
-  // ... (playback control handlers, fullscreen, auto-hide controls, escape key handling remain the same) ...
-  const handlePlayPause = useCallback(() => { //
+  const handlePlayPause = useCallback(() => { 
     if (isHlsStream && videoRef.current) {
         if (playing) videoRef.current.pause();
         else videoRef.current.play().catch(err => setError('Playback failed.'));
@@ -146,23 +139,23 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
     setPlaying(!playing);
   }, [playing, isHlsStream, error]);
 
-  const handleVolumeChange = useCallback((e) => {  //
+  const handleVolumeChange = useCallback((e) => {  
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
     setMuted(newVolume === 0);
     if (videoRef.current && isHlsStream) videoRef.current.volume = newVolume;
   }, [isHlsStream]);
 
-  const handleToggleMute = useCallback(() => { //
+  const handleToggleMute = useCallback(() => { 
     const newMuted = !muted;
     setMuted(newMuted);
     if (videoRef.current && isHlsStream) videoRef.current.muted = newMuted;
     if (newMuted && volume === 0) setVolume(0.5);
   }, [muted, volume, isHlsStream]);
   
-  const handleSeekMouseDown = useCallback(() => {!error && setSeeking(true)}, [error]); //
-  const handleSeekChange = useCallback((e) => {!error && setPlayed(parseFloat(e.target.value))}, [error]); //
-  const handleSeekMouseUp = useCallback((e) => { //
+  const handleSeekMouseDown = useCallback(() => {!error && setSeeking(true)}, [error]); 
+  const handleSeekChange = useCallback((e) => {!error && setPlayed(parseFloat(e.target.value))}, [error]); 
+  const handleSeekMouseUp = useCallback((e) => { 
     if (error) return;
     setSeeking(false);
     const seekTo = parseFloat(e.target.value);
@@ -173,10 +166,10 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
     }
    }, [isHlsStream, duration, error]);
 
-  const handleProgress = useCallback((state) => { //
+  const handleProgress = useCallback((state) => { 
     if (!seeking && !error) {
       setPlayed(state.played);
-      // For non-HLS, ReactPlayer provides duration
+   
        if (!isHlsStream && playerRef.current) {
         const playerDuration = playerRef.current.getDuration();
         if (playerDuration && playerDuration > 0) setDuration(playerDuration);
@@ -184,19 +177,19 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
     }
   }, [seeking, error, isHlsStream]);
 
-  const handleTimeUpdate = useCallback(() => { //
+  const handleTimeUpdate = useCallback(() => { 
     if (!seeking && videoRef.current && duration > 0 && !error) {
       const currentTime = videoRef.current.currentTime;
       setPlayed(currentTime / duration);
     }
   }, [seeking, duration, error]);
   
-  const handleDurationChange = useCallback(() => { //
+  const handleDurationChange = useCallback(() => { 
     if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration) && !error) {
       setDuration(videoRef.current.duration);
     }
   }, [error]);
-  const handleOnReady = useCallback(() => { // For ReactPlayer (non-HLS)
+  const handleOnReady = useCallback(() => {
     setIsLoading(false);
     if (playerRef.current) {
         const playerDuration = playerRef.current.getDuration();
@@ -207,39 +200,39 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
   }, []);
 
 
-  const handleFullscreenToggle = useCallback(() => {  //
+  const handleFullscreenToggle = useCallback(() => {  
       const elem = playerContainerRef.current;
         if (!elem) return;
         if (!document.fullscreenElement) elem.requestFullscreen?.().catch(err => console.warn("Fs err:",err));
         else document.exitFullscreen?.();
   }, []);
   
-  useEffect(() => {  //
+  useEffect(() => {  
     const cb = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', cb);
     return () => document.removeEventListener('fullscreenchange', cb);
    }, []);
 
-  const debouncedHideControls = useCallback(() => {  //
+  const debouncedHideControls = useCallback(() => {  
     if(controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     controlsTimeoutRef.current = setTimeout(() => {
         if(playing && !seeking) setShowControls(false);
     }, 3000);
   }, [playing, seeking]);
 
-  const handleMouseMove = useCallback(() => { //
+  const handleMouseMove = useCallback(() => { 
       setShowControls(true);
       debouncedHideControls();
   }, [debouncedHideControls]);
 
-  useEffect(() => { //
+  useEffect(() => { 
     if (isOpen) {
         setShowControls(true);
         debouncedHideControls();
     }
   }, [isOpen, debouncedHideControls]);
 
-  useEffect(() => { //
+  useEffect(() => { 
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         if (document.fullscreenElement) handleFullscreenToggle();
@@ -286,17 +279,12 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
               <p>{error}</p>
               <button onClick={() => {
                 setError(null);
-                setRetryCount(0); // Reset retry count
+                setRetryCount(0); 
                 setIsLoading(true);
-                // For HLS, the HLS.js setup useEffect will re-trigger based on retryCount or if trailerUrl changes.
-                // For direct ReactPlayer, we might need to force a re-render or re-init.
-                // For now, simply resetting error and loading should be enough for HLS.js to retry via its own logic or the retryCount effect.
+            
                 if (isHlsStream && hlsRef.current && trailerUrl) {
-                     hlsRef.current.loadSource(trailerUrl); // Explicitly try to reload the source
+                     hlsRef.current.loadSource(trailerUrl); 
                 } else if (!isHlsStream && playerRef.current) {
-                    // For non-HLS, ReactPlayer might need a key change or similar to force reload.
-                    // Or, you could temporarily set trailerUrl to null then back.
-                    // For simplicity, we'll rely on ReactPlayer's internal error handling or a manual close/reopen.
                 }
               }} className="retry-button">
                 Retry
@@ -307,21 +295,21 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
           {isHlsStream ? (
             <video
               ref={videoRef}
-              className="react-player" // Re-use class for consistent sizing
+              className="react-player"
               style={{ width: '100%', height: '100%' }}
               playsInline
-              autoPlay={playing} // MODIFICATION: Add autoPlay based on playing state
-              muted={muted}    // MODIFICATION: Start muted
+              autoPlay={playing} 
+              muted={muted}   
               onClick={handlePlayPause}
               onTimeUpdate={handleTimeUpdate}
               onDurationChange={handleDurationChange}
-              onLoadedData={() => { // More reliable than onLoadedMetadata for duration
+              onLoadedData={() => { 
                   setIsLoading(false);
                   if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration)) {
                     setDuration(videoRef.current.duration);
                   }
               }}
-              onLoadedMetadata={handleDurationChange} // Keep for safety
+              onLoadedMetadata={handleDurationChange} 
               onPlay={() => { setPlaying(true); setIsLoading(false); }}
               onPause={() => setPlaying(false)}
               onWaiting={() => setIsLoading(true)}
@@ -337,15 +325,14 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
               ref={playerRef}
               url={trailerUrl}
               className="react-player"
-              playing={playing} // MODIFICATION: Autoplay controlled by this state
-              controls={false} // We use custom controls
+              playing={playing} 
+              controls={false}
               volume={volume}
-              muted={muted} // MODIFICATION: Start muted
+              muted={muted} 
               onProgress={handleProgress}
-              // onDuration will be called by ReactPlayer for non-HLS
               width="100%"
               height="100%"
-              onReady={handleOnReady} // Use onReady for non-HLS
+              onReady={handleOnReady}
               onBuffer={() => setIsLoading(true)}
               onBufferEnd={() => setIsLoading(false)}
               onError={(e) => {
@@ -355,12 +342,12 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
               config={{
                 youtube: {
                   playerVars: {
-                    autoplay: 1, // Try to force YouTube autoplay
-                    controls: 0, // Hide native YouTube controls
-                    rel: 0, // Don't show related videos from other channels at the end
-                    showinfo: 0, // Deprecated, but won't hurt
-                    iv_load_policy: 3, // Don't show video annotations
-                    modestbranding: 1, // Minimal YouTube branding
+                    autoplay: 1,
+                    controls: 0, 
+                    rel: 0, 
+                    showinfo: 0,
+                    iv_load_policy: 3,
+                    modestbranding: 1,
                   },
                 },
                 file: {
@@ -372,7 +359,6 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
         </div>
 
         <div className="media-player-controls">
-           {/* Controls remain largely the same, ensure `playing` state toggles icons correctly */}
           <button onClick={handlePlayPause} className="control-button" disabled={isLoading || (!isHlsReady && isHlsStream) || !!error}>
             {playing ? <PauseIcon /> : <PlayArrowIcon />}
           </button>
@@ -380,7 +366,7 @@ const MediaPlayerModal = ({ isOpen, onClose, trailerUrl, title, streamType = 'di
           <input
             type="range"
             min={0}
-            max={0.999999} // Avoid issues with exactly 1
+            max={0.999999} 
             step="any"
             value={played}
             onMouseDown={handleSeekMouseDown}

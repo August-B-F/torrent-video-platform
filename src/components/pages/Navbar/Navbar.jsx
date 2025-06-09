@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
-// --- SVG Icons (Ensure these are defined or imported correctly) ---
 const SearchIcon = ({ strokeWidth = 2 }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"></circle>
@@ -48,8 +47,8 @@ const Navbar = ({ setIsLoggedIn, setIsSearching, selectedIcon, setSelectedIcon }
 
   const handleNavLinkClick = (iconName, path) => {
     setSelectedIcon(iconName);
-    setIsSearching(false); // Ensure global search mode is off
-    setIsSearchInputActive(false); // Collapse search input
+    setIsSearching(false); 
+    setIsSearchInputActive(false); 
     setSearchQuery("");
     navigate(path);
     setIsMobileMenuOpen(false);
@@ -59,27 +58,22 @@ const Navbar = ({ setIsLoggedIn, setIsSearching, selectedIcon, setSelectedIcon }
     setIsSearchInputActive(prev => !prev);
   };
 
-  // Focus input when it becomes active
   useEffect(() => {
     if (isSearchInputActive && searchInputRef.current) {
       searchInputRef.current.focus();
-      setIsSearching(true); // Notify App.js that search UI is active
-      setSelectedIcon('search'); // Visually indicate search icon might be "active"
+      setIsSearching(true);
+      setSelectedIcon('search'); 
     } else if (!isSearchInputActive) {
-        // Only turn off global searching if not triggered by submitting a search
-        // This part might need refinement based on desired UX when search closes
     }
   }, [isSearchInputActive, setIsSearching, setSelectedIcon]);
   
   const handleSearchSubmit = (event) => {
-    event.preventDefault(); // Prevent form submission if it's in a form
+    event.preventDefault();
     if (searchQuery.trim() === "") return;
 
-    setIsSearching(true); // Ensure global search mode is on
-    setSelectedIcon('search'); // Keep search icon "active"
-    // isSearchInputActive will remain true, input stays visible with the query
+    setIsSearching(true); 
+    setSelectedIcon('search'); 
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    // Optional: Keep mobile menu closed if search submitted from there
     setIsMobileMenuOpen(false); 
   };
 
@@ -93,8 +87,7 @@ const Navbar = ({ setIsLoggedIn, setIsSearching, selectedIcon, setSelectedIcon }
     } else if (event.key === 'Escape') {
       setIsSearchInputActive(false);
       setSearchQuery("");
-      setIsSearching(false); // Turn off global search mode
-      // Revert to home if escape is pressed and current icon is search due to active input
+      setIsSearching(false); 
       if (selectedIcon === 'search') setSelectedIcon('home');
     }
   };
@@ -107,22 +100,12 @@ const Navbar = ({ setIsLoggedIn, setIsSearching, selectedIcon, setSelectedIcon }
     navigate('/login');
   };
 
-  // Click outside handlers
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileDropdownOpen(false);
       }
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target) && isSearchInputActive) {
-        // Only close if not submitting, which is hard to detect here.
-        // A simpler UX might be to not close on outside click or use a dedicated close button.
-        // For now, let's keep it simple: if search is active and click outside, close it.
-        // However, this could be annoying if user clicks something else intentionally.
-        // A more robust solution might involve checking if the click was on a search result item etc.
-        // Keeping it simple for now:
-        // setIsSearchInputActive(false);
-        // setIsSearching(false);
-        // if (selectedIcon === 'search') setSelectedIcon('home');
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -199,14 +182,13 @@ const Navbar = ({ setIsLoggedIn, setIsSearching, selectedIcon, setSelectedIcon }
 
       {isMobileMenuOpen && (
         <div className={`navbar-mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
-          {/* Mobile search bar - simpler version, could also use the expanding one */}
           <form onSubmit={handleSearchSubmit} className="mobile-search-form">
             <input 
               type="text" 
               placeholder="Search..." 
               value={searchQuery}
               onChange={handleSearchInputChange}
-              onKeyDown={handleSearchKeyDown} // Allows Esc to close
+              onKeyDown={handleSearchKeyDown} 
               className="mobile-search-input"
             />
             <button type="submit" className="mobile-search-submit-btn">

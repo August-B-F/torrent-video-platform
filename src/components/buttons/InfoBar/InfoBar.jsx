@@ -60,7 +60,6 @@ const InfoBar = ({
       ref={dropdownRef}
       style={{ backgroundColor: bgColor }}
     >
-      {/* if avatar isent emty put padding to 0, else keep the one as before */}
       <button
         className="dropdown-button"
         onClick={toggleDropdown}

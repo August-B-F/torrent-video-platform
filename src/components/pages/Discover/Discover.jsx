@@ -1,4 +1,3 @@
-// src/components/pages/Discover/Discover.jsx
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAddons } from '../../contexts/AddonContext';
 import MediaGridItem from '../../common/MediaGridItem/MediaGridItem';
@@ -16,7 +15,7 @@ const FEED_CONFIG = [
   { id: 'imdbRating', name: 'Featured', type: 'genre' }
 ];
 
-const ITEMS_PER_LOAD_DISCOVER = 20; // Number of items to load per fetch/page for Discover
+const ITEMS_PER_LOAD_DISCOVER = 20; 
 
 const interleaveArrays = (arr1, arr2) => {
   const maxLength = Math.max(arr1.length, arr2.length);
@@ -75,10 +74,6 @@ const Discover = () => {
       if (genreExtra?.isRequired) return [];
     }
     try {
-      // Note: Cinemeta's 'top' catalog might not respect 'skip' in the same way as 'search'.
-      // It often returns a large fixed set. We'll handle this by slicing if needed,
-      // but ideally, the API supports pagination for all relevant catalogs.
-      // For this example, we assume 'skip' works or we fetch more and paginate client-side (less ideal for large sets).
       const response = await cinemeta.get('catalog', type, feed.id, extra);
       return (response.metas || []).map(item => ({ ...item, type: item.type || type }));
     } catch (err) {
@@ -100,8 +95,8 @@ const Discover = () => {
 
     if (isNewFilterSelection) {
       setIsLoadingContent(true);
-      setAllItems([]); // Clear items for new filter
-      setCurrentPage(0); // Reset page for new filter
+      setAllItems([]); 
+      setCurrentPage(0); 
       setHasMore(true);
     } else {
       setIsLoadingMore(true);
@@ -131,9 +126,6 @@ const Discover = () => {
 
     setAllItems(prevItems => isNewFilterSelection ? uniqueNewItems : [...prevItems, ...uniqueNewItems]);
     
-    // Determine if there are more items
-    // If fetching both types, we expect up to ITEMS_PER_LOAD_DISCOVER for each.
-    // If fetching one type, we expect up to ITEMS_PER_LOAD_DISCOVER.
     const expectedItemsCount = selectedViewType === 'all' ? ITEMS_PER_LOAD_DISCOVER * 2 : ITEMS_PER_LOAD_DISCOVER;
     setHasMore(uniqueNewItems.length >= expectedItemsCount);
 
@@ -146,13 +138,10 @@ const Discover = () => {
     setIsLoadingMore(false);
   }, [isLoadingCinemeta, selectedFeed, selectedViewType, selectedSubOption, fetchCatalogDataForType]);
   
-  // Initial load and filter changes
   useEffect(() => {
-    loadContent(0, true); // true for isNewFilterSelection
+    loadContent(0, true); 
   }, [selectedViewType, selectedFeed, selectedSubOption, loadContent]);
 
-
-  // Infinite scroll observer
   const lastItemElementRef = useCallback(node => {
     if (isLoadingContent || isLoadingMore) return;
     if (observer.current) observer.current.disconnect();
@@ -160,11 +149,11 @@ const Discover = () => {
       if (entries[0].isIntersecting && hasMore) {
         setCurrentPage(prevPage => {
           const nextPageToFetch = prevPage + 1;
-          loadContent(nextPageToFetch, false); // false for isNewFilterSelection
+          loadContent(nextPageToFetch, false); 
           return nextPageToFetch; 
         });
       }
-    }, { rootMargin: "300px 0px" }); // Trigger 300px before element is visible
+    }, { rootMargin: "300px 0px" }); 
     if (node) observer.current.observe(node);
   }, [isLoadingContent, isLoadingMore, hasMore, loadContent]);
 
@@ -249,7 +238,7 @@ const Discover = () => {
         {allItems.length > 0 && (
           <div className="media-grid discover-grid">
             {allItems.map((item, index) => {
-               const key = `${item.id}-${index}`; // Ensure unique key if items can be duplicated before uniqueness filter
+               const key = `${item.id}-${index}`; 
                if (allItems.length === index + 1 && hasMore && !isLoadingMore) {
                  return <div ref={lastItemElementRef} key={key}><MediaGridItem item={item} /></div>;
                }

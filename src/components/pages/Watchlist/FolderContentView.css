@@ -1,6 +1,4 @@
-/* FolderContentView.css */
 .folder-content-view {
-  /* padding if not handled by .page-main-content */
 }
 
 .folder-content-header {
@@ -41,41 +39,30 @@
     margin-left: 5px;
 }
 
-/* Grid for items within the folder */
 .folder-items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* UPDATED for wider cards */
-  gap: 20px; /* Increased gap slightly for wider cards */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+  gap: 20px; 
 }
-/* MediaGridItem will handle its own aspect ratio now */
-/* .folder-items-grid .media-grid-item {
-    aspect-ratio: 2 / 3;
-} */
 
 .folder-content-grid-item-wrapper {
     position: relative;
 }
-/* .folder-content-grid-item-wrapper .media-grid-item {
-    height: 100%;
-} */
 
-.drag-overlay-item .media-grid-item-v3 { /* If using new item directly */
+.drag-overlay-item .media-grid-item-v3 { 
   box-shadow: 0 10px 25px rgba(0,0,0,0.4);
   transform: scale(1.07);
-  /* Width for drag overlay should ideally match the source item's typical width */
-  /* width: 180px; */ /* Example, adjust if needed based on your widest card column */
-  /* Height will be auto based on content */
 }
 
 @media (max-width: 900px) {
   .folder-items-grid {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust for tablet */
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
       gap: 18px;
   }
 }
 @media (max-width: 600px) {
     .folder-items-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjust for mobile */
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
         gap: 15px;
     }
 }

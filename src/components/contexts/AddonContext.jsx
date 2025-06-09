@@ -1,4 +1,3 @@
-// src/components/contexts/AddonContext.jsx
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import AddonClient from 'stremio-addon-client';
 

@@ -1,4 +1,3 @@
-// src/components/pages/ItemDetailPage/ItemDetailPage.jsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAddons } from '../../contexts/AddonContext';
@@ -8,12 +7,10 @@ import { usePopup } from '../../contexts/PopupContext';
 import MediaPlayerModal from '../../common/MediaPlayerModal/MediaPlayerModal';
 import './ItemDetailPage.css';
 
-// Import Lucide icons
 import {
   PlayCircle, PlusCircle, Film, Tv, DownloadCloud, Users, ArrowUpCircle, HardDrive, ChevronLeft, Search, Filter, Star, CalendarDays, Clock, Loader2, PlayIcon as PlayIconLucide
 } from 'lucide-react';
 
-// Helper function to parse quality from title (defined at module level)
 const parseQualityFromTitle = (title) => {
   if (!title) return 'SD';
   const titleLower = title.toLowerCase();
@@ -26,7 +23,6 @@ const parseQualityFromTitle = (title) => {
   return 'SD';
 };
 
-// Helper function to parse size string to MB (defined at module level)
 const parseSizeToMB = (sizeStr) => {
   if (!sizeStr) return 0;
   
@@ -34,7 +30,7 @@ const parseSizeToMB = (sizeStr) => {
   let unitPart;
 
   if (typeof sizeStr === 'number') {
-    numPart = sizeStr; // Assume bytes if number
+    numPart = sizeStr;
     unitPart = 'bytes';
   } else if (typeof sizeStr === 'string') {
     const sizeLower = sizeStr.toLowerCase();
@@ -51,14 +47,12 @@ const parseSizeToMB = (sizeStr) => {
   if (unitPart.includes('kb')) return numPart / 1024;
   if (unitPart.includes('bytes')) return numPart / (1024 * 1024);
   
-  // If it's just a number (already parsed or originally a number)
-  if (!isNaN(numPart) && isFinite(numPart) && unitPart === 'bytes') { // Explicitly check if it was assumed bytes
+  if (!isNaN(numPart) && isFinite(numPart) && unitPart === 'bytes') { 
     return numPart / (1024*1024);
   }
   return 0;
 };
 
-// User's provided scoreAndSortTorrents function (defined at module level)
 const scoreAndSortTorrents = (torrents, searchQuery, itemType, episodeDetails) => {
   if (!Array.isArray(torrents)) return [];
 
@@ -104,20 +98,19 @@ const scoreAndSortTorrents = (torrents, searchQuery, itemType, episodeDetails) =
       }
 
       let qualityFound = false;
-      // stream.quality is already parsed by parseQualityFromTitle before this function is called
-      if (stream.quality && stream.quality !== 'N/A' && stream.quality !== 'SD') { // SD has low base score
+  
+      if (stream.quality && stream.quality !== 'N/A' && stream.quality !== 'SD') { 
         const qualityKey = stream.quality.toLowerCase().replace('p','');
         if (qualityScores[qualityKey]) {
-          score += qualityScores[qualityKey] * 2.5; // Use the pre-parsed quality
+          score += qualityScores[qualityKey] * 2.5; 
           qualityFound = true;
         }
       }
       
-      // Fallback to title parsing if stream.quality was 'N/A' or 'SD' initially and might be improved
       if (!qualityFound) {
         for (const q in qualityScores) {
           if (titleLower.includes(q)) {
-            score += qualityScores[q]; // Add points based on keywords
+            score += qualityScores[q]; 
             qualityFound = true;
             break;
           }
@@ -127,7 +120,7 @@ const scoreAndSortTorrents = (torrents, searchQuery, itemType, episodeDetails) =
 
 
       for (const rt in releaseTypeScores) {
-        if (titleLower.includes(rt.replace('-', ''))) { // also check for 'web dl' etc.
+        if (titleLower.includes(rt.replace('-', ''))) { 
           score += releaseTypeScores[rt];
           break; 
         }
@@ -142,13 +135,11 @@ const scoreAndSortTorrents = (torrents, searchQuery, itemType, episodeDetails) =
       
       if (stream.publishDate) score += 0.2;
       
-      // Use the raw Size (bytes) from the original torrent object for scoring
-      // The stream object passed to scoreAndSortTorrents will have `Size` (original bytes) and `size` (formatted string)
-      const sizeForScoring = stream.Size || 0; // Use original byte size for scoring
-      const sizeMB = parseSizeToMB(sizeForScoring); // Convert raw bytes to MB for scoring logic
+      const sizeForScoring = stream.Size || 0; 
+      const sizeMB = parseSizeToMB(sizeForScoring); 
 
       if (sizeMB > 0) {
-        const q = stream.quality || parseQualityFromTitle(titleLower); // Use pre-parsed or re-parse for scoring context
+        const q = stream.quality || parseQualityFromTitle(titleLower); 
         if (q === '4K') {
             if (sizeMB < 1500) score -=5; else if (sizeMB > 5000) score +=2;
         } else if (q === '1080p') {
@@ -240,8 +231,7 @@ const ItemDetailPage = () => {
         setFilteredStreamsForDisplay([]);
         return;
     }
-    // Objects in allStreams already have a `quality` property from the formatting step
-    // and are already sorted by scoreAndSortTorrents.
+ 
     if (qualityFilter === 'All') {
         setFilteredStreamsForDisplay(allStreams);
     } else {
@@ -249,7 +239,7 @@ const ItemDetailPage = () => {
     }
   }, [allStreams, qualityFilter]);
 
-  const formatFileSize = useCallback((bytes) => { // Make it a useCallback or move outside if static
+  const formatFileSize = useCallback((bytes) => { 
     if (!bytes || bytes === 0) return 'N/A';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -278,7 +268,6 @@ const ItemDetailPage = () => {
           const sn = selectedEpisode.season; 
           const en = selectedEpisode.number || selectedEpisode.episode;
           const name = metadata.name.replace(/[:\-–()']/g, '').replace(/\s+/g, ' ').trim();
-          // Using only the specific SxxExx query first as it's most targeted
           currentSearchQueryForLogic = [`${name} S${String(sn).padStart(2,'0')}E${String(en).padStart(2,'0')}`];
         } else if (metadata.type === 'movie') {
           let movieName = metadata.name.replace(/[:\-–()']/g, '').replace(/\s+/g, ' ').trim();
@@ -289,7 +278,6 @@ const ItemDetailPage = () => {
           return;
         }
     } else {
-        // If forcedQuery is provided, wrap it in an array if it's a string
         currentSearchQueryForLogic = Array.isArray(forcedQuery) ? forcedQuery : [forcedQuery];
     }
 
@@ -332,7 +320,7 @@ const ItemDetailPage = () => {
 
     if (allResultsAccumulated.length > 0) {
       const uniqueResults = Array.from(new Map(allResultsAccumulated.map(stream => 
-        [stream.MagnetUri || stream.Link || stream.Title, stream] // Prioritize MagnetUri for uniqueness
+        [stream.MagnetUri || stream.Link || stream.Title, stream] 
       )).values());
 
       const formattedStreams = uniqueResults.map(stream => ({
@@ -341,8 +329,8 @@ const ItemDetailPage = () => {
         quality: parseQualityFromTitle(stream.Title),
         seeders: stream.Seeders || 0,
         peers: stream.Peers || 0,
-        Size: stream.Size, // Raw size in bytes for scoring
-        size: formatFileSize(stream.Size), // Formatted size string for display
+        Size: stream.Size, 
+        size: formatFileSize(stream.Size),
         magnetLink: stream.MagnetUri || (stream.Link && stream.Link.startsWith('magnet:') ? stream.Link : null),
         publishDate: stream.PublishDate,
         tracker: stream.Tracker || stream.Site || 'Unknown',
@@ -354,7 +342,7 @@ const ItemDetailPage = () => {
       
       const itemTypeForScoring = metadata?.type;
       const episodeDetailsForScoring = selectedEpisode ? { season: selectedEpisode.season, episode: selectedEpisode.episode || selectedEpisode.number } : null;
-      const mainSearchQuery = currentSearchQueryForLogic[0]; // Use the primary search query for context in scoring
+      const mainSearchQuery = currentSearchQueryForLogic[0]; 
 
       const sortedStreams = scoreAndSortTorrents(validStreams, mainSearchQuery, itemTypeForScoring, episodeDetailsForScoring); 
 
@@ -401,7 +389,7 @@ const ItemDetailPage = () => {
         if (data) {
           setMetadata(data);
           if (data.type === 'movie') {
-            setShowStreamSelection(true); // This will trigger the above useEffect to fetch streams
+            setShowStreamSelection(true);
           } else if (data.type === 'series' && data.videos) {
             const processed = processVideos(data.videos);
             const firstSeasonNum = Object.keys(processed.regularSeasons).map(Number).sort((a,b) => a-b)[0];
@@ -422,10 +410,9 @@ const ItemDetailPage = () => {
       .finally(() => setIsLoadingMeta(false));
   }, [id, type, fetchItemDetailsFromContext, processVideos]);
 
-  // handleEpisodeSelect is defined here
   const handleEpisodeSelect = useCallback((episode) => {
     setSelectedEpisode(episode);
-    setShowStreamSelection(true); // This will trigger the useEffect for fetchAndProcessTorrentResults
+    setShowStreamSelection(true);
   }, []);
 
 
@@ -518,7 +505,7 @@ const ItemDetailPage = () => {
     if (foundTrailer && urlToPlay) {
       showPopup(`Playing trailer for ${metadata.name}`, "info");
       setCurrentTrailerUrl(urlToPlay);
-      setIsTrailerPlayerModalOpen(true); // MediaPlayerModal gets type="direct" hardcoded
+      setIsTrailerPlayerModalOpen(true); 
     } else {
       showPopup("No trailer available for this item.", "info");
     }
@@ -641,7 +628,7 @@ const ItemDetailPage = () => {
             
             {!isLoadingStreams && filteredStreamsForDisplay.length > 0 && (
               <ul className="stream-list">
-                {filteredStreamsForDisplay.map((stream) => ( // Removed index as it's not needed if Guid/MagnetUri is good for key
+                {filteredStreamsForDisplay.map((stream) => ( 
                   <li key={stream.Guid || stream.magnetLink || stream.title} className="stream-item">
                     <div className={`stream-quality-badge quality-${(stream.quality || 'sd').toLowerCase()}`}>
                         {stream.quality || 'SD'}
@@ -651,7 +638,7 @@ const ItemDetailPage = () => {
                       <div className="stream-details">
                         <span><ArrowUpCircle size={14}/> {stream.seeders || 0}</span>
                         <span><Users size={14}/> {stream.peers || 0}</span>
-                        <span><HardDrive size={14}/> {stream.size}</span> {/* Formatted size */}
+                        <span><HardDrive size={14}/> {stream.size}</span>
                       </div>
                     </div>
                     <button 

@@ -1,18 +1,17 @@
-/* MediaPlayerModal.css - Enhanced Styling with Custom Controls */
 .media-player-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.92); /* Darker overlay */
+    background-color: rgba(0, 0, 0, 0.92); 
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1500;
     opacity: 0;
     animation: fadeInOverlayModalEnhanced 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    padding: 15px; /* Padding for smaller screens */
+    padding: 15px; 
     box-sizing: border-box;
   }
   
@@ -23,24 +22,22 @@
   }
   
   .media-player-modal-content {
-    background-color: #08090c; /* Deep dark background */
+    background-color: #08090c; 
     border-radius: 10px;
     width: 100%;
-    max-width: 1000px; /* Adjusted max width */
+    max-width: 1000px; 
     aspect-ratio: 16 / 9;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.7); /* More prominent shadow */
-    border: 1px solid rgba(255, 255, 255, 0.03); /* Very subtle border */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7); 
+    border: 1px solid rgba(255, 255, 255, 0.03); 
     display: flex;
     flex-direction: column;
     transform: scale(0.92) translateY(15px);
     opacity: 0;
     animation: zoomInModalEnhancedPlayer 0.4s 0.05s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
     position: relative;
-    overflow: hidden; /* Crucial */
-    /* cursor: none; */ /* Optional: hide cursor when controls are hidden */
+    overflow: hidden; 
   }
   .media-player-modal-content.show-controls {
-    /* cursor: default; */
   }
   
   
@@ -61,7 +58,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 20; /* Above player, below modal overlay */
+    z-index: 20;
     opacity: 0;
     transform: translateY(-100%);
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
@@ -130,7 +127,6 @@
     transform: translate(-50%, -50%);
     color: #fff;
     font-size: 1.1rem;
-    /* Basic spinner */
     border: 4px solid rgba(255, 255, 255, 0.2);
     border-left-color: #fff;
     border-radius: 50%;
@@ -144,8 +140,6 @@
     to { transform: translate(-50%, -50%) rotate(360deg); }
   }
   
-  
-  /* Custom Controls Bar */
   .media-player-controls {
     position: absolute;
     bottom: 0;
@@ -200,7 +194,6 @@
     transition: height 0.1s ease-in-out;
     background-image: linear-gradient(var(--accent-color, #6A5AF9), var(--accent-color, #6A5AF9));
     background-repeat: no-repeat;
-    /* background-size set by inline style */
   }
   .progress-bar:hover {
       height: 8px;
@@ -214,7 +207,7 @@
     background: var(--accent-color-main, #fff);
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid #08090c; /* Match player background */
+    border: 2px solid #08090c; 
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
     transition: transform 0.1s ease;
   }
@@ -236,7 +229,7 @@
       transform: scale(1.1);
   }
   .progress-bar::-moz-range-track {
-      background: transparent; /* Hide default track */
+      background: transparent; 
   }
   .progress-bar::-moz-range-progress {
       background-color: var(--accent-color, #6A5AF9);
@@ -248,7 +241,7 @@
   .time-display {
     color: #ccc;
     font-size: 0.8rem;
-    min-width: 90px; /* To prevent layout shifts */
+    min-width: 90px; 
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
@@ -262,7 +255,7 @@
   .volume-slider {
     -webkit-appearance: none;
     appearance: none;
-    width: 70px; /* Adjust width as needed */
+    width: 70px;
     height: 4px;
     background: rgba(255, 255, 255, 0.2);
     outline: none;
@@ -331,13 +324,12 @@
           padding: 6px 10px;
       }
       .media-player-controls {
-          /* Could simplify further, e.g., hide volume slider and only have mute */
           gap: 5px;
       }
       .progress-bar {
-          flex-grow: 1; /* Allow progress bar to take more space */
+          flex-grow: 1;
       }
       .volume-slider {
-          display: none; /* Example: hide slider on very small screens */
+          display: none; 
       }
   }
